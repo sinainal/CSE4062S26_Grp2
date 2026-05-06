@@ -136,6 +136,48 @@ h1, h2, h3, h4 { font-family: 'Libre Baskerville', serif; color: var(--text-main
     font-size: 12px;
     margin: 8px 0 12px;
 }
+.lab-layout { align-items: stretch; }
+.algorithm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+}
+.algorithm-btn {
+    border: 1px solid var(--border-color);
+    background: white;
+    color: var(--text-main);
+    padding: 9px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+}
+.algorithm-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.algorithm-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+.algorithm-btn:disabled { color: var(--text-muted); cursor: not-allowed; opacity: 0.55; }
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+.control-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+.control-field select {
+    border: 1px solid var(--border-color);
+    background: white;
+    color: var(--text-main);
+    border-radius: 4px;
+    padding: 8px 10px;
+    font: inherit;
+}
+.chart-container.cluster-chart-container { height: 560px; }
 
 @media (max-width: 980px) {
     .model-ready-grid { grid-template-columns: 1fr; }

@@ -1,0 +1,2978 @@
+{
+  "title": "Interactive Algorithm Test Lab",
+  "sample_policy": "Precomputed hyperparameter grid on a stratified sample for responsive dashboard tuning.",
+  "sample": {
+    "train_rows": 6000,
+    "test_rows": 2500,
+    "positive_rate_train": 0.089667,
+    "positive_rate_test": 0.0896,
+    "full_train_rows": 55976,
+    "full_test_rows": 13994
+  },
+  "algorithms": [
+    {
+      "name": "k-NN",
+      "controls": [
+        {
+          "name": "n_neighbors",
+          "label": "Neighbors",
+          "type": "select",
+          "values": [
+            7,
+            21,
+            41
+          ]
+        },
+        {
+          "name": "weights",
+          "label": "Weighting",
+          "type": "select",
+          "values": [
+            "uniform",
+            "distance"
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "model_name": "k-NN",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.908,
+            "precision": 0.2,
+            "recall": 0.008929,
+            "f1": 0.017094,
+            "roc_auc": 0.522926
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2268,
+                8
+              ],
+              [
+                222,
+                2
+              ]
+            ]
+          },
+          "params": {
+            "n_neighbors": 7,
+            "weights": "uniform"
+          }
+        },
+        {
+          "model_name": "k-NN",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.908,
+            "precision": 0.2,
+            "recall": 0.008929,
+            "f1": 0.017094,
+            "roc_auc": 0.526503
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2268,
+                8
+              ],
+              [
+                222,
+                2
+              ]
+            ]
+          },
+          "params": {
+            "n_neighbors": 7,
+            "weights": "distance"
+          }
+        },
+        {
+          "model_name": "k-NN",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9104,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.535472
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2276,
+                0
+              ],
+              [
+                224,
+                0
+              ]
+            ]
+          },
+          "params": {
+            "n_neighbors": 21,
+            "weights": "uniform"
+          }
+        },
+        {
+          "model_name": "k-NN",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9104,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.53866
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2276,
+                0
+              ],
+              [
+                224,
+                0
+              ]
+            ]
+          },
+          "params": {
+            "n_neighbors": 21,
+            "weights": "distance"
+          }
+        },
+        {
+          "model_name": "k-NN",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9104,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.554801
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2276,
+                0
+              ],
+              [
+                224,
+                0
+              ]
+            ]
+          },
+          "params": {
+            "n_neighbors": 41,
+            "weights": "uniform"
+          }
+        },
+        {
+          "model_name": "k-NN",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9104,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.554287
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2276,
+                0
+              ],
+              [
+                224,
+                0
+              ]
+            ]
+          },
+          "params": {
+            "n_neighbors": 41,
+            "weights": "distance"
+          }
+        }
+      ],
+      "best": {
+        "model_name": "k-NN",
+        "feature_mode": "sampled model-ready encoded features",
+        "metrics": {
+          "accuracy": 0.9104,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "roc_auc": 0.554801
+        },
+        "confusion_matrix": {
+          "labels": [
+            "Not <30",
+            "<30"
+          ],
+          "matrix": [
+            [
+              2276,
+              0
+            ],
+            [
+              224,
+              0
+            ]
+          ]
+        },
+        "params": {
+          "n_neighbors": 41,
+          "weights": "uniform"
+        }
+      },
+      "unavailable_reason": null
+    },
+    {
+      "name": "Naive Bayes",
+      "controls": [
+        {
+          "name": "var_smoothing",
+          "label": "Variance smoothing",
+          "type": "select",
+          "values": [
+            1e-09,
+            1e-08,
+            1e-07
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "model_name": "Naive Bayes",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.1144,
+            "precision": 0.090198,
+            "recall": 0.977679,
+            "f1": 0.165158,
+            "roc_auc": 0.502556
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                67,
+                2209
+              ],
+              [
+                5,
+                219
+              ]
+            ]
+          },
+          "params": {
+            "var_smoothing": 1e-09
+          }
+        },
+        {
+          "model_name": "Naive Bayes",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.116,
+            "precision": 0.090008,
+            "recall": 0.973214,
+            "f1": 0.164777,
+            "roc_auc": 0.50164
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                72,
+                2204
+              ],
+              [
+                6,
+                218
+              ]
+            ]
+          },
+          "params": {
+            "var_smoothing": 1e-08
+          }
+        },
+        {
+          "model_name": "Naive Bayes",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.1188,
+            "precision": 0.089589,
+            "recall": 0.964286,
+            "f1": 0.163947,
+            "roc_auc": 0.507363
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                81,
+                2195
+              ],
+              [
+                8,
+                216
+              ]
+            ]
+          },
+          "params": {
+            "var_smoothing": 1e-07
+          }
+        }
+      ],
+      "best": {
+        "model_name": "Naive Bayes",
+        "feature_mode": "sampled model-ready encoded features",
+        "metrics": {
+          "accuracy": 0.1188,
+          "precision": 0.089589,
+          "recall": 0.964286,
+          "f1": 0.163947,
+          "roc_auc": 0.507363
+        },
+        "confusion_matrix": {
+          "labels": [
+            "Not <30",
+            "<30"
+          ],
+          "matrix": [
+            [
+              81,
+              2195
+            ],
+            [
+              8,
+              216
+            ]
+          ]
+        },
+        "params": {
+          "var_smoothing": 1e-07
+        }
+      },
+      "unavailable_reason": null
+    },
+    {
+      "name": "Decision Tree",
+      "controls": [
+        {
+          "name": "max_depth",
+          "label": "Max depth",
+          "type": "select",
+          "values": [
+            4,
+            8,
+            12
+          ]
+        },
+        {
+          "name": "min_samples_leaf",
+          "label": "Min samples leaf",
+          "type": "select",
+          "values": [
+            20,
+            60
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "model_name": "Decision Tree",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.6476,
+            "precision": 0.114889,
+            "recall": 0.4375,
+            "f1": 0.181987,
+            "roc_auc": 0.58411
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1521,
+                755
+              ],
+              [
+                126,
+                98
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.276428
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.206474
+            },
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.156611
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.132809
+            },
+            {
+              "feature": "age",
+              "importance": 0.072359
+            },
+            {
+              "feature": "num_procedures",
+              "importance": 0.044623
+            },
+            {
+              "feature": "diabetesMed_Yes",
+              "importance": 0.041099
+            },
+            {
+              "feature": "metformin_Steady",
+              "importance": 0.038819
+            },
+            {
+              "feature": "diag_3_Diabetes",
+              "importance": 0.030779
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.0
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.0
+            },
+            {
+              "feature": "number_emergency",
+              "importance": 0.0
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.0
+            },
+            {
+              "feature": "number_outpatient",
+              "importance": 0.0
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.0
+            }
+          ],
+          "params": {
+            "max_depth": 4,
+            "min_samples_leaf": 20
+          }
+        },
+        {
+          "model_name": "Decision Tree",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.6524,
+            "precision": 0.117438,
+            "recall": 0.441964,
+            "f1": 0.185567,
+            "roc_auc": 0.596611
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1532,
+                744
+              ],
+              [
+                125,
+                99
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.291525
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.220069
+            },
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.144041
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.140062
+            },
+            {
+              "feature": "age",
+              "importance": 0.076311
+            },
+            {
+              "feature": "diabetesMed_Yes",
+              "importance": 0.043343
+            },
+            {
+              "feature": "metformin_Steady",
+              "importance": 0.039475
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.026482
+            },
+            {
+              "feature": "diag_3_Other",
+              "importance": 0.018692
+            },
+            {
+              "feature": "num_procedures",
+              "importance": 0.0
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.0
+            },
+            {
+              "feature": "number_emergency",
+              "importance": 0.0
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.0
+            },
+            {
+              "feature": "number_outpatient",
+              "importance": 0.0
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.0
+            }
+          ],
+          "params": {
+            "max_depth": 4,
+            "min_samples_leaf": 60
+          }
+        },
+        {
+          "model_name": "Decision Tree",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.5752,
+            "precision": 0.098659,
+            "recall": 0.459821,
+            "f1": 0.162461,
+            "roc_auc": 0.541507
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1335,
+                941
+              ],
+              [
+                121,
+                103
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.177309
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.095433
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.094767
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.092743
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.064638
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.045718
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.044571
+            },
+            {
+              "feature": "num_procedures",
+              "importance": 0.036961
+            },
+            {
+              "feature": "age",
+              "importance": 0.035603
+            },
+            {
+              "feature": "diag_3_Circulatory",
+              "importance": 0.031993
+            },
+            {
+              "feature": "diag_3_Diabetes",
+              "importance": 0.021083
+            },
+            {
+              "feature": "race_Caucasian",
+              "importance": 0.019774
+            },
+            {
+              "feature": "diag_2_Other",
+              "importance": 0.019675
+            },
+            {
+              "feature": "diag_1_Other",
+              "importance": 0.01681
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.016379
+            }
+          ],
+          "params": {
+            "max_depth": 8,
+            "min_samples_leaf": 20
+          }
+        },
+        {
+          "model_name": "Decision Tree",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.5572,
+            "precision": 0.106155,
+            "recall": 0.53125,
+            "f1": 0.176952,
+            "roc_auc": 0.56671
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1274,
+                1002
+              ],
+              [
+                105,
+                119
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.147341
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.127949
+            },
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.113173
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.101146
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.074487
+            },
+            {
+              "feature": "diag_3_Circulatory",
+              "importance": 0.037784
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.037498
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.036176
+            },
+            {
+              "feature": "age",
+              "importance": 0.035074
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.033326
+            },
+            {
+              "feature": "insulin_No",
+              "importance": 0.027564
+            },
+            {
+              "feature": "glipizide_Steady",
+              "importance": 0.023802
+            },
+            {
+              "feature": "race_AfricanAmerican",
+              "importance": 0.022839
+            },
+            {
+              "feature": "diag_3_Other",
+              "importance": 0.022497
+            },
+            {
+              "feature": "change_No",
+              "importance": 0.022008
+            }
+          ],
+          "params": {
+            "max_depth": 8,
+            "min_samples_leaf": 60
+          }
+        },
+        {
+          "model_name": "Decision Tree",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.5888,
+            "precision": 0.089796,
+            "recall": 0.392857,
+            "f1": 0.146179,
+            "roc_auc": 0.513522
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1384,
+                892
+              ],
+              [
+                136,
+                88
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.159566
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.11803
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.09695
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.066269
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.06218
+            },
+            {
+              "feature": "age",
+              "importance": 0.042998
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.042412
+            },
+            {
+              "feature": "num_procedures",
+              "importance": 0.038138
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.034308
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.031341
+            },
+            {
+              "feature": "diag_3_Circulatory",
+              "importance": 0.028799
+            },
+            {
+              "feature": "diabetesMed_Yes",
+              "importance": 0.024415
+            },
+            {
+              "feature": "insulin_Steady",
+              "importance": 0.020403
+            },
+            {
+              "feature": "diag_2_Other",
+              "importance": 0.018084
+            },
+            {
+              "feature": "diag_2_Circulatory",
+              "importance": 0.016813
+            }
+          ],
+          "params": {
+            "max_depth": 12,
+            "min_samples_leaf": 20
+          }
+        },
+        {
+          "model_name": "Decision Tree",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.5836,
+            "precision": 0.107589,
+            "recall": 0.5,
+            "f1": 0.177075,
+            "roc_auc": 0.552507
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1347,
+                929
+              ],
+              [
+                112,
+                112
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.143023
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.117083
+            },
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.116288
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.100355
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.080375
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.05501
+            },
+            {
+              "feature": "diag_3_Circulatory",
+              "importance": 0.039936
+            },
+            {
+              "feature": "insulin_No",
+              "importance": 0.035115
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.029797
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.028747
+            },
+            {
+              "feature": "age",
+              "importance": 0.027871
+            },
+            {
+              "feature": "gender_Male",
+              "importance": 0.022458
+            },
+            {
+              "feature": "glipizide_Steady",
+              "importance": 0.018914
+            },
+            {
+              "feature": "race_AfricanAmerican",
+              "importance": 0.018149
+            },
+            {
+              "feature": "diag_3_Other",
+              "importance": 0.017877
+            }
+          ],
+          "params": {
+            "max_depth": 12,
+            "min_samples_leaf": 60
+          }
+        }
+      ],
+      "best": {
+        "model_name": "Decision Tree",
+        "feature_mode": "sampled model-ready encoded features",
+        "metrics": {
+          "accuracy": 0.6524,
+          "precision": 0.117438,
+          "recall": 0.441964,
+          "f1": 0.185567,
+          "roc_auc": 0.596611
+        },
+        "confusion_matrix": {
+          "labels": [
+            "Not <30",
+            "<30"
+          ],
+          "matrix": [
+            [
+              1532,
+              744
+            ],
+            [
+              125,
+              99
+            ]
+          ]
+        },
+        "top_features": [
+          {
+            "feature": "discharge_disposition_id",
+            "importance": 0.291525
+          },
+          {
+            "feature": "number_inpatient",
+            "importance": 0.220069
+          },
+          {
+            "feature": "num_lab_procedures",
+            "importance": 0.144041
+          },
+          {
+            "feature": "number_diagnoses",
+            "importance": 0.140062
+          },
+          {
+            "feature": "age",
+            "importance": 0.076311
+          },
+          {
+            "feature": "diabetesMed_Yes",
+            "importance": 0.043343
+          },
+          {
+            "feature": "metformin_Steady",
+            "importance": 0.039475
+          },
+          {
+            "feature": "admission_type_id",
+            "importance": 0.026482
+          },
+          {
+            "feature": "diag_3_Other",
+            "importance": 0.018692
+          },
+          {
+            "feature": "num_procedures",
+            "importance": 0.0
+          },
+          {
+            "feature": "num_medications",
+            "importance": 0.0
+          },
+          {
+            "feature": "number_emergency",
+            "importance": 0.0
+          },
+          {
+            "feature": "time_in_hospital",
+            "importance": 0.0
+          },
+          {
+            "feature": "number_outpatient",
+            "importance": 0.0
+          },
+          {
+            "feature": "admission_source_id",
+            "importance": 0.0
+          }
+        ],
+        "params": {
+          "max_depth": 4,
+          "min_samples_leaf": 60
+        }
+      },
+      "unavailable_reason": null
+    },
+    {
+      "name": "Random Forest",
+      "controls": [
+        {
+          "name": "n_estimators",
+          "label": "Trees",
+          "type": "select",
+          "values": [
+            100,
+            180
+          ]
+        },
+        {
+          "name": "max_depth",
+          "label": "Max depth",
+          "type": "select",
+          "values": [
+            10,
+            14
+          ]
+        },
+        {
+          "name": "min_samples_leaf",
+          "label": "Min samples leaf",
+          "type": "select",
+          "values": [
+            20
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "model_name": "Random Forest",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7496,
+            "precision": 0.125,
+            "recall": 0.299107,
+            "f1": 0.176316,
+            "roc_auc": 0.607706
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1807,
+                469
+              ],
+              [
+                157,
+                67
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.083522
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.079173
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.072563
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.065671
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.065481
+            },
+            {
+              "feature": "age",
+              "importance": 0.04915
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.035962
+            },
+            {
+              "feature": "num_procedures",
+              "importance": 0.030664
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.025836
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.022818
+            },
+            {
+              "feature": "metformin_No",
+              "importance": 0.015926
+            },
+            {
+              "feature": "diag_2_Circulatory",
+              "importance": 0.015612
+            },
+            {
+              "feature": "medical_specialty_Missing",
+              "importance": 0.01516
+            },
+            {
+              "feature": "change_No",
+              "importance": 0.015037
+            },
+            {
+              "feature": "metformin_Steady",
+              "importance": 0.014182
+            }
+          ],
+          "params": {
+            "max_depth": 10,
+            "min_samples_leaf": 20,
+            "n_estimators": 100
+          }
+        },
+        {
+          "model_name": "Random Forest",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7536,
+            "precision": 0.125954,
+            "recall": 0.294643,
+            "f1": 0.176471,
+            "roc_auc": 0.609357
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1818,
+                458
+              ],
+              [
+                158,
+                66
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.081733
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.077191
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.069738
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.068737
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.067072
+            },
+            {
+              "feature": "age",
+              "importance": 0.05062
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.036091
+            },
+            {
+              "feature": "num_procedures",
+              "importance": 0.033311
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.026711
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.022915
+            },
+            {
+              "feature": "medical_specialty_Missing",
+              "importance": 0.015407
+            },
+            {
+              "feature": "change_No",
+              "importance": 0.014605
+            },
+            {
+              "feature": "diag_2_Circulatory",
+              "importance": 0.014384
+            },
+            {
+              "feature": "metformin_No",
+              "importance": 0.01423
+            },
+            {
+              "feature": "metformin_Steady",
+              "importance": 0.013931
+            }
+          ],
+          "params": {
+            "max_depth": 10,
+            "min_samples_leaf": 20,
+            "n_estimators": 180
+          }
+        },
+        {
+          "model_name": "Random Forest",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7868,
+            "precision": 0.136471,
+            "recall": 0.258929,
+            "f1": 0.178737,
+            "roc_auc": 0.616215
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1909,
+                367
+              ],
+              [
+                166,
+                58
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.091091
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.081058
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.068412
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.064336
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.063302
+            },
+            {
+              "feature": "age",
+              "importance": 0.04501
+            },
+            {
+              "feature": "num_procedures",
+              "importance": 0.038789
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.031972
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.030745
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.027767
+            },
+            {
+              "feature": "medical_specialty_Missing",
+              "importance": 0.01653
+            },
+            {
+              "feature": "gender_Male",
+              "importance": 0.016011
+            },
+            {
+              "feature": "diag_1_Circulatory",
+              "importance": 0.015429
+            },
+            {
+              "feature": "diag_3_Other",
+              "importance": 0.014563
+            },
+            {
+              "feature": "metformin_Steady",
+              "importance": 0.014343
+            }
+          ],
+          "params": {
+            "max_depth": 14,
+            "min_samples_leaf": 20,
+            "n_estimators": 100
+          }
+        },
+        {
+          "model_name": "Random Forest",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7876,
+            "precision": 0.131894,
+            "recall": 0.245536,
+            "f1": 0.171607,
+            "roc_auc": 0.613408
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1914,
+                362
+              ],
+              [
+                169,
+                55
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "num_lab_procedures",
+              "importance": 0.089278
+            },
+            {
+              "feature": "num_medications",
+              "importance": 0.081659
+            },
+            {
+              "feature": "time_in_hospital",
+              "importance": 0.067276
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.065754
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.061715
+            },
+            {
+              "feature": "age",
+              "importance": 0.046683
+            },
+            {
+              "feature": "num_procedures",
+              "importance": 0.036384
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.031942
+            },
+            {
+              "feature": "admission_type_id",
+              "importance": 0.031787
+            },
+            {
+              "feature": "admission_source_id",
+              "importance": 0.026995
+            },
+            {
+              "feature": "metformin_Steady",
+              "importance": 0.01591
+            },
+            {
+              "feature": "gender_Male",
+              "importance": 0.015792
+            },
+            {
+              "feature": "medical_specialty_Missing",
+              "importance": 0.015091
+            },
+            {
+              "feature": "diag_3_Other",
+              "importance": 0.014491
+            },
+            {
+              "feature": "diag_3_Circulatory",
+              "importance": 0.014181
+            }
+          ],
+          "params": {
+            "max_depth": 14,
+            "min_samples_leaf": 20,
+            "n_estimators": 180
+          }
+        }
+      ],
+      "best": {
+        "model_name": "Random Forest",
+        "feature_mode": "sampled model-ready encoded features",
+        "metrics": {
+          "accuracy": 0.7868,
+          "precision": 0.136471,
+          "recall": 0.258929,
+          "f1": 0.178737,
+          "roc_auc": 0.616215
+        },
+        "confusion_matrix": {
+          "labels": [
+            "Not <30",
+            "<30"
+          ],
+          "matrix": [
+            [
+              1909,
+              367
+            ],
+            [
+              166,
+              58
+            ]
+          ]
+        },
+        "top_features": [
+          {
+            "feature": "num_lab_procedures",
+            "importance": 0.091091
+          },
+          {
+            "feature": "num_medications",
+            "importance": 0.081058
+          },
+          {
+            "feature": "time_in_hospital",
+            "importance": 0.068412
+          },
+          {
+            "feature": "discharge_disposition_id",
+            "importance": 0.064336
+          },
+          {
+            "feature": "number_diagnoses",
+            "importance": 0.063302
+          },
+          {
+            "feature": "age",
+            "importance": 0.04501
+          },
+          {
+            "feature": "num_procedures",
+            "importance": 0.038789
+          },
+          {
+            "feature": "admission_type_id",
+            "importance": 0.031972
+          },
+          {
+            "feature": "number_inpatient",
+            "importance": 0.030745
+          },
+          {
+            "feature": "admission_source_id",
+            "importance": 0.027767
+          },
+          {
+            "feature": "medical_specialty_Missing",
+            "importance": 0.01653
+          },
+          {
+            "feature": "gender_Male",
+            "importance": 0.016011
+          },
+          {
+            "feature": "diag_1_Circulatory",
+            "importance": 0.015429
+          },
+          {
+            "feature": "diag_3_Other",
+            "importance": 0.014563
+          },
+          {
+            "feature": "metformin_Steady",
+            "importance": 0.014343
+          }
+        ],
+        "params": {
+          "max_depth": 14,
+          "min_samples_leaf": 20,
+          "n_estimators": 100
+        }
+      },
+      "unavailable_reason": null
+    },
+    {
+      "name": "XGBoost",
+      "controls": [
+        {
+          "name": "n_estimators",
+          "label": "Trees",
+          "type": "select",
+          "values": [
+            180,
+            280
+          ]
+        },
+        {
+          "name": "max_depth",
+          "label": "Max depth",
+          "type": "select",
+          "values": [
+            3,
+            4
+          ]
+        },
+        {
+          "name": "learning_rate",
+          "label": "Learning rate",
+          "type": "select",
+          "values": [
+            0.05,
+            0.1
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "model_name": "XGBoost",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.6552,
+            "precision": 0.126464,
+            "recall": 0.482143,
+            "f1": 0.200371,
+            "roc_auc": 0.604669
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1530,
+                746
+              ],
+              [
+                116,
+                108
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.017773
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.017411
+            },
+            {
+              "feature": "diag_2_Digestive",
+              "importance": 0.016243
+            },
+            {
+              "feature": "diag_2_Other",
+              "importance": 0.015631
+            },
+            {
+              "feature": "diabetesMed_Yes",
+              "importance": 0.015327
+            },
+            {
+              "feature": "medical_specialty_Emergency/Trauma",
+              "importance": 0.01505
+            },
+            {
+              "feature": "glipizide_No",
+              "importance": 0.015008
+            },
+            {
+              "feature": "medical_specialty_Orthopedics-Reconstructive",
+              "importance": 0.014829
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.014628
+            },
+            {
+              "feature": "insulin_No",
+              "importance": 0.014217
+            },
+            {
+              "feature": "gender_Female",
+              "importance": 0.014187
+            },
+            {
+              "feature": "diag_3_Genitourinary",
+              "importance": 0.014048
+            },
+            {
+              "feature": "medical_specialty_Family/GeneralPractice",
+              "importance": 0.01398
+            },
+            {
+              "feature": "medical_specialty_InternalMedicine",
+              "importance": 0.013873
+            },
+            {
+              "feature": "diabetesMed_No",
+              "importance": 0.013559
+            }
+          ],
+          "params": {
+            "learning_rate": 0.05,
+            "max_depth": 3,
+            "n_estimators": 180
+          }
+        },
+        {
+          "model_name": "XGBoost",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.6776,
+            "precision": 0.130711,
+            "recall": 0.459821,
+            "f1": 0.203557,
+            "roc_auc": 0.602275
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1591,
+                685
+              ],
+              [
+                121,
+                103
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "number_inpatient",
+              "importance": 0.017519
+            },
+            {
+              "feature": "diabetesMed_Yes",
+              "importance": 0.01649
+            },
+            {
+              "feature": "glipizide_No",
+              "importance": 0.015398
+            },
+            {
+              "feature": "diag_2_Digestive",
+              "importance": 0.015356
+            },
+            {
+              "feature": "insulin_No",
+              "importance": 0.015295
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.015
+            },
+            {
+              "feature": "diag_3_Genitourinary",
+              "importance": 0.014392
+            },
+            {
+              "feature": "medical_specialty_InternalMedicine",
+              "importance": 0.014075
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.013563
+            },
+            {
+              "feature": "gender_Female",
+              "importance": 0.013535
+            },
+            {
+              "feature": "metformin_Up",
+              "importance": 0.013478
+            },
+            {
+              "feature": "diag_3_Respiratory",
+              "importance": 0.013166
+            },
+            {
+              "feature": "race_Other",
+              "importance": 0.012961
+            },
+            {
+              "feature": "medical_specialty_Emergency/Trauma",
+              "importance": 0.012831
+            },
+            {
+              "feature": "A1Cresult_None",
+              "importance": 0.012701
+            }
+          ],
+          "params": {
+            "learning_rate": 0.05,
+            "max_depth": 3,
+            "n_estimators": 280
+          }
+        },
+        {
+          "model_name": "XGBoost",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7052,
+            "precision": 0.12987,
+            "recall": 0.401786,
+            "f1": 0.196292,
+            "roc_auc": 0.598099
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1673,
+                603
+              ],
+              [
+                134,
+                90
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "number_inpatient",
+              "importance": 0.016929
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.015455
+            },
+            {
+              "feature": "medical_specialty_Nephrology",
+              "importance": 0.013676
+            },
+            {
+              "feature": "glipizide_No",
+              "importance": 0.013451
+            },
+            {
+              "feature": "diabetesMed_No",
+              "importance": 0.013287
+            },
+            {
+              "feature": "metformin_Up",
+              "importance": 0.013222
+            },
+            {
+              "feature": "diag_2_Digestive",
+              "importance": 0.012921
+            },
+            {
+              "feature": "glyburide_Down",
+              "importance": 0.012874
+            },
+            {
+              "feature": "medical_specialty_Family/GeneralPractice",
+              "importance": 0.012831
+            },
+            {
+              "feature": "diag_1_Musculoskeletal",
+              "importance": 0.012508
+            },
+            {
+              "feature": "diag_2_Injury",
+              "importance": 0.012481
+            },
+            {
+              "feature": "diag_3_Injury",
+              "importance": 0.012445
+            },
+            {
+              "feature": "pioglitazone_Steady",
+              "importance": 0.012094
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.012081
+            },
+            {
+              "feature": "diag_3_Other",
+              "importance": 0.012032
+            }
+          ],
+          "params": {
+            "learning_rate": 0.05,
+            "max_depth": 4,
+            "n_estimators": 180
+          }
+        },
+        {
+          "model_name": "XGBoost",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7276,
+            "precision": 0.128455,
+            "recall": 0.352679,
+            "f1": 0.188319,
+            "roc_auc": 0.59607
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1740,
+                536
+              ],
+              [
+                145,
+                79
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "number_inpatient",
+              "importance": 0.015903
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.013497
+            },
+            {
+              "feature": "gender_Male",
+              "importance": 0.013211
+            },
+            {
+              "feature": "glipizide_No",
+              "importance": 0.013025
+            },
+            {
+              "feature": "glimepiride_Steady",
+              "importance": 0.012962
+            },
+            {
+              "feature": "A1Cresult_None",
+              "importance": 0.012726
+            },
+            {
+              "feature": "diag_3_Genitourinary",
+              "importance": 0.012178
+            },
+            {
+              "feature": "medical_specialty_Family/GeneralPractice",
+              "importance": 0.012125
+            },
+            {
+              "feature": "race_Other",
+              "importance": 0.012104
+            },
+            {
+              "feature": "diag_1_Musculoskeletal",
+              "importance": 0.012094
+            },
+            {
+              "feature": "diabetesMed_No",
+              "importance": 0.012042
+            },
+            {
+              "feature": "diag_3_Injury",
+              "importance": 0.011989
+            },
+            {
+              "feature": "diag_3_Other",
+              "importance": 0.011759
+            },
+            {
+              "feature": "diag_2_Digestive",
+              "importance": 0.011602
+            },
+            {
+              "feature": "metformin_Steady",
+              "importance": 0.011483
+            }
+          ],
+          "params": {
+            "learning_rate": 0.05,
+            "max_depth": 4,
+            "n_estimators": 280
+          }
+        },
+        {
+          "model_name": "XGBoost",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7012,
+            "precision": 0.13931,
+            "recall": 0.450893,
+            "f1": 0.212856,
+            "roc_auc": 0.601608
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1652,
+                624
+              ],
+              [
+                123,
+                101
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "gender_Female",
+              "importance": 0.017413
+            },
+            {
+              "feature": "diag_2_Digestive",
+              "importance": 0.016955
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.016512
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.015448
+            },
+            {
+              "feature": "glipizide_No",
+              "importance": 0.015057
+            },
+            {
+              "feature": "diabetesMed_No",
+              "importance": 0.014868
+            },
+            {
+              "feature": "glipizide_Down",
+              "importance": 0.014474
+            },
+            {
+              "feature": "diag_1_Circulatory",
+              "importance": 0.014365
+            },
+            {
+              "feature": "medical_specialty_Orthopedics-Reconstructive",
+              "importance": 0.014171
+            },
+            {
+              "feature": "diag_3_Circulatory",
+              "importance": 0.014083
+            },
+            {
+              "feature": "diag_3_Neoplasms",
+              "importance": 0.013954
+            },
+            {
+              "feature": "insulin_Down",
+              "importance": 0.013859
+            },
+            {
+              "feature": "glyburide_Down",
+              "importance": 0.013617
+            },
+            {
+              "feature": "metformin_Up",
+              "importance": 0.013477
+            },
+            {
+              "feature": "metformin_No",
+              "importance": 0.013474
+            }
+          ],
+          "params": {
+            "learning_rate": 0.1,
+            "max_depth": 3,
+            "n_estimators": 180
+          }
+        },
+        {
+          "model_name": "XGBoost",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7116,
+            "precision": 0.131852,
+            "recall": 0.397321,
+            "f1": 0.197998,
+            "roc_auc": 0.595662
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1690,
+                586
+              ],
+              [
+                135,
+                89
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "number_inpatient",
+              "importance": 0.015861
+            },
+            {
+              "feature": "diabetesMed_No",
+              "importance": 0.01467
+            },
+            {
+              "feature": "gender_Male",
+              "importance": 0.014483
+            },
+            {
+              "feature": "diabetesMed_Yes",
+              "importance": 0.014214
+            },
+            {
+              "feature": "glipizide_No",
+              "importance": 0.013822
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.013248
+            },
+            {
+              "feature": "medical_specialty_Emergency/Trauma",
+              "importance": 0.01323
+            },
+            {
+              "feature": "diag_3_Circulatory",
+              "importance": 0.013207
+            },
+            {
+              "feature": "diag_1_Genitourinary",
+              "importance": 0.01307
+            },
+            {
+              "feature": "gender_Female",
+              "importance": 0.013013
+            },
+            {
+              "feature": "medical_specialty_Orthopedics-Reconstructive",
+              "importance": 0.012791
+            },
+            {
+              "feature": "metformin_No",
+              "importance": 0.01267
+            },
+            {
+              "feature": "glimepiride_Steady",
+              "importance": 0.0124
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.012174
+            },
+            {
+              "feature": "metformin_Steady",
+              "importance": 0.012112
+            }
+          ],
+          "params": {
+            "learning_rate": 0.1,
+            "max_depth": 3,
+            "n_estimators": 280
+          }
+        },
+        {
+          "model_name": "XGBoost",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7536,
+            "precision": 0.146209,
+            "recall": 0.361607,
+            "f1": 0.208226,
+            "roc_auc": 0.591789
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1803,
+                473
+              ],
+              [
+                143,
+                81
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "change_No",
+              "importance": 0.017234
+            },
+            {
+              "feature": "number_inpatient",
+              "importance": 0.017067
+            },
+            {
+              "feature": "diag_1_Injury",
+              "importance": 0.015064
+            },
+            {
+              "feature": "medical_specialty_Emergency/Trauma",
+              "importance": 0.014757
+            },
+            {
+              "feature": "diabetesMed_No",
+              "importance": 0.013775
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.013411
+            },
+            {
+              "feature": "diag_1_Respiratory",
+              "importance": 0.012966
+            },
+            {
+              "feature": "number_diagnoses",
+              "importance": 0.012583
+            },
+            {
+              "feature": "pioglitazone_No",
+              "importance": 0.012407
+            },
+            {
+              "feature": "diag_3_Circulatory",
+              "importance": 0.012212
+            },
+            {
+              "feature": "medical_specialty_Orthopedics-Reconstructive",
+              "importance": 0.012028
+            },
+            {
+              "feature": "diag_3_Neoplasms",
+              "importance": 0.011946
+            },
+            {
+              "feature": "number_emergency",
+              "importance": 0.011694
+            },
+            {
+              "feature": "medical_specialty_Radiologist",
+              "importance": 0.011654
+            },
+            {
+              "feature": "glimepiride_No",
+              "importance": 0.011504
+            }
+          ],
+          "params": {
+            "learning_rate": 0.1,
+            "max_depth": 4,
+            "n_estimators": 180
+          }
+        },
+        {
+          "model_name": "XGBoost",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7796,
+            "precision": 0.134228,
+            "recall": 0.267857,
+            "f1": 0.178838,
+            "roc_auc": 0.576833
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1889,
+                387
+              ],
+              [
+                164,
+                60
+              ]
+            ]
+          },
+          "top_features": [
+            {
+              "feature": "number_inpatient",
+              "importance": 0.016531
+            },
+            {
+              "feature": "medical_specialty_Emergency/Trauma",
+              "importance": 0.014363
+            },
+            {
+              "feature": "diag_1_Injury",
+              "importance": 0.013778
+            },
+            {
+              "feature": "diabetesMed_Yes",
+              "importance": 0.013031
+            },
+            {
+              "feature": "glipizide_Up",
+              "importance": 0.012911
+            },
+            {
+              "feature": "medical_specialty_Orthopedics",
+              "importance": 0.012906
+            },
+            {
+              "feature": "diag_3_Neoplasms",
+              "importance": 0.012874
+            },
+            {
+              "feature": "discharge_disposition_id",
+              "importance": 0.012827
+            },
+            {
+              "feature": "medical_specialty_Orthopedics-Reconstructive",
+              "importance": 0.012805
+            },
+            {
+              "feature": "diag_1_Respiratory",
+              "importance": 0.012581
+            },
+            {
+              "feature": "diabetesMed_No",
+              "importance": 0.012528
+            },
+            {
+              "feature": "medical_specialty_Surgery-General",
+              "importance": 0.012398
+            },
+            {
+              "feature": "pioglitazone_No",
+              "importance": 0.012385
+            },
+            {
+              "feature": "race_Other",
+              "importance": 0.01165
+            },
+            {
+              "feature": "glipizide_No",
+              "importance": 0.011645
+            }
+          ],
+          "params": {
+            "learning_rate": 0.1,
+            "max_depth": 4,
+            "n_estimators": 280
+          }
+        }
+      ],
+      "best": {
+        "model_name": "XGBoost",
+        "feature_mode": "sampled model-ready encoded features",
+        "metrics": {
+          "accuracy": 0.6552,
+          "precision": 0.126464,
+          "recall": 0.482143,
+          "f1": 0.200371,
+          "roc_auc": 0.604669
+        },
+        "confusion_matrix": {
+          "labels": [
+            "Not <30",
+            "<30"
+          ],
+          "matrix": [
+            [
+              1530,
+              746
+            ],
+            [
+              116,
+              108
+            ]
+          ]
+        },
+        "top_features": [
+          {
+            "feature": "discharge_disposition_id",
+            "importance": 0.017773
+          },
+          {
+            "feature": "number_inpatient",
+            "importance": 0.017411
+          },
+          {
+            "feature": "diag_2_Digestive",
+            "importance": 0.016243
+          },
+          {
+            "feature": "diag_2_Other",
+            "importance": 0.015631
+          },
+          {
+            "feature": "diabetesMed_Yes",
+            "importance": 0.015327
+          },
+          {
+            "feature": "medical_specialty_Emergency/Trauma",
+            "importance": 0.01505
+          },
+          {
+            "feature": "glipizide_No",
+            "importance": 0.015008
+          },
+          {
+            "feature": "medical_specialty_Orthopedics-Reconstructive",
+            "importance": 0.014829
+          },
+          {
+            "feature": "number_diagnoses",
+            "importance": 0.014628
+          },
+          {
+            "feature": "insulin_No",
+            "importance": 0.014217
+          },
+          {
+            "feature": "gender_Female",
+            "importance": 0.014187
+          },
+          {
+            "feature": "diag_3_Genitourinary",
+            "importance": 0.014048
+          },
+          {
+            "feature": "medical_specialty_Family/GeneralPractice",
+            "importance": 0.01398
+          },
+          {
+            "feature": "medical_specialty_InternalMedicine",
+            "importance": 0.013873
+          },
+          {
+            "feature": "diabetesMed_No",
+            "importance": 0.013559
+          }
+        ],
+        "params": {
+          "learning_rate": 0.05,
+          "max_depth": 3,
+          "n_estimators": 180
+        }
+      },
+      "unavailable_reason": null
+    },
+    {
+      "name": "MLP",
+      "controls": [
+        {
+          "name": "hidden_layer_sizes",
+          "label": "Hidden layers",
+          "type": "select",
+          "values": [
+            "32",
+            "64",
+            "64,32"
+          ]
+        },
+        {
+          "name": "alpha",
+          "label": "L2 alpha",
+          "type": "select",
+          "values": [
+            0.0001,
+            0.001
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "model_name": "MLP",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9088,
+            "precision": 0.166667,
+            "recall": 0.004464,
+            "f1": 0.008696,
+            "roc_auc": 0.580071
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2271,
+                5
+              ],
+              [
+                223,
+                1
+              ]
+            ]
+          },
+          "params": {
+            "alpha": 0.0001,
+            "hidden_layer_sizes": "32"
+          }
+        },
+        {
+          "model_name": "MLP",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9104,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.547083
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2276,
+                0
+              ],
+              [
+                224,
+                0
+              ]
+            ]
+          },
+          "params": {
+            "alpha": 0.0001,
+            "hidden_layer_sizes": "64"
+          }
+        },
+        {
+          "model_name": "MLP",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9104,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.612776
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2276,
+                0
+              ],
+              [
+                224,
+                0
+              ]
+            ]
+          },
+          "params": {
+            "alpha": 0.0001,
+            "hidden_layer_sizes": "64,32"
+          }
+        },
+        {
+          "model_name": "MLP",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9088,
+            "precision": 0.166667,
+            "recall": 0.004464,
+            "f1": 0.008696,
+            "roc_auc": 0.580026
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2271,
+                5
+              ],
+              [
+                223,
+                1
+              ]
+            ]
+          },
+          "params": {
+            "alpha": 0.001,
+            "hidden_layer_sizes": "32"
+          }
+        },
+        {
+          "model_name": "MLP",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9104,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.547061
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2276,
+                0
+              ],
+              [
+                224,
+                0
+              ]
+            ]
+          },
+          "params": {
+            "alpha": 0.001,
+            "hidden_layer_sizes": "64"
+          }
+        },
+        {
+          "model_name": "MLP",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.9104,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "roc_auc": 0.612706
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                2276,
+                0
+              ],
+              [
+                224,
+                0
+              ]
+            ]
+          },
+          "params": {
+            "alpha": 0.001,
+            "hidden_layer_sizes": "64,32"
+          }
+        }
+      ],
+      "best": {
+        "model_name": "MLP",
+        "feature_mode": "sampled model-ready encoded features",
+        "metrics": {
+          "accuracy": 0.9104,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "roc_auc": 0.612776
+        },
+        "confusion_matrix": {
+          "labels": [
+            "Not <30",
+            "<30"
+          ],
+          "matrix": [
+            [
+              2276,
+              0
+            ],
+            [
+              224,
+              0
+            ]
+          ]
+        },
+        "params": {
+          "alpha": 0.0001,
+          "hidden_layer_sizes": "64,32"
+        }
+      },
+      "unavailable_reason": null
+    },
+    {
+      "name": "SVM (RBF)",
+      "controls": [
+        {
+          "name": "C",
+          "label": "C",
+          "type": "select",
+          "values": [
+            0.5,
+            1.0,
+            2.0
+          ]
+        },
+        {
+          "name": "gamma",
+          "label": "Gamma",
+          "type": "select",
+          "values": [
+            "scale",
+            0.01
+          ]
+        }
+      ],
+      "runs": [
+        {
+          "model_name": "SVM (RBF)",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.6744,
+            "precision": 0.124682,
+            "recall": 0.4375,
+            "f1": 0.194059,
+            "roc_auc": 0.5974
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1588,
+                688
+              ],
+              [
+                126,
+                98
+              ]
+            ]
+          },
+          "params": {
+            "C": 0.5,
+            "gamma": "scale"
+          }
+        },
+        {
+          "model_name": "SVM (RBF)",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.612,
+            "precision": 0.126253,
+            "recall": 0.5625,
+            "f1": 0.206219,
+            "roc_auc": 0.619416
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1404,
+                872
+              ],
+              [
+                98,
+                126
+              ]
+            ]
+          },
+          "params": {
+            "C": 0.5,
+            "gamma": 0.01
+          }
+        },
+        {
+          "model_name": "SVM (RBF)",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.722,
+            "precision": 0.126783,
+            "recall": 0.357143,
+            "f1": 0.187135,
+            "roc_auc": 0.568945
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1725,
+                551
+              ],
+              [
+                144,
+                80
+              ]
+            ]
+          },
+          "params": {
+            "C": 1.0,
+            "gamma": "scale"
+          }
+        },
+        {
+          "model_name": "SVM (RBF)",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.6252,
+            "precision": 0.125131,
+            "recall": 0.53125,
+            "f1": 0.202553,
+            "roc_auc": 0.615277
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1444,
+                832
+              ],
+              [
+                105,
+                119
+              ]
+            ]
+          },
+          "params": {
+            "C": 1.0,
+            "gamma": 0.01
+          }
+        },
+        {
+          "model_name": "SVM (RBF)",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.7648,
+            "precision": 0.116034,
+            "recall": 0.245536,
+            "f1": 0.157593,
+            "roc_auc": 0.5398
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1857,
+                419
+              ],
+              [
+                169,
+                55
+              ]
+            ]
+          },
+          "params": {
+            "C": 2.0,
+            "gamma": "scale"
+          }
+        },
+        {
+          "model_name": "SVM (RBF)",
+          "feature_mode": "sampled model-ready encoded features",
+          "metrics": {
+            "accuracy": 0.642,
+            "precision": 0.121759,
+            "recall": 0.482143,
+            "f1": 0.194419,
+            "roc_auc": 0.606696
+          },
+          "confusion_matrix": {
+            "labels": [
+              "Not <30",
+              "<30"
+            ],
+            "matrix": [
+              [
+                1497,
+                779
+              ],
+              [
+                116,
+                108
+              ]
+            ]
+          },
+          "params": {
+            "C": 2.0,
+            "gamma": 0.01
+          }
+        }
+      ],
+      "best": {
+        "model_name": "SVM (RBF)",
+        "feature_mode": "sampled model-ready encoded features",
+        "metrics": {
+          "accuracy": 0.612,
+          "precision": 0.126253,
+          "recall": 0.5625,
+          "f1": 0.206219,
+          "roc_auc": 0.619416
+        },
+        "confusion_matrix": {
+          "labels": [
+            "Not <30",
+            "<30"
+          ],
+          "matrix": [
+            [
+              1404,
+              872
+            ],
+            [
+              98,
+              126
+            ]
+          ]
+        },
+        "params": {
+          "C": 0.5,
+          "gamma": 0.01
+        }
+      },
+      "unavailable_reason": null
+    }
+  ],
+  "best_overall": {
+    "model_name": "SVM (RBF)",
+    "feature_mode": "sampled model-ready encoded features",
+    "metrics": {
+      "accuracy": 0.612,
+      "precision": 0.126253,
+      "recall": 0.5625,
+      "f1": 0.206219,
+      "roc_auc": 0.619416
+    },
+    "confusion_matrix": {
+      "labels": [
+        "Not <30",
+        "<30"
+      ],
+      "matrix": [
+        [
+          1404,
+          872
+        ],
+        [
+          98,
+          126
+        ]
+      ]
+    },
+    "params": {
+      "C": 0.5,
+      "gamma": 0.01
+    }
+  }
+}

@@ -22,9 +22,18 @@ import json
 from pathlib import Path
 
 from sklearn.compose import ColumnTransformer
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import silhouette_score
+from sklearn.model_selection import ParameterGrid
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
@@ -502,6 +511,214 @@ def run_baseline_model(model_ready_df, verbose=True):
     return report
 
 
+def stratified_sample(X, y, n_samples, random_state=42):
+    if len(X) <= n_samples:
+        return X, y
+    _, X_sample, _, y_sample = train_test_split(
+        X, y,
+        test_size=n_samples,
+        random_state=random_state,
+        stratify=y,
+    )
+    return X_sample, y_sample
+
+
+def run_model_lab(model_ready_df, verbose=True):
+    """Generate precomputed hyperparameter runs for the interactive model lab."""
+    X = model_ready_df.drop(columns=['readmitted'])
+    y = model_ready_df['readmitted'].astype(int)
+
+    X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    X_train, y_train = stratified_sample(X_train_full, y_train_full, n_samples=6000, random_state=42)
+    X_test, y_test = stratified_sample(X_test_full, y_test_full, n_samples=2500, random_state=43)
+
+    pos_count = int(y_train.sum())
+    neg_count = int(len(y_train) - pos_count)
+    scale_pos_weight = neg_count / pos_count if pos_count else 1.0
+
+    algorithm_specs = {
+        'k-NN': {
+            'params': {'n_neighbors': [7, 21, 41], 'weights': ['uniform', 'distance']},
+            'factory': lambda p: KNeighborsClassifier(**p),
+            'controls': [
+                {'name': 'n_neighbors', 'label': 'Neighbors', 'type': 'select', 'values': [7, 21, 41]},
+                {'name': 'weights', 'label': 'Weighting', 'type': 'select', 'values': ['uniform', 'distance']},
+            ],
+        },
+        'Naive Bayes': {
+            'params': {'var_smoothing': [1e-9, 1e-8, 1e-7]},
+            'factory': lambda p: GaussianNB(**p),
+            'controls': [
+                {'name': 'var_smoothing', 'label': 'Variance smoothing', 'type': 'select', 'values': [1e-9, 1e-8, 1e-7]},
+            ],
+        },
+        'Decision Tree': {
+            'params': {'max_depth': [4, 8, 12], 'min_samples_leaf': [20, 60]},
+            'factory': lambda p: DecisionTreeClassifier(**p, class_weight='balanced', random_state=42),
+            'controls': [
+                {'name': 'max_depth', 'label': 'Max depth', 'type': 'select', 'values': [4, 8, 12]},
+                {'name': 'min_samples_leaf', 'label': 'Min samples leaf', 'type': 'select', 'values': [20, 60]},
+            ],
+        },
+        'Random Forest': {
+            'params': {'n_estimators': [100, 180], 'max_depth': [10, 14], 'min_samples_leaf': [20]},
+            'factory': lambda p: RandomForestClassifier(**p, class_weight='balanced_subsample', random_state=42, n_jobs=-1),
+            'controls': [
+                {'name': 'n_estimators', 'label': 'Trees', 'type': 'select', 'values': [100, 180]},
+                {'name': 'max_depth', 'label': 'Max depth', 'type': 'select', 'values': [10, 14]},
+                {'name': 'min_samples_leaf', 'label': 'Min samples leaf', 'type': 'select', 'values': [20]},
+            ],
+        },
+        'MLP': {
+            'params': {'hidden_layer_sizes': [(32,), (64,), (64, 32)], 'alpha': [0.0001, 0.001]},
+            'factory': lambda p: MLPClassifier(**p, max_iter=120, early_stopping=True, random_state=42),
+            'controls': [
+                {'name': 'hidden_layer_sizes', 'label': 'Hidden layers', 'type': 'select', 'values': ['32', '64', '64,32']},
+                {'name': 'alpha', 'label': 'L2 alpha', 'type': 'select', 'values': [0.0001, 0.001]},
+            ],
+            'display_params': lambda p: {**p, 'hidden_layer_sizes': ','.join(map(str, p['hidden_layer_sizes']))},
+        },
+        'SVM (RBF)': {
+            'params': {'C': [0.5, 1.0, 2.0], 'gamma': ['scale', 0.01]},
+            'factory': lambda p: SVC(**p, kernel='rbf', class_weight='balanced', probability=True, random_state=42),
+            'controls': [
+                {'name': 'C', 'label': 'C', 'type': 'select', 'values': [0.5, 1.0, 2.0]},
+                {'name': 'gamma', 'label': 'Gamma', 'type': 'select', 'values': ['scale', 0.01]},
+            ],
+        },
+    }
+
+    if XGBClassifier is not None:
+        algorithm_specs['XGBoost'] = {
+            'params': {'n_estimators': [180, 280], 'max_depth': [3, 4], 'learning_rate': [0.05, 0.1]},
+            'factory': lambda p: XGBClassifier(
+                **p,
+                objective='binary:logistic',
+                eval_metric='logloss',
+                scale_pos_weight=scale_pos_weight,
+                subsample=0.85,
+                colsample_bytree=0.85,
+                random_state=42,
+                n_jobs=-1,
+                tree_method='hist',
+            ),
+            'controls': [
+                {'name': 'n_estimators', 'label': 'Trees', 'type': 'select', 'values': [180, 280]},
+                {'name': 'max_depth', 'label': 'Max depth', 'type': 'select', 'values': [3, 4]},
+                {'name': 'learning_rate', 'label': 'Learning rate', 'type': 'select', 'values': [0.05, 0.1]},
+            ],
+        }
+    else:
+        algorithm_specs['XGBoost'] = {
+            'params': {},
+            'factory': None,
+            'controls': [],
+            'unavailable_reason': 'xgboost package is not installed. Install requirements.txt to enable it.',
+        }
+
+    algorithms = []
+    for name in ['k-NN', 'Naive Bayes', 'Decision Tree', 'Random Forest', 'XGBoost', 'MLP', 'SVM (RBF)']:
+        spec = algorithm_specs[name]
+        runs = []
+        if spec.get('factory') is not None:
+            for raw_params in ParameterGrid(spec['params']):
+                clf = spec['factory'](raw_params)
+                result = _evaluate_classifier(
+                    name, clf, X_train, X_test, y_train, y_test, X.columns,
+                    feature_mode='sampled model-ready encoded features',
+                )
+                display_params = spec.get('display_params', lambda p: p)(raw_params)
+                result['params'] = display_params
+                runs.append(result)
+        best = max(runs, key=lambda r: r['metrics']['roc_auc']) if runs else None
+        algorithms.append({
+            'name': name,
+            'controls': spec['controls'],
+            'runs': runs,
+            'best': best,
+            'unavailable_reason': spec.get('unavailable_reason'),
+        })
+        if verbose and best:
+            metrics = best['metrics']
+            print(f"    Lab {name}: best AUC={metrics['roc_auc']} F1={metrics['f1']}")
+
+    all_runs = [run for alg in algorithms for run in alg['runs']]
+    best_overall = max(all_runs, key=lambda r: r['metrics']['roc_auc']) if all_runs else None
+
+    return {
+        'title': 'Interactive Algorithm Test Lab',
+        'sample_policy': 'Precomputed hyperparameter grid on a stratified sample for responsive dashboard tuning.',
+        'sample': {
+            'train_rows': int(len(X_train)),
+            'test_rows': int(len(X_test)),
+            'positive_rate_train': round(float(y_train.mean()), 6),
+            'positive_rate_test': round(float(y_test.mean()), 6),
+            'full_train_rows': int(len(X_train_full)),
+            'full_test_rows': int(len(X_test_full)),
+        },
+        'algorithms': algorithms,
+        'best_overall': best_overall,
+    }
+
+
+def generate_clustering_report(model_ready_df, cleaned_df, verbose=True):
+    """Create PCA coordinates and KMeans labels for the clustering page."""
+    X = model_ready_df.drop(columns=['readmitted'])
+    y = model_ready_df['readmitted'].astype(int)
+    X_sample, y_sample = stratified_sample(X, y, n_samples=1800, random_state=101)
+    meta = cleaned_df.loc[X_sample.index].copy()
+
+    pca = PCA(n_components=2, random_state=42)
+    coords = pca.fit_transform(X_sample)
+
+    clusterings = {}
+    for k in range(2, 9):
+        km = KMeans(n_clusters=k, n_init=10, random_state=42)
+        labels = km.fit_predict(coords)
+        sizes = pd.Series(labels).value_counts().sort_index().to_dict()
+        readmit_rates = {}
+        for label in sorted(set(labels)):
+            mask = labels == label
+            readmit_rates[str(int(label))] = round(float(y_sample.iloc[mask].mean()), 6)
+        clusterings[str(k)] = {
+            'labels': [int(v) for v in labels],
+            'sizes': {str(int(key)): int(val) for key, val in sizes.items()},
+            'readmission_rates': readmit_rates,
+            'silhouette': round(float(silhouette_score(coords, labels)), 6),
+        }
+
+    points = []
+    for pos, idx in enumerate(X_sample.index):
+        row = meta.loc[idx]
+        points.append({
+            'x': round(float(coords[pos, 0]), 6),
+            'y': round(float(coords[pos, 1]), 6),
+            'readmitted': int(y_sample.loc[idx]),
+            'race': str(row.get('race', 'Unknown')),
+            'age': str(row.get('age', 'Unknown')),
+            'diag_1_group': map_icd9(row.get('diag_1', 'Unknown')),
+            'time_in_hospital': int(row.get('time_in_hospital', 0)),
+        })
+
+    if verbose:
+        print(f"  Clustering sample: {len(points)} rows, PCA variance={pca.explained_variance_ratio_.sum():.4f}")
+
+    return {
+        'title': 'PCA + KMeans Clustering Lab',
+        'method': {
+            'projection': 'PCA(n_components=2) on the model-ready encoded feature matrix',
+            'clustering': 'KMeans evaluated for k=2..8 on the PCA coordinates',
+            'sample_rows': len(points),
+            'explained_variance_ratio': [round(float(v), 6) for v in pca.explained_variance_ratio_],
+            'total_explained_variance': round(float(pca.explained_variance_ratio_.sum()), 6),
+        },
+        'points': points,
+        'clusterings': clusterings,
+    }
+
+
 if __name__ == "__main__":
     BASE = Path('/home/sina/Downloads/data/CSE4062S26_Grp2')
     INPUT  = BASE / 'data/diabetes+130-us+hospitals+for+years+1999-2008/diabetic_data.csv'
@@ -509,6 +726,8 @@ if __name__ == "__main__":
     MODEL_READY_OUTPUT = BASE / 'data/model_ready_diabetic_data.csv'
     MODEL_READY_JSON = BASE / 'user_tools/visualisation_tool/model_ready_data.json'
     BASELINE_JSON = BASE / 'user_tools/visualisation_tool/baseline_model_report.json'
+    MODEL_LAB_JSON = BASE / 'user_tools/visualisation_tool/model_lab_report.json'
+    CLUSTERING_JSON = BASE / 'user_tools/visualisation_tool/clustering_report.json'
 
     cleaned_df, nzv_report = load_and_clean_data(INPUT)
     cleaned_df.to_csv(OUTPUT, index=False)
@@ -526,6 +745,16 @@ if __name__ == "__main__":
     with open(BASELINE_JSON, 'w') as f:
         json.dump(baseline_report, f, indent=2)
     print(f"Baseline model report saved to {BASELINE_JSON}")
+
+    model_lab_report = run_model_lab(model_ready_df)
+    with open(MODEL_LAB_JSON, 'w') as f:
+        json.dump(model_lab_report, f, indent=2)
+    print(f"Interactive model lab report saved to {MODEL_LAB_JSON}")
+
+    clustering_report = generate_clustering_report(model_ready_df, cleaned_df)
+    with open(CLUSTERING_JSON, 'w') as f:
+        json.dump(clustering_report, f, indent=2)
+    print(f"Clustering report saved to {CLUSTERING_JSON}")
 
     # Save NZV report as JSON for the frontend
     NZV_JSON = BASE / 'user_tools/visualisation_tool/nzv_report.json'

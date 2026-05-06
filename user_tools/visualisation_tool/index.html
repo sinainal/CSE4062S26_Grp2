@@ -19,6 +19,8 @@
                 <button class="tab-btn" id="tab-clean" onclick="switchPage('clean')">II. Data Cleaning Audit</button>
                 <button class="tab-btn" id="tab-ready" onclick="switchPage('ready')">III. Model-Ready Data</button>
                 <button class="tab-btn" id="tab-ml" onclick="switchPage('ml')">IV. Baseline ML Test</button>
+                <button class="tab-btn" id="tab-lab" onclick="switchPage('lab')">V. Live Model Lab</button>
+                <button class="tab-btn" id="tab-cluster" onclick="switchPage('cluster')">VI. Clustering Lab</button>
             </nav>
         </header>
 
@@ -422,6 +424,146 @@
                     <table class="academic-table stats-table">
                         <tbody id="ml-xgb-features"></tbody>
                     </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===================== PAGE 5: LIVE MODEL LAB ===================== -->
+        <div id="page-lab" style="display:none;">
+            <section class="overview-panel">
+                <div class="stat-box">
+                    <h4>Selected Algorithm</h4>
+                    <p id="lab-model-name">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>ROC-AUC</h4>
+                    <p id="lab-auc">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Recall</h4>
+                    <p id="lab-recall">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>F1</h4>
+                    <p id="lab-f1">...</p>
+                </div>
+            </section>
+
+            <section class="model-ready-grid lab-layout">
+                <div class="analytics-card">
+                    <h3>Algorithm</h3>
+                    <p class="inline-note">Choose one of the requested classifiers, then tune the available hyperparameters. The dashboard updates instantly from precomputed validation runs.</p>
+                    <div id="lab-algorithm-buttons" class="algorithm-grid"></div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Manual Test Controls</h3>
+                    <p class="inline-note" id="lab-sample-note"></p>
+                    <div id="lab-controls" class="control-grid"></div>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Selected Run Metrics</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="lab-metrics-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>Confusion Matrix</h3>
+                    <table class="academic-table stats-table" id="lab-confusion-table"></table>
+                </div>
+            </section>
+
+            <section class="full-width-section">
+                <div class="analytics-card">
+                    <h3>Best Run per Algorithm</h3>
+                    <table class="academic-table">
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Best Settings</th>
+                                <th>ROC-AUC</th>
+                                <th>Accuracy</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lab-comparison-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="full-width-section">
+                <div class="analytics-card">
+                    <h3>Feature Signal for Selected Model</h3>
+                    <p class="inline-note" id="lab-feature-note"></p>
+                    <table class="academic-table stats-table">
+                        <tbody id="lab-feature-table"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===================== PAGE 6: CLUSTERING LAB ===================== -->
+        <div id="page-cluster" style="display:none;">
+            <section class="overview-panel">
+                <div class="stat-box">
+                    <h4>Sample Rows</h4>
+                    <p id="cluster-sample-rows">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>PCA Variance</h4>
+                    <p id="cluster-variance">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Selected k</h4>
+                    <p id="cluster-k-value">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Silhouette</h4>
+                    <p id="cluster-silhouette">...</p>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Clustering Controls</h3>
+                    <p class="inline-note">PCA projection is built from the final encoded model matrix; KMeans labels can be inspected for k=2 through k=8.</p>
+                    <div class="control-grid">
+                        <label class="control-field">
+                            <span>Number of clusters</span>
+                            <select id="cluster-k-select"></select>
+                        </label>
+                        <label class="control-field">
+                            <span>Color points by</span>
+                            <select id="cluster-color-mode">
+                                <option value="cluster">Cluster</option>
+                                <option value="readmitted">Readmission Target</option>
+                                <option value="race">Race</option>
+                                <option value="diag_1_group">Primary Diagnosis Group</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Cluster Summary</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="cluster-summary-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="full-width-section">
+                <div class="analytics-card chart-card">
+                    <div class="chart-header-row">
+                        <h3>PCA Scatter View</h3>
+                        <span class="inline-note">Hover points to inspect readmission, diagnosis, race, age, and stay length.</span>
+                    </div>
+                    <div class="chart-container cluster-chart-container">
+                        <canvas id="cluster-chart"></canvas>
+                    </div>
                 </div>
             </section>
         </div>

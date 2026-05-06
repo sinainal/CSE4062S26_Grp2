@@ -2,9 +2,13 @@ let academicData = null;
 let cleaningData = null;
 let modelReadyData = null;
 let baselineModelData = null;
+let modelLabData = null;
+let clusteringData = null;
 let nzvData = null;
 let currentChart = null;
 let cleanChart = null;
+let clusterChart = null;
+let selectedLabAlgorithm = null;
 let currentFeatureData = null;
 let lastFilter = { name: null, label: null };
 let icd9Mapping = {};
@@ -17,19 +21,25 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('cleaning_data.json').then(r => r.json()),
         fetch('model_ready_data.json').then(r => r.json()),
         fetch('baseline_model_report.json').then(r => r.json()),
+        fetch('model_lab_report.json').then(r => r.json()),
+        fetch('clustering_report.json').then(r => r.json()),
         fetch('icd9_mapping.json').then(r => r.json()).catch(() => ({})),
         fetch('nzv_report.json').then(r => r.json()).catch(() => ({}))
-    ]).then(([data, cleaning, modelReady, baselineModel, mapping, nzv]) => {
+    ]).then(([data, cleaning, modelReady, baselineModel, modelLab, clustering, mapping, nzv]) => {
         academicData = data;
         cleaningData = cleaning;
         modelReadyData = modelReady;
         baselineModelData = baselineModel;
+        modelLabData = modelLab;
+        clusteringData = clustering;
         icd9Mapping = mapping;
         nzvData = nzv;
         initRawPage();
         initCleanPage();
         initModelReadyPage();
         initBaselineMLPage();
+        initModelLabPage();
+        initClusteringPage();
         // NZV panel is rendered on demand when modal opens
     }).catch(err => {
         console.error(err);
@@ -53,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeRow) activeRow.click();
     });
     document.getElementById('ready-limit').addEventListener('change', () => renderModelReadyPreview());
+    document.getElementById('cluster-k-select').addEventListener('change', () => renderClusteringPage());
+    document.getElementById('cluster-color-mode').addEventListener('change', () => renderClusteringPage());
 });
 
 // ==================== PAGE SWITCHING ====================
@@ -61,10 +73,17 @@ function switchPage(page) {
     document.getElementById('page-clean').style.display = page === 'clean' ? '' : 'none';
     document.getElementById('page-ready').style.display = page === 'ready' ? '' : 'none';
     document.getElementById('page-ml').style.display    = page === 'ml'    ? '' : 'none';
+    document.getElementById('page-lab').style.display   = page === 'lab'   ? '' : 'none';
+    document.getElementById('page-cluster').style.display = page === 'cluster' ? '' : 'none';
     document.getElementById('tab-raw').classList.toggle('active',   page === 'raw');
     document.getElementById('tab-clean').classList.toggle('active', page === 'clean');
     document.getElementById('tab-ready').classList.toggle('active', page === 'ready');
     document.getElementById('tab-ml').classList.toggle('active',    page === 'ml');
+    document.getElementById('tab-lab').classList.toggle('active',   page === 'lab');
+    document.getElementById('tab-cluster').classList.toggle('active', page === 'cluster');
+    if (page === 'cluster' && clusterChart) {
+        setTimeout(() => clusterChart.resize(), 50);
+    }
 }
 
 // ==================== PAGE 1: RAW DATA ====================
@@ -541,6 +560,246 @@ function renderImportanceTable(targetId, rows) {
     document.getElementById(targetId).innerHTML = (rows || []).map(row => (
         `<tr><th>${row.feature}</th><td>${row.importance.toFixed(4)}</td></tr>`
     )).join('') || '<tr><td>Model not available or no importances were produced.</td></tr>';
+}
+
+// ==================== PAGE 5: LIVE MODEL LAB ====================
+function initModelLabPage() {
+    if (!modelLabData?.algorithms?.length) return;
+    selectedLabAlgorithm = modelLabData.best_overall?.model_name || modelLabData.algorithms[0].name;
+
+    const sample = modelLabData.sample || {};
+    document.getElementById('lab-sample-note').textContent =
+        `${modelLabData.sample_policy} Train: ${(sample.train_rows || 0).toLocaleString()} / Test: ${(sample.test_rows || 0).toLocaleString()}; full split is ${(sample.full_train_rows || 0).toLocaleString()} / ${(sample.full_test_rows || 0).toLocaleString()}.`;
+
+    renderLabAlgorithmButtons();
+    renderLabComparison();
+    selectLabAlgorithm(selectedLabAlgorithm);
+}
+
+function renderLabAlgorithmButtons() {
+    const wrap = document.getElementById('lab-algorithm-buttons');
+    wrap.innerHTML = '';
+    modelLabData.algorithms.forEach(algorithm => {
+        const btn = document.createElement('button');
+        btn.className = `algorithm-btn${algorithm.name === selectedLabAlgorithm ? ' active' : ''}`;
+        btn.textContent = algorithm.name;
+        btn.disabled = !algorithm.runs?.length;
+        btn.addEventListener('click', () => selectLabAlgorithm(algorithm.name));
+        wrap.appendChild(btn);
+    });
+}
+
+function selectLabAlgorithm(name) {
+    selectedLabAlgorithm = name;
+    renderLabAlgorithmButtons();
+    const algorithm = getLabAlgorithm(name);
+    renderLabControls(algorithm);
+    renderSelectedLabRun();
+}
+
+function getLabAlgorithm(name) {
+    return (modelLabData.algorithms || []).find(algorithm => algorithm.name === name);
+}
+
+function renderLabControls(algorithm) {
+    const wrap = document.getElementById('lab-controls');
+    wrap.innerHTML = '';
+    if (!algorithm?.runs?.length) {
+        wrap.innerHTML = `<p class="inline-note">${algorithm?.unavailable_reason || 'This algorithm did not produce runs.'}</p>`;
+        return;
+    }
+
+    (algorithm.controls || []).forEach(control => {
+        const label = document.createElement('label');
+        label.className = 'control-field';
+        const select = document.createElement('select');
+        select.id = `lab-control-${control.name}`;
+        select.dataset.param = control.name;
+        control.values.forEach(value => {
+            const option = document.createElement('option');
+            option.value = String(value);
+            option.textContent = String(value);
+            select.appendChild(option);
+        });
+        if (algorithm.best?.params?.[control.name] !== undefined) {
+            select.value = String(algorithm.best.params[control.name]);
+        }
+        select.addEventListener('change', renderSelectedLabRun);
+        label.innerHTML = `<span>${control.label}</span>`;
+        label.appendChild(select);
+        wrap.appendChild(label);
+    });
+}
+
+function findSelectedLabRun(algorithm) {
+    if (!algorithm?.runs?.length) return null;
+    const selected = {};
+    (algorithm.controls || []).forEach(control => {
+        const element = document.getElementById(`lab-control-${control.name}`);
+        if (element) selected[control.name] = element.value;
+    });
+    return algorithm.runs.find(run => {
+        return Object.entries(selected).every(([key, value]) => String(run.params?.[key]) === String(value));
+    }) || algorithm.best || algorithm.runs[0];
+}
+
+function renderSelectedLabRun() {
+    const algorithm = getLabAlgorithm(selectedLabAlgorithm);
+    const run = findSelectedLabRun(algorithm);
+    if (!run) return;
+    const metrics = run.metrics;
+    document.getElementById('lab-model-name').textContent = run.model_name;
+    document.getElementById('lab-auc').textContent = metrics.roc_auc.toFixed(3);
+    document.getElementById('lab-recall').textContent = metrics.recall.toFixed(3);
+    document.getElementById('lab-f1').textContent = metrics.f1.toFixed(3);
+
+    document.getElementById('lab-metrics-tbody').innerHTML = [
+        ['Settings', formatParams(run.params)],
+        ['Accuracy', metrics.accuracy.toFixed(4)],
+        ['Precision', metrics.precision.toFixed(4)],
+        ['Recall', metrics.recall.toFixed(4)],
+        ['F1', metrics.f1.toFixed(4)],
+        ['ROC-AUC', metrics.roc_auc.toFixed(4)],
+        ['Feature matrix', run.feature_mode || 'sampled model-ready encoded features']
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+
+    const labels = run.confusion_matrix.labels;
+    const matrix = run.confusion_matrix.matrix;
+    document.getElementById('lab-confusion-table').innerHTML = `
+        <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th></tr></thead>
+        <tbody>
+            <tr><th>${labels[0]}</th><td>${matrix[0][0].toLocaleString()}</td><td>${matrix[0][1].toLocaleString()}</td></tr>
+            <tr><th>${labels[1]}</th><td>${matrix[1][0].toLocaleString()}</td><td>${matrix[1][1].toLocaleString()}</td></tr>
+        </tbody>
+    `;
+
+    const featureRows = run.top_features || [];
+    document.getElementById('lab-feature-note').textContent =
+        featureRows.length ? 'Tree-based models expose impurity feature importances for the current run.' : 'This model type does not expose a direct feature-importance table in the current lab configuration.';
+    renderImportanceTable('lab-feature-table', featureRows);
+}
+
+function renderLabComparison() {
+    const rows = (modelLabData.algorithms || []).map(algorithm => ({ algorithm, run: algorithm.best }));
+    document.getElementById('lab-comparison-tbody').innerHTML = rows.map(({ algorithm, run }) => {
+        if (!run) {
+            return `<tr><td><strong>${algorithm.name}</strong></td><td colspan="6">${algorithm.unavailable_reason || 'No run available.'}</td></tr>`;
+        }
+        const metrics = run.metrics;
+        const bestClass = modelLabData.best_overall?.model_name === run.model_name &&
+            formatParams(modelLabData.best_overall?.params) === formatParams(run.params) ? ' class="active-row"' : '';
+        return `<tr${bestClass}>
+            <td><strong>${algorithm.name}</strong></td>
+            <td>${formatParams(run.params)}</td>
+            <td>${metrics.roc_auc.toFixed(4)}</td>
+            <td>${metrics.accuracy.toFixed(4)}</td>
+            <td>${metrics.precision.toFixed(4)}</td>
+            <td>${metrics.recall.toFixed(4)}</td>
+            <td>${metrics.f1.toFixed(4)}</td>
+        </tr>`;
+    }).join('');
+}
+
+function formatParams(params) {
+    const entries = Object.entries(params || {});
+    if (!entries.length) return 'default';
+    return entries.map(([key, value]) => `${key}=${value}`).join(', ');
+}
+
+// ==================== PAGE 6: CLUSTERING LAB ====================
+function initClusteringPage() {
+    if (!clusteringData?.points?.length) return;
+    const select = document.getElementById('cluster-k-select');
+    select.innerHTML = Object.keys(clusteringData.clusterings || {})
+        .map(k => `<option value="${k}">${k}</option>`).join('');
+    select.value = '4';
+    renderClusteringPage();
+}
+
+function renderClusteringPage() {
+    if (!clusteringData?.points?.length) return;
+    const k = document.getElementById('cluster-k-select').value || '4';
+    const clustering = clusteringData.clusterings[k];
+    if (!clustering) return;
+
+    document.getElementById('cluster-sample-rows').textContent = clusteringData.method.sample_rows.toLocaleString();
+    document.getElementById('cluster-variance').textContent = `${(clusteringData.method.total_explained_variance * 100).toFixed(1)}%`;
+    document.getElementById('cluster-k-value').textContent = k;
+    document.getElementById('cluster-silhouette').textContent = clustering.silhouette.toFixed(3);
+
+    renderClusterSummary(k, clustering);
+    renderClusterChart(k, clustering);
+}
+
+function renderClusterSummary(k, clustering) {
+    document.getElementById('cluster-summary-tbody').innerHTML = Object.keys(clustering.sizes).map(label => {
+        const size = clustering.sizes[label];
+        const rate = (clustering.readmission_rates[label] * 100).toFixed(2);
+        return `<tr><th>Cluster ${label}</th><td>${size.toLocaleString()} rows | ${rate}% &lt;30 readmission</td></tr>`;
+    }).join('');
+}
+
+function renderClusterChart(k, clustering) {
+    const mode = document.getElementById('cluster-color-mode').value;
+    const groups = {};
+    clusteringData.points.forEach((point, idx) => {
+        const clusterLabel = clustering.labels[idx];
+        let group = `Cluster ${clusterLabel}`;
+        if (mode === 'readmitted') group = point.readmitted ? 'Readmitted <30' : 'Not <30';
+        if (mode === 'race') group = point.race || 'Unknown';
+        if (mode === 'diag_1_group') group = point.diag_1_group || 'Unknown';
+        if (!groups[group]) groups[group] = [];
+        groups[group].push({
+            x: point.x,
+            y: point.y,
+            meta: { ...point, cluster: clusterLabel }
+        });
+    });
+
+    const palette = ['#0f4c81', '#b91c1c', '#15803d', '#b45309', '#6d28d9', '#0f766e', '#be123c', '#334155', '#ca8a04', '#0369a1'];
+    const datasets = Object.entries(groups).map(([label, points], idx) => ({
+        label,
+        data: points,
+        backgroundColor: palette[idx % palette.length],
+        borderColor: palette[idx % palette.length],
+        pointRadius: 3,
+        pointHoverRadius: 6
+    }));
+
+    if (clusterChart) clusterChart.destroy();
+    const ctx = document.getElementById('cluster-chart').getContext('2d');
+    clusterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+                tooltip: {
+                    callbacks: {
+                        title: items => items[0]?.dataset?.label || '',
+                        label: item => {
+                            const meta = item.raw.meta;
+                            return [
+                                `PCA: (${item.raw.x.toFixed(2)}, ${item.raw.y.toFixed(2)})`,
+                                `Cluster: ${meta.cluster}`,
+                                `Readmitted <30: ${meta.readmitted ? 'Yes' : 'No'}`,
+                                `Diag: ${meta.diag_1_group}`,
+                                `Race: ${meta.race}`,
+                                `Age: ${meta.age}`,
+                                `Hospital stay: ${meta.time_in_hospital} days`
+                            ];
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { title: { display: true, text: 'PCA component 1' } },
+                y: { title: { display: true, text: 'PCA component 2' } }
+            }
+        }
+    });
 }
 
 // initNZVPanel removed — code generation moved into openNZVModal()
