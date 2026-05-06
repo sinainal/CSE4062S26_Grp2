@@ -76,7 +76,7 @@ DROPPED_COLS = ['weight', 'payer_code', 'encounter_id', 'patient_nbr']
 
 def generate_cleaning_report(csv_path, mapping_path, output_path):
     print("Generating cleaning data report...")
-    df = pd.read_csv(csv_path, na_values=['?'], low_memory=False)
+    df = pd.read_csv(csv_path, na_values=['?'], keep_default_na=False, low_memory=False)
     mappings = load_ids_mapping(mapping_path)
 
     # Track deletion reasons for each row
@@ -94,7 +94,12 @@ def generate_cleaning_report(csv_path, mapping_path, output_path):
             lambda x: mappings.get('discharge_disposition_id', {}).get(str(int(float(x))) if x and x != 'nan' else '', 'Unknown')
         )
 
-    # 3. Mark ? (missing critical fields) as modified
+    # 3. Mark invalid gender rows removed by the canonical cleaning pipeline
+    invalid_gender_mask = df['gender'] == 'Unknown/Invalid'
+    df.loc[invalid_gender_mask & df['_deletion_reason'].isna(), '_deletion_reason'] = \
+        "Invalid gender value: Unknown/Invalid"
+
+    # 4. Mark ? (missing critical fields) as modified
     for col in ['race', 'medical_specialty']:
         mask = df[col].isna() & df['_deletion_reason'].isna()
         df.loc[mask, '_modified'] = True
@@ -109,6 +114,7 @@ def generate_cleaning_report(csv_path, mapping_path, output_path):
         'deleted_rows': int(deleted_rows['_deletion_reason'].notna().sum()),
         'deleted_duplicates': int(dup_mask.sum()),
         'deleted_terminal': int((terminal_mask & ~dup_mask).sum()),
+        'deleted_invalid_gender': int((invalid_gender_mask & ~dup_mask & ~terminal_mask).sum()),
         'modified_rows': int((df['_modified'] == True).sum()),
         'kept_rows': len(kept_rows),
         'dropped_cols': DROPPED_COLS,
@@ -287,10 +293,10 @@ def generate_cleaning_report(csv_path, mapping_path, output_path):
 
 def generate_academic_report(csv_path, mapping_path, output_path):
     print("Loading data...")
-    df_raw = pd.read_csv(csv_path, dtype=str)
+    df_raw = pd.read_csv(csv_path, dtype=str, keep_default_na=False)
     df_raw.replace('?', np.nan, inplace=True)
     
-    df_typed = pd.read_csv(csv_path, na_values=['?'])
+    df_typed = pd.read_csv(csv_path, na_values=['?'], keep_default_na=False, low_memory=False)
     mappings = load_ids_mapping(mapping_path)
     
     report = {
@@ -334,6 +340,15 @@ def generate_academic_report(csv_path, mapping_path, output_path):
         if col in ['encounter_id', 'patient_nbr']:
             feature_info["cleaning_method"] = "Drop"
             feature_info["cleaning_explanation"] = "Unique identifier. Keeping it would cause data leakage or overfitting."
+        elif col in ['weight', 'payer_code']:
+            feature_info["cleaning_method"] = "Drop"
+            feature_info["cleaning_explanation"] = "Dropped by the canonical pipeline due to excessive missingness or unreliable socioeconomic proxy behavior."
+        elif col == 'medical_specialty':
+            feature_info["cleaning_method"] = "Missing Category"
+            feature_info["cleaning_explanation"] = "Preserved with an explicit 'Missing' category, following Strack-style handling of specialty missingness."
+        elif col == 'age':
+            feature_info["cleaning_method"] = "Midpoint Encode"
+            feature_info["cleaning_explanation"] = "Age brackets are converted to numeric midpoints before modeling."
         elif missing_pct > 40:
             feature_info["cleaning_method"] = "Drop"
             feature_info["cleaning_explanation"] = f"Feature has {missing_pct}% missing values. Imputation is statistically unreliable at this threshold."
@@ -408,4 +423,3 @@ if __name__ == "__main__":
     generate_academic_report(csv_file, mapping_file, output_json)
     generate_cleaning_report(csv_file, mapping_file, cleaning_json)
     print("Done.")
-

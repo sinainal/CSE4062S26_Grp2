@@ -7,6 +7,8 @@ This repository contains an academic-grade data science pipeline for the **Diabe
 We have developed a custom **Clinical Visualization & Discovery Tool** located in `/user_tools/visualisation_tool/`. 
 - **Features:** Real-time distribution analysis, Z-score based outlier highlighting, and dynamic clinical record browsing.
 - **ICD-9 Integration:** The tool now features a live mapping of 14,000+ ICD-9 codes to their full clinical descriptions via interactive tooltips.
+- **Model-Ready Dataset View:** The dashboard includes a dedicated section that previews the actual one-hot encoded, standardized modeling table.
+- **Baseline ML Test:** A simple Logistic Regression baseline is trained directly on the model-ready dataset as a sanity check before adding stronger models.
 - **Usage:** Run `python3 -m http.server 8000` in the tool directory to access the dashboard.
 
 ## 🧼 Data Preprocessing & Cleaning (Core Methodology)
@@ -25,6 +27,19 @@ Our preprocessing strategy is strictly aligned with the original **Strack et al.
 ### 3. Data Integrity
 - **Weight/Payer Code:** Removed due to excessive missingness (>40-97%).
 - **Medical Specialty:** Preserved by mapping missing values to a distinct 'Missing' category, as clinical literature suggests "missingness" in specialty can be a proxy for emergency urgency.
+- **Clinical "None" Values:** HbA1c and glucose serum values of `None` are preserved as meaningful "test not performed" categories, not treated as missing cells.
+
+### 4. Model-Ready Output
+- `data/model_ready_diabetic_data.csv` contains the fully transformed dataset used for modeling.
+- Numeric features are median-imputed and standardized.
+- Categorical features are mode-imputed and one-hot encoded.
+- The target column is `readmitted`, where `<30` is encoded as `1` and all other outcomes as `0`.
+- `user_tools/visualisation_tool/model_ready_data.json` powers the dashboard preview and transformation report.
+
+### 5. Baseline Modeling
+- `data_harness.py` trains a class-balanced Logistic Regression baseline after generating the model-ready table.
+- Results are exported to `user_tools/visualisation_tool/baseline_model_report.json`.
+- This baseline is intentionally simple; future work can add XGBoost, LightGBM, CatBoost, and calibrated threshold tuning.
 
 ## 📂 Repository Structure
 - `/data/`: Raw and cleaned datasets.

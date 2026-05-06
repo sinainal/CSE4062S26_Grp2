@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academic Data Profiling Tool</title>
+    <link rel="icon" href="data:,">
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -16,6 +17,8 @@
             <nav class="page-tabs">
                 <button class="tab-btn active" id="tab-raw" onclick="switchPage('raw')">I. Raw Data Analysis</button>
                 <button class="tab-btn" id="tab-clean" onclick="switchPage('clean')">II. Data Cleaning Audit</button>
+                <button class="tab-btn" id="tab-ready" onclick="switchPage('ready')">III. Model-Ready Data</button>
+                <button class="tab-btn" id="tab-ml" onclick="switchPage('ml')">IV. Baseline ML Test</button>
             </nav>
         </header>
 
@@ -249,6 +252,111 @@
                             <tbody id="clean-browse-tbody"></tbody>
                         </table>
                     </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===================== PAGE 3: MODEL-READY DATA ===================== -->
+        <div id="page-ready" style="display:none;">
+            <section class="overview-panel">
+                <div class="stat-box stat-ok">
+                    <h4>Rows</h4>
+                    <p id="ready-rows">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Encoded Columns</h4>
+                    <p id="ready-cols">...</p>
+                </div>
+                <div class="stat-box stat-warn">
+                    <h4>&lt;30 Positive Rate</h4>
+                    <p id="ready-positive">...</p>
+                </div>
+                <div class="stat-box stat-danger">
+                    <h4>Dropped Columns</h4>
+                    <p id="ready-dropped">...</p>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Transformation Report</h3>
+                    <ul class="report-list" id="ready-transformations"></ul>
+                </div>
+                <div class="analytics-card">
+                    <h3>Feature Space Before Encoding</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ready-feature-space"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="full-width-section">
+                <div class="analytics-card">
+                    <div class="section-heading">
+                        <h3>Model-Ready Encoded Data Preview</h3>
+                        <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+                            <label for="ready-limit">Display Limit:</label>
+                            <input type="number" id="ready-limit" value="25" min="1" max="100" style="width:70px; padding:2px 5px;">
+                        </div>
+                    </div>
+                    <p class="inline-note">This preview is the actual modeling input after imputation, standardization, one-hot encoding, leakage-column removal, ICD grouping, and target binarization.</p>
+                    <div class="table-wrapper patient-table-wrapper">
+                        <table class="academic-table drill-down-table">
+                            <thead id="ready-thead"></thead>
+                            <tbody id="ready-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===================== PAGE 4: BASELINE ML TEST ===================== -->
+        <div id="page-ml" style="display:none;">
+            <section class="overview-panel">
+                <div class="stat-box">
+                    <h4>Model</h4>
+                    <p id="ml-model-name">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>ROC-AUC</h4>
+                    <p id="ml-auc">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Recall</h4>
+                    <p id="ml-recall">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>F1</h4>
+                    <p id="ml-f1">...</p>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Test Summary</h3>
+                    <p class="inline-note" id="ml-purpose"></p>
+                    <table class="academic-table stats-table">
+                        <tbody id="ml-metrics-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>Confusion Matrix</h3>
+                    <table class="academic-table stats-table" id="ml-confusion-table"></table>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Top Positive Coefficients</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ml-positive-features"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>Top Negative Coefficients</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ml-negative-features"></tbody>
+                    </table>
                 </div>
             </section>
         </div>

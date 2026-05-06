@@ -1,0 +1,164 @@
+{
+  "model_name": "Logistic Regression Baseline",
+  "purpose": "Fast sanity check for the model-ready pipeline; stronger models will be added later.",
+  "split": {
+    "train_rows": 55976,
+    "test_rows": 13994,
+    "test_size": 0.2,
+    "random_state": 42
+  },
+  "class_balance": {
+    "train_positive_rate": 0.089717,
+    "test_positive_rate": 0.089681
+  },
+  "metrics": {
+    "accuracy": 0.622767,
+    "precision": 0.127269,
+    "recall": 0.54741,
+    "f1": 0.206523,
+    "roc_auc": 0.627821
+  },
+  "confusion_matrix": {
+    "labels": [
+      "Not <30",
+      "<30"
+    ],
+    "matrix": [
+      [
+        8028,
+        4711
+      ],
+      [
+        568,
+        687
+      ]
+    ]
+  },
+  "classification_report": {
+    "0": {
+      "precision": 0.9339227547696604,
+      "recall": 0.6301907528063427,
+      "f1-score": 0.7525662057651746,
+      "support": 12739.0
+    },
+    "1": {
+      "precision": 0.12726935902185996,
+      "recall": 0.547410358565737,
+      "f1-score": 0.20652337291447467,
+      "support": 1255.0
+    },
+    "accuracy": 0.6227669001000429,
+    "macro avg": {
+      "precision": 0.5305960568957602,
+      "recall": 0.5888005556860398,
+      "f1-score": 0.47954478933982464,
+      "support": 13994.0
+    },
+    "weighted avg": {
+      "precision": 0.8615810360571058,
+      "recall": 0.6227669001000429,
+      "f1-score": 0.7035963790374608,
+      "support": 13994.0
+    }
+  },
+  "top_positive_features": [
+    {
+      "feature": "medical_specialty_AllergyandImmunology",
+      "coefficient": 1.381776
+    },
+    {
+      "feature": "medical_specialty_Hematology/Oncology",
+      "coefficient": 1.299772
+    },
+    {
+      "feature": "medical_specialty_Psychiatry-Child/Adolescent",
+      "coefficient": 1.120552
+    },
+    {
+      "feature": "medical_specialty_Oncology",
+      "coefficient": 0.930534
+    },
+    {
+      "feature": "medical_specialty_Anesthesiology",
+      "coefficient": 0.893669
+    },
+    {
+      "feature": "medical_specialty_Anesthesiology-Pediatric",
+      "coefficient": 0.796738
+    },
+    {
+      "feature": "medical_specialty_PhysicalMedicineandRehabilitation",
+      "coefficient": 0.747696
+    },
+    {
+      "feature": "medical_specialty_OutreachServices",
+      "coefficient": 0.742141
+    },
+    {
+      "feature": "medical_specialty_Surgeon",
+      "coefficient": 0.734922
+    },
+    {
+      "feature": "medical_specialty_Psychiatry",
+      "coefficient": 0.730479
+    },
+    {
+      "feature": "medical_specialty_Nephrology",
+      "coefficient": 0.656118
+    },
+    {
+      "feature": "medical_specialty_InfectiousDiseases",
+      "coefficient": 0.62324
+    }
+  ],
+  "top_negative_features": [
+    {
+      "feature": "medical_specialty_Pediatrics-Endocrinology",
+      "coefficient": -2.155149
+    },
+    {
+      "feature": "medical_specialty_Hematology",
+      "coefficient": -1.773545
+    },
+    {
+      "feature": "medical_specialty_Gynecology",
+      "coefficient": -1.576281
+    },
+    {
+      "feature": "medical_specialty_SurgicalSpecialty",
+      "coefficient": -1.166529
+    },
+    {
+      "feature": "medical_specialty_Pathology",
+      "coefficient": -0.874772
+    },
+    {
+      "feature": "medical_specialty_Surgery-Maxillofacial",
+      "coefficient": -0.817142
+    },
+    {
+      "feature": "medical_specialty_PhysicianNotFound",
+      "coefficient": -0.808315
+    },
+    {
+      "feature": "medical_specialty_Surgery-Colon&Rectal",
+      "coefficient": -0.808273
+    },
+    {
+      "feature": "medical_specialty_Endocrinology-Metabolism",
+      "coefficient": -0.747228
+    },
+    {
+      "feature": "medical_specialty_Otolaryngology",
+      "coefficient": -0.71367
+    },
+    {
+      "feature": "medical_specialty_Pediatrics-CriticalCare",
+      "coefficient": -0.613469
+    },
+    {
+      "feature": "medical_specialty_DCPTEAM",
+      "coefficient": -0.576542
+    }
+  ]
+}

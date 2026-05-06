@@ -1,5 +1,7 @@
 let academicData = null;
 let cleaningData = null;
+let modelReadyData = null;
+let baselineModelData = null;
 let nzvData = null;
 let currentChart = null;
 let cleanChart = null;
@@ -13,15 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
     Promise.all([
         fetch('academic_data.json').then(r => r.json()),
         fetch('cleaning_data.json').then(r => r.json()),
+        fetch('model_ready_data.json').then(r => r.json()),
+        fetch('baseline_model_report.json').then(r => r.json()),
         fetch('icd9_mapping.json').then(r => r.json()).catch(() => ({})),
         fetch('nzv_report.json').then(r => r.json()).catch(() => ({}))
-    ]).then(([data, cleaning, mapping, nzv]) => {
+    ]).then(([data, cleaning, modelReady, baselineModel, mapping, nzv]) => {
         academicData = data;
         cleaningData = cleaning;
+        modelReadyData = modelReady;
+        baselineModelData = baselineModel;
         icd9Mapping = mapping;
         nzvData = nzv;
         initRawPage();
         initCleanPage();
+        initModelReadyPage();
+        initBaselineMLPage();
         // NZV panel is rendered on demand when modal opens
     }).catch(err => {
         console.error(err);
@@ -44,14 +52,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeRow = document.querySelector('#clean-feature-tbody tr.active-row');
         if (activeRow) activeRow.click();
     });
+    document.getElementById('ready-limit').addEventListener('change', () => renderModelReadyPreview());
 });
 
 // ==================== PAGE SWITCHING ====================
 function switchPage(page) {
     document.getElementById('page-raw').style.display   = page === 'raw'   ? '' : 'none';
     document.getElementById('page-clean').style.display = page === 'clean' ? '' : 'none';
+    document.getElementById('page-ready').style.display = page === 'ready' ? '' : 'none';
+    document.getElementById('page-ml').style.display    = page === 'ml'    ? '' : 'none';
     document.getElementById('tab-raw').classList.toggle('active',   page === 'raw');
     document.getElementById('tab-clean').classList.toggle('active', page === 'clean');
+    document.getElementById('tab-ready').classList.toggle('active', page === 'ready');
+    document.getElementById('tab-ml').classList.toggle('active',    page === 'ml');
 }
 
 // ==================== PAGE 1: RAW DATA ====================
@@ -386,6 +399,89 @@ function renderCleanBrowser(filterCol = null, filterVal = null) {
         tbody.appendChild(tr);
         rendered++;
     }
+}
+
+// ==================== PAGE 3: MODEL-READY DATA ====================
+function initModelReadyPage() {
+    if (!modelReadyData) return;
+    document.getElementById('ready-rows').textContent = modelReadyData.model_ready_rows.toLocaleString();
+    document.getElementById('ready-cols').textContent = modelReadyData.model_ready_columns.toLocaleString();
+    document.getElementById('ready-positive').textContent = `${(modelReadyData.positive_class_rate * 100).toFixed(2)}%`;
+    document.getElementById('ready-dropped').textContent = modelReadyData.dropped_columns.length.toLocaleString();
+
+    document.getElementById('ready-transformations').innerHTML =
+        modelReadyData.transformations.map(item => `<li>${item}</li>`).join('');
+
+    document.getElementById('ready-feature-space').innerHTML = [
+        ['Input columns', modelReadyData.input_columns.toLocaleString()],
+        ['Numeric columns before encoding', modelReadyData.numeric_columns_before_encoding.length.toLocaleString()],
+        ['Categorical columns before encoding', modelReadyData.categorical_columns_before_encoding.length.toLocaleString()],
+        ['NZV medication drops', modelReadyData.dropped_nzv_medications.join(', ') || 'None'],
+        ['Sample encoded columns', modelReadyData.sample_columns.join(', ')]
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+
+    renderModelReadyPreview();
+}
+
+function renderModelReadyPreview() {
+    if (!modelReadyData?.sample_rows?.length) return;
+    const limit = parseInt(document.getElementById('ready-limit').value) || 25;
+    const rows = modelReadyData.sample_rows.slice(0, limit);
+    const cols = Object.keys(rows[0]);
+    document.getElementById('ready-thead').innerHTML = `<tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>`;
+    document.getElementById('ready-tbody').innerHTML = rows.map(row => (
+        `<tr>${cols.map(c => `<td>${formatCell(row[c])}</td>`).join('')}</tr>`
+    )).join('');
+}
+
+function formatCell(value) {
+    if (value === null || value === undefined) return 'NaN';
+    if (typeof value === 'number') {
+        if (Number.isInteger(value)) return value.toString();
+        return value.toFixed(4).replace(/0+$/, '').replace(/\.$/, '');
+    }
+    return value;
+}
+
+// ==================== PAGE 4: BASELINE ML TEST ====================
+function initBaselineMLPage() {
+    if (!baselineModelData) return;
+    const m = baselineModelData.metrics;
+    document.getElementById('ml-model-name').textContent = 'LogReg';
+    document.getElementById('ml-auc').textContent = m.roc_auc.toFixed(3);
+    document.getElementById('ml-recall').textContent = m.recall.toFixed(3);
+    document.getElementById('ml-f1').textContent = m.f1.toFixed(3);
+    document.getElementById('ml-purpose').textContent = baselineModelData.purpose;
+
+    document.getElementById('ml-metrics-tbody').innerHTML = [
+        ['Train rows', baselineModelData.split.train_rows.toLocaleString()],
+        ['Test rows', baselineModelData.split.test_rows.toLocaleString()],
+        ['Accuracy', m.accuracy.toFixed(4)],
+        ['Precision', m.precision.toFixed(4)],
+        ['Recall', m.recall.toFixed(4)],
+        ['F1', m.f1.toFixed(4)],
+        ['ROC-AUC', m.roc_auc.toFixed(4)],
+        ['Test positive rate', `${(baselineModelData.class_balance.test_positive_rate * 100).toFixed(2)}%`]
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+
+    const labels = baselineModelData.confusion_matrix.labels;
+    const matrix = baselineModelData.confusion_matrix.matrix;
+    document.getElementById('ml-confusion-table').innerHTML = `
+        <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th></tr></thead>
+        <tbody>
+            <tr><th>${labels[0]}</th><td>${matrix[0][0].toLocaleString()}</td><td>${matrix[0][1].toLocaleString()}</td></tr>
+            <tr><th>${labels[1]}</th><td>${matrix[1][0].toLocaleString()}</td><td>${matrix[1][1].toLocaleString()}</td></tr>
+        </tbody>
+    `;
+
+    renderCoefficientTable('ml-positive-features', baselineModelData.top_positive_features);
+    renderCoefficientTable('ml-negative-features', baselineModelData.top_negative_features);
+}
+
+function renderCoefficientTable(targetId, rows) {
+    document.getElementById(targetId).innerHTML = rows.map(row => (
+        `<tr><th>${row.feature}</th><td>${row.coefficient.toFixed(4)}</td></tr>`
+    )).join('');
 }
 
 // initNZVPanel removed — code generation moved into openNZVModal()
