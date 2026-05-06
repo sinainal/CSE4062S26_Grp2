@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <header class="academic-header">
             <h1>Data Profiling & Preprocessing Analysis</h1>
             <p class="subtitle">Dataset: Diabetes 130-US Hospitals (1999–2008)</p>
@@ -48,6 +48,7 @@
                                 <th>Variable</th>
                                 <th>Type</th>
                                 <th>Miss %</th>
+                                <th>Cleaning Action</th>
                             </tr>
                         </thead>
                         <tbody id="feature-tbody">
@@ -65,13 +66,16 @@
                 
                 <div id="detail-view" style="display: none;">
                     <div class="detail-header">
-                        <h2 id="detail-title">Variable Name</h2>
-                        <span class="badge" id="detail-type">Type</span>
+                        <div class="title-row">
+                            <h2 id="detail-title">Variable Name</h2>
+                            <span class="badge" id="detail-type">Type</span>
+                        </div>
+                        <p class="feature-description" id="detail-description">Description goes here.</p>
                     </div>
 
                     <div class="academic-note-panel">
-                        <h4>🔍 Academic & Preprocessing Insight</h4>
-                        <p id="detail-note">...</p>
+                        <h4>🔍 Proposed Data Cleaning Method: <span id="detail-action-title"></span></h4>
+                        <p id="detail-action-explanation">...</p>
                     </div>
 
                     <div class="analytics-grid">
@@ -86,17 +90,16 @@
                         </div>
 
                         <!-- Distribution Chart Panel -->
-                        <div class="analytics-card">
-                            <h4>Data Distribution</h4>
+                        <div class="analytics-card chart-card">
+                            <div class="chart-header-row">
+                                <h4>Data Distribution</h4>
+                                <label class="toggle-log">
+                                    <input type="checkbox" id="toggle-log-scale"> Log Scale
+                                </label>
+                            </div>
                             <div class="chart-container">
                                 <canvas id="distribution-chart"></canvas>
                             </div>
-                        </div>
-                        
-                        <!-- Missing Values Breakdown (Optional/Placeholder for deeper analytics) -->
-                        <div class="analytics-card" style="grid-column: 1 / -1;">
-                            <h4>Feature Profile Summary</h4>
-                            <p id="feature-profile-text" style="color: var(--text-muted); font-size: 13px;"></p>
                         </div>
                     </div>
                 </div>

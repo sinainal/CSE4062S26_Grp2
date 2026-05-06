@@ -1,5 +1,6 @@
 let academicData = null;
 let currentChart = null;
+let currentFeatureData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     fetch('academic_data.json')
@@ -15,6 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>Could not load academic_data.json. Are you running this through a local server?</p>
             </div>`;
         });
+
+    // Setup Log Scale Toggle
+    document.getElementById('toggle-log-scale').addEventListener('change', () => {
+        if (currentFeatureData) {
+            renderChart(currentFeatureData);
+        }
+    });
 });
 
 function initDashboard() {
@@ -47,11 +55,13 @@ function renderFeatureList(filter = '') {
                 <td><strong>${feat.name}</strong></td>
                 <td>${feat.type}</td>
                 <td class="${missingClass}">${feat.missing_pct}%</td>
+                <td><span class="action-badge">${feat.cleaning_method}</span></td>
             `;
             
             tr.addEventListener('click', () => {
                 document.querySelectorAll('#feature-tbody tr').forEach(r => r.classList.remove('active-row'));
                 tr.classList.add('active-row');
+                currentFeatureData = feat;
                 showFeatureDetail(feat);
             });
             
@@ -66,7 +76,10 @@ function showFeatureDetail(feat) {
 
     document.getElementById('detail-title').textContent = feat.name;
     document.getElementById('detail-type').textContent = feat.type;
-    document.getElementById('detail-note').textContent = feat.academic_note;
+    document.getElementById('detail-description').textContent = feat.description;
+    
+    document.getElementById('detail-action-title').textContent = feat.cleaning_method;
+    document.getElementById('detail-action-explanation').textContent = feat.cleaning_explanation;
 
     // Render Stats Table
     const statsBody = document.getElementById('detail-stats-tbody');
@@ -99,14 +112,17 @@ function showFeatureDetail(feat) {
         });
     }
 
-    // Profile Text
-    let profileText = `The variable <strong>${feat.name}</strong> is a ${feat.type} feature with ${feat.unique_count} distinct values. `;
-    if (feat.missing_pct > 0) {
-        profileText += `It suffers from a missingness rate of ${feat.missing_pct}%, which equates to ${feat.missing_count} rows. `;
-    } else {
-        profileText += `It has 100% data completeness. `;
+    // Auto-detect if log scale is needed (Max value is > 50x the Min non-zero value)
+    const logToggle = document.getElementById('toggle-log-scale');
+    if (feat.distribution && feat.distribution.values && feat.distribution.values.length > 0) {
+        const maxVal = Math.max(...feat.distribution.values);
+        const minNonZero = Math.min(...feat.distribution.values.filter(v => v > 0)) || 1;
+        if (maxVal / minNonZero > 50) {
+            logToggle.checked = true;
+        } else {
+            logToggle.checked = false;
+        }
     }
-    document.getElementById('feature-profile-text').innerHTML = profileText;
 
     // Render Chart Safely
     renderChart(feat);
@@ -116,25 +132,22 @@ function renderChart(feat) {
     const ctx = document.getElementById('distribution-chart').getContext('2d');
     if (currentChart) currentChart.destroy();
 
-    // Safe check if distribution exists (can be empty if 100% NaN)
     if (!feat.distribution || !feat.distribution.labels || feat.distribution.labels.length === 0) {
-        // Draw empty chart with warning
         currentChart = new Chart(ctx, {
             type: 'bar',
             data: { labels: ['No Data'], datasets: [{ data: [0] }] },
             options: {
-                plugins: {
-                    title: { display: true, text: 'No valid data available for distribution (All NaN)' }
-                }
+                plugins: { title: { display: true, text: 'No valid data available (All NaN)' } }
             }
         });
         return;
     }
 
     const isNumeric = feat.type === 'Numeric';
+    const useLogScale = document.getElementById('toggle-log-scale').checked;
     
     currentChart = new Chart(ctx, {
-        type: 'bar', // Both numeric (hist) and categorical (bar) use bar type in Chart.js
+        type: 'bar',
         data: {
             labels: feat.distribution.labels,
             datasets: [{
@@ -155,6 +168,7 @@ function renderChart(feat) {
             },
             scales: {
                 y: {
+                    type: useLogScale ? 'logarithmic' : 'linear',
                     beginAtZero: true,
                     grid: { color: '#e5e7eb' },
                     ticks: { font: { family: 'Inter' } }
