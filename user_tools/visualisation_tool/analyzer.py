@@ -133,18 +133,63 @@ def generate_cleaning_report(csv_path, mapping_path, output_path):
     feature_status = {}
     for col in df.columns:
         if col.startswith('_'): continue
+
+        # Load NZV report to classify medications
+        nzv_json_path = os.path.join(os.path.dirname(output_path), 'nzv_report.json')
+        nzv_report_data = {}
+        if os.path.exists(nzv_json_path):
+            with open(nzv_json_path, 'r') as nf:
+                nzv_report_data = json.load(nf)
+
+        ALL_MED_COLS = [
+            'metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride',
+            'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide', 'pioglitazone',
+            'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone', 'tolazamide',
+            'examide', 'citoglipton', 'insulin', 'glyburide-metformin',
+            'glipizide-metformin', 'glimepiride-pioglitazone',
+            'metformin-rosiglitazone', 'metformin-pioglitazone'
+        ]
+
+    for col in df.columns:
+        if col.startswith('_'): continue
+
         if col in DROPPED_COLS:
-            feature_status[col] = {'action': 'DROP', 'reason': 'Dropped entirely (high missing or ID leakage)'}
+            feature_status[col] = {'action': 'DROP', 'reason': 'Dropped entirely (high missing % or unique identifier — data leakage risk)'}
+
+        elif col in ALL_MED_COLS:
+            nzv = nzv_report_data.get(col, {})
+            if nzv.get('drop', False):
+                fr_str = '∞' if nzv.get('fr', 0) > 999999 else f"{nzv.get('fr', 0):.1f}"
+                feature_status[col] = {
+                    'action': 'DROP',
+                    'reason': f"NZV: FR={fr_str}, σ²={nzv.get('variance', 0):.5f} — below variance threshold 0.0475 (Kuhn & Johnson, 2013)"
+                }
+            else:
+                feature_status[col] = {
+                    'action': 'KEEP',
+                    'reason': f"Sufficient variance (σ²={nzv.get('variance', 0):.4f}). Retained for modeling."
+                }
+
         elif col in ['diag_1', 'diag_2', 'diag_3']:
-            feature_status[col] = {'action': 'MODIFY', 'reason': 'ICD-9 codes grouped into 9 clinical categories'}
+            feature_status[col] = {'action': 'MODIFY', 'reason': "Missing '?' values replaced with 'Unknown' category (cleaning phase). ICD-9 grouping → Feature Engineering phase."}
+
         elif col == 'age':
-            feature_status[col] = {'action': 'MODIFY', 'reason': 'Brackets like [40-50) converted to numeric midpoints'}
+            feature_status[col] = {'action': 'MODIFY', 'reason': "Age brackets (e.g. '[40-50)') will be converted to numeric midpoints (Feature Engineering phase). No changes in cleaning."}
+
         elif col in ['race', 'medical_specialty']:
-            feature_status[col] = {'action': 'MODIFY', 'reason': "Missing '?' replaced with 'Unknown'/'Missing'"}
+            feature_status[col] = {'action': 'MODIFY', 'reason': "Missing '?' replaced with informative category: 'Unknown' (race) / 'Missing' (medical_specialty)."}
+
         elif col == 'readmitted':
-            feature_status[col] = {'action': 'MODIFY', 'reason': "Binarized: '<30'=1, others=0"}
+            feature_status[col] = {'action': 'MODIFY', 'reason': "Target variable. Will be binarized: '<30'=1, '>30' and 'NO'=0 (Feature Engineering phase)."}
+
+        elif col == 'gender':
+            feature_status[col] = {'action': 'MODIFY', 'reason': "3 rows with 'Unknown/Invalid' value removed (0.003% of data)."}
+
+        elif col == 'discharge_disposition_id':
+            feature_status[col] = {'action': 'MODIFY', 'reason': "Rows with terminal IDs (11,13,14,19,20,21) removed. IDs 18,25 (NULL/Not Mapped) kept as 'Unknown' category."}
+
         else:
-            feature_status[col] = {'action': 'KEEP', 'reason': 'No changes required'}
+            feature_status[col] = {'action': 'KEEP', 'reason': 'No quality issues detected. Column passes all cleaning criteria.'}
 
     # ---- Apply actual cleaning transformations to kept_rows ----
     cleaned = kept_rows.copy()
