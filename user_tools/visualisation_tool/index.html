@@ -17,11 +17,11 @@
 
         <section class="overview-panel">
             <div class="stat-box">
-                <h4>Total Observations (Rows)</h4>
+                <h4>Total Observations</h4>
                 <p id="overview-rows">...</p>
             </div>
             <div class="stat-box">
-                <h4>Total Variables (Cols)</h4>
+                <h4>Total Variables</h4>
                 <p id="overview-cols">...</p>
             </div>
             <div class="stat-box">
@@ -35,6 +35,7 @@
         </section>
 
         <div class="main-layout">
+            <!-- Sidebar -->
             <aside class="feature-list-container">
                 <div class="section-heading">
                     <h3>Variables List</h3>
@@ -44,9 +45,9 @@
                     <table class="academic-table" id="feature-table">
                         <thead>
                             <tr>
-                                <th>Variable Name</th>
+                                <th>Variable</th>
                                 <th>Type</th>
-                                <th>Missing</th>
+                                <th>Miss %</th>
                             </tr>
                         </thead>
                         <tbody id="feature-tbody">
@@ -56,9 +57,10 @@
                 </div>
             </aside>
 
+            <!-- Main Content Area -->
             <main class="feature-detail-container">
                 <div id="welcome-message" class="welcome-box">
-                    <h3>Select a variable from the list to view detailed analysis.</h3>
+                    <h3>Select a variable from the left panel to view detailed academic analysis.</h3>
                 </div>
                 
                 <div id="detail-view" style="display: none;">
@@ -72,9 +74,10 @@
                         <p id="detail-note">...</p>
                     </div>
 
-                    <div class="detail-grid">
-                        <div class="stats-panel">
-                            <h4>Descriptive Statistics</h4>
+                    <div class="analytics-grid">
+                        <!-- Stats Panel -->
+                        <div class="analytics-card">
+                            <h4>Descriptive & Quality Statistics</h4>
                             <table class="academic-table stats-table">
                                 <tbody id="detail-stats-tbody">
                                     <!-- Populated via JS -->
@@ -82,26 +85,23 @@
                             </table>
                         </div>
 
-                        <div class="chart-panel">
-                            <h4>Distribution</h4>
-                            <canvas id="distribution-chart"></canvas>
+                        <!-- Distribution Chart Panel -->
+                        <div class="analytics-card">
+                            <h4>Data Distribution</h4>
+                            <div class="chart-container">
+                                <canvas id="distribution-chart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Missing Values Breakdown (Optional/Placeholder for deeper analytics) -->
+                        <div class="analytics-card" style="grid-column: 1 / -1;">
+                            <h4>Feature Profile Summary</h4>
+                            <p id="feature-profile-text" style="color: var(--text-muted); font-size: 13px;"></p>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
-
-        <section class="raw-data-panel">
-            <div class="section-heading">
-                <h3>Raw Data Explorer (Sample: First 100 Observations)</h3>
-            </div>
-            <div class="table-wrapper raw-data-wrapper">
-                <table class="academic-table raw-table" id="raw-data-table">
-                    <thead id="raw-thead"></thead>
-                    <tbody id="raw-tbody"></tbody>
-                </table>
-            </div>
-        </section>
     </div>
     <script src="app.js"></script>
 </body>

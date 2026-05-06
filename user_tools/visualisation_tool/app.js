@@ -18,23 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initDashboard() {
-    // 1. Populate Overview
     const overview = academicData.dataset_overview;
     document.getElementById('overview-rows').textContent = overview.total_rows.toLocaleString();
     document.getElementById('overview-cols').textContent = overview.total_cols.toLocaleString();
     document.getElementById('overview-missing').textContent = overview.total_missing_cells.toLocaleString();
     document.getElementById('overview-dupes').textContent = overview.duplicate_rows.toLocaleString();
 
-    // 2. Populate Feature List
     renderFeatureList();
 
-    // Search Box Listener
     document.getElementById('feature-search').addEventListener('input', (e) => {
         renderFeatureList(e.target.value);
     });
-
-    // 3. Populate Raw Data
-    renderRawData();
 }
 
 function renderFeatureList(filter = '') {
@@ -88,7 +82,7 @@ function showFeatureDetail(feat) {
         statsBody.innerHTML += `<tr><th>${k}</th><td>${v}</td></tr>`;
     });
 
-    if (feat.type === 'Numeric' && feat.stats) {
+    if (feat.type === 'Numeric' && feat.stats && feat.stats.mean !== undefined) {
         const numStats = [
             ['Mean', feat.stats.mean],
             ['Std Dev', feat.stats.std],
@@ -99,11 +93,22 @@ function showFeatureDetail(feat) {
             ['Maximum', feat.stats.max]
         ];
         numStats.forEach(([k, v]) => {
-            if(v !== null) statsBody.innerHTML += `<tr><th>${k}</th><td>${v}</td></tr>`;
+            if(v !== null && v !== undefined) {
+                statsBody.innerHTML += `<tr><th>${k}</th><td>${v}</td></tr>`;
+            }
         });
     }
 
-    // Render Chart
+    // Profile Text
+    let profileText = `The variable <strong>${feat.name}</strong> is a ${feat.type} feature with ${feat.unique_count} distinct values. `;
+    if (feat.missing_pct > 0) {
+        profileText += `It suffers from a missingness rate of ${feat.missing_pct}%, which equates to ${feat.missing_count} rows. `;
+    } else {
+        profileText += `It has 100% data completeness. `;
+    }
+    document.getElementById('feature-profile-text').innerHTML = profileText;
+
+    // Render Chart Safely
     renderChart(feat);
 }
 
@@ -111,17 +116,31 @@ function renderChart(feat) {
     const ctx = document.getElementById('distribution-chart').getContext('2d');
     if (currentChart) currentChart.destroy();
 
-    const isNumeric = feat.type === 'Numeric';
-    const type = isNumeric ? 'bar' : 'bar'; // Both bar, but styled differently
+    // Safe check if distribution exists (can be empty if 100% NaN)
+    if (!feat.distribution || !feat.distribution.labels || feat.distribution.labels.length === 0) {
+        // Draw empty chart with warning
+        currentChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: ['No Data'], datasets: [{ data: [0] }] },
+            options: {
+                plugins: {
+                    title: { display: true, text: 'No valid data available for distribution (All NaN)' }
+                }
+            }
+        });
+        return;
+    }
 
+    const isNumeric = feat.type === 'Numeric';
+    
     currentChart = new Chart(ctx, {
-        type: type,
+        type: 'bar', // Both numeric (hist) and categorical (bar) use bar type in Chart.js
         data: {
             labels: feat.distribution.labels,
             datasets: [{
                 label: 'Frequency',
                 data: feat.distribution.values,
-                backgroundColor: '#0f4c81', // Academic blue
+                backgroundColor: '#0f4c81', 
                 borderColor: '#0f4c81',
                 borderWidth: 1,
                 barPercentage: isNumeric ? 1.0 : 0.8,
@@ -151,34 +170,4 @@ function renderChart(feat) {
             }
         }
     });
-}
-
-function renderRawData() {
-    const rawData = academicData.raw_sample;
-    if (rawData.length === 0) return;
-
-    const columns = Object.keys(rawData[0]);
-    
-    // Header
-    const thead = document.getElementById('raw-thead');
-    let theadHTML = '<tr>';
-    columns.forEach(col => {
-        theadHTML += `<th>${col}</th>`;
-    });
-    theadHTML += '</tr>';
-    thead.innerHTML = theadHTML;
-
-    // Body
-    const tbody = document.getElementById('raw-tbody');
-    let tbodyHTML = '';
-    rawData.forEach(row => {
-        tbodyHTML += '<tr>';
-        columns.forEach(col => {
-            let val = row[col];
-            if (val === null) val = '<span style="color:#b91c1c;">NaN</span>';
-            tbodyHTML += `<td>${val}</td>`;
-        });
-        tbodyHTML += '</tr>';
-    });
-    tbody.innerHTML = tbodyHTML;
 }
