@@ -35,30 +35,27 @@
         </section>
 
         <div class="main-layout">
-            <!-- Sidebar -->
+            <!-- Sidebar (Shortened to match content) -->
             <aside class="feature-list-container">
                 <div class="section-heading">
                     <h3>Variables List</h3>
-                    <input type="text" id="feature-search" placeholder="Filter variables...">
+                    <input type="text" id="feature-search" placeholder="Filter...">
                 </div>
-                <div class="table-wrapper">
+                <div class="table-wrapper sidebar-table-wrapper">
                     <table class="academic-table" id="feature-table">
                         <thead>
                             <tr>
                                 <th>Variable</th>
-                                <th>Type</th>
                                 <th>Miss %</th>
                                 <th>Cleaning Action</th>
                             </tr>
                         </thead>
-                        <tbody id="feature-tbody">
-                            <!-- Populated via JS -->
-                        </tbody>
+                        <tbody id="feature-tbody"></tbody>
                     </table>
                 </div>
             </aside>
 
-            <!-- Main Content Area -->
+            <!-- Main Content Area (Stats + Chart) -->
             <main class="feature-detail-container">
                 <div id="welcome-message" class="welcome-box">
                     <h3>Select a variable from the left panel to view detailed academic analysis.</h3>
@@ -79,17 +76,13 @@
                     </div>
 
                     <div class="analytics-grid">
-                        <!-- Stats Panel -->
                         <div class="analytics-card">
                             <h4>Descriptive & Quality Statistics</h4>
                             <table class="academic-table stats-table">
-                                <tbody id="detail-stats-tbody">
-                                    <!-- Populated via JS -->
-                                </tbody>
+                                <tbody id="detail-stats-tbody"></tbody>
                             </table>
                         </div>
 
-                        <!-- Distribution Chart Panel -->
                         <div class="analytics-card chart-card">
                             <div class="chart-header-row">
                                 <h4>Data Distribution</h4>
@@ -102,39 +95,23 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- NEW: Drill-Down Patient Table -->
-                    <div id="drill-down-container" class="analytics-card" style="display: none; margin-top: 20px;">
-                        <h4 id="drill-down-title">Patients matching selection</h4>
-                        <div class="table-wrapper" style="max-height: 400px;">
-                            <table class="academic-table drill-down-table">
-                                <thead id="drill-down-thead">
-                                    <!-- Dynamic headers -->
-                                </thead>
-                                <tbody id="drill-down-tbody">
-                                    <!-- Filtered patients -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </main>
         </div>
 
-        <!-- NEW: Individual Case Explorer Panel -->
-        <section class="case-explorer-panel">
-            <div class="section-heading">
-                <h3>Individual Case Analysis (Clinical Observation Review)</h3>
-                <div class="case-selector">
-                    <label for="case-dropdown">Select Encounter ID:</label>
-                    <select id="case-dropdown">
-                        <option value="">-- Choose an Observation --</option>
-                    </select>
+        <!-- FULL WIDTH Patient Table Section -->
+        <section class="full-width-section">
+            <div id="drill-down-container" class="analytics-card">
+                <div class="section-heading">
+                    <h3 id="drill-down-title">Clinical Record Browser (All Observations)</h3>
+                    <p class="subtitle" style="font-size: 12px; margin-left: 10px;">Click on a chart bar above to filter this list</p>
                 </div>
-            </div>
-            
-            <div id="case-detail-box" class="case-detail-grid" style="display: none;">
-                <!-- Individual feature cards will be injected here -->
+                <div class="table-wrapper patient-table-wrapper">
+                    <table class="academic-table drill-down-table">
+                        <thead id="drill-down-thead"></thead>
+                        <tbody id="drill-down-tbody"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </div>
