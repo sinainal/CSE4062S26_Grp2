@@ -71,6 +71,95 @@ def load_ids_mapping(mapping_path):
                         pass
     return mapping
 
+TERMINAL_DISCHARGE_IDS = [11, 13, 14, 19, 20, 21]
+DROPPED_COLS = ['weight', 'payer_code', 'encounter_id', 'patient_nbr']
+
+def generate_cleaning_report(csv_path, mapping_path, output_path):
+    print("Generating cleaning data report...")
+    df = pd.read_csv(csv_path, na_values=['?'], low_memory=False)
+    mappings = load_ids_mapping(mapping_path)
+
+    # Track deletion reasons for each row
+    df['_deletion_reason'] = None
+    df['_modified'] = False
+
+    # 1. Mark duplicate patient encounters (all but first)
+    dup_mask = df.duplicated(subset=['patient_nbr'], keep='first')
+    df.loc[dup_mask, '_deletion_reason'] = 'Duplicate patient encounter (keeping first only)'
+
+    # 2. Mark terminal discharges
+    terminal_mask = df['discharge_disposition_id'].isin(TERMINAL_DISCHARGE_IDS)
+    df.loc[terminal_mask & df['_deletion_reason'].isna(), '_deletion_reason'] = \
+        'Terminal discharge: ' + df.loc[terminal_mask & df['_deletion_reason'].isna(), 'discharge_disposition_id'].astype(str).map(
+            lambda x: mappings.get('discharge_disposition_id', {}).get(str(int(float(x))) if x and x != 'nan' else '', 'Unknown')
+        )
+
+    # 3. Mark ? (missing critical fields) as modified
+    for col in ['race', 'medical_specialty']:
+        mask = df[col].isna() & df['_deletion_reason'].isna()
+        df.loc[mask, '_modified'] = True
+
+    # Build a clean summary
+    deleted_rows = df[df['_deletion_reason'].notna()]
+    kept_rows = df[df['_deletion_reason'].isna()].copy()
+
+    # Stats
+    stats = {
+        'original_rows': len(df),
+        'deleted_rows': int(deleted_rows['_deletion_reason'].notna().sum()),
+        'deleted_duplicates': int(dup_mask.sum()),
+        'deleted_terminal': int((terminal_mask & ~dup_mask).sum()),
+        'modified_rows': int((df['_modified'] == True).sum()),
+        'kept_rows': len(kept_rows),
+        'dropped_cols': DROPPED_COLS,
+        'deletion_reasons': deleted_rows['_deletion_reason'].value_counts().head(20).to_dict()
+    }
+
+    # Build sample (first 2000 with status tags for browser performance)
+    sample_size = 2000
+    # Get mix: some deleted, some kept
+    sample_deleted = deleted_rows.head(sample_size // 2)
+    sample_kept = kept_rows.head(sample_size - len(sample_deleted))
+    sample = pd.concat([sample_deleted, sample_kept]).replace({np.nan: None})
+
+    display_cols = [c for c in df.columns if c not in DROPPED_COLS and not c.startswith('_')]
+    records = []
+    for _, row in sample.iterrows():
+        rec = {col: row[col] for col in display_cols if col in row}
+        rec['__status'] = 'deleted' if row['_deletion_reason'] else ('modified' if row['_modified'] else 'kept')
+        rec['__reason'] = row['_deletion_reason'] if row['_deletion_reason'] else (
+            'Missing values replaced' if row['_modified'] else ''
+        )
+        records.append(rec)
+
+    # Feature-level cleaning actions
+    feature_status = {}
+    for col in df.columns:
+        if col.startswith('_'):
+            continue
+        if col in DROPPED_COLS:
+            feature_status[col] = {'action': 'DROP', 'reason': 'Dropped entirely (high missing or ID leakage)'}
+        elif col in ['diag_1', 'diag_2', 'diag_3']:
+            feature_status[col] = {'action': 'MODIFY', 'reason': 'ICD-9 codes grouped into 9 clinical categories'}
+        elif col == 'age':
+            feature_status[col] = {'action': 'MODIFY', 'reason': 'Brackets like [40-50) converted to numeric midpoints'}
+        elif col in ['race', 'medical_specialty']:
+            feature_status[col] = {'action': 'MODIFY', 'reason': "Missing '?' replaced with 'Unknown'/'Missing'"}
+        elif col == 'readmitted':
+            feature_status[col] = {'action': 'MODIFY', 'reason': "Binarized: '<30'=1, others=0"}
+        else:
+            feature_status[col] = {'action': 'KEEP', 'reason': 'No changes required'}
+
+    cleaning_report = {
+        'stats': stats,
+        'feature_status': feature_status,
+        'sample': records
+    }
+
+    with open(output_path, 'w') as f:
+        json.dump(cleaning_report, f)
+    print(f"Cleaning report saved to {output_path}")
+
 def generate_academic_report(csv_path, mapping_path, output_path):
     print("Loading data...")
     df_raw = pd.read_csv(csv_path, dtype=str)
@@ -168,24 +257,15 @@ def generate_academic_report(csv_path, mapping_path, output_path):
                 sorted_labels = val_counts.index.values[sorted_indices]
                 sorted_values = val_counts.values[sorted_indices]
                 
-                if len(sorted_labels) > 150:
-                    feature_info["distribution"]["labels"] = sorted_labels[:150].tolist()
-                    feature_info["distribution"]["values"] = sorted_values[:150].tolist()
-                else:
-                    feature_info["distribution"]["labels"] = sorted_labels.tolist()
-                    feature_info["distribution"]["values"] = sorted_values.tolist()
+                feature_info["distribution"]["labels"] = sorted_labels.tolist()
+                feature_info["distribution"]["values"] = sorted_values.tolist()
             else:
                 sorted_indices = np.argsort(val_counts.index.values)
                 sorted_labels = val_counts.index.values[sorted_indices]
                 sorted_values = val_counts.values[sorted_indices]
                 
-                if len(sorted_labels) > 150:
-                    val_counts = raw_col.value_counts().head(50)
-                    feature_info["distribution"]["labels"] = val_counts.index.tolist()
-                    feature_info["distribution"]["values"] = val_counts.values.tolist()
-                else:
-                    feature_info["distribution"]["labels"] = sorted_labels.tolist()
-                    feature_info["distribution"]["values"] = sorted_values.tolist()
+                feature_info["distribution"]["labels"] = sorted_labels.tolist()
+                feature_info["distribution"]["values"] = sorted_values.tolist()
             
         report["features"][col] = feature_info
         
@@ -198,6 +278,9 @@ if __name__ == "__main__":
     csv_file = os.path.join(base_path, "data/diabetes+130-us+hospitals+for+years+1999-2008/diabetic_data.csv")
     mapping_file = os.path.join(base_path, "data/diabetes+130-us+hospitals+for+years+1999-2008/IDS_mapping.csv")
     output_json = os.path.join(base_path, "user_tools/visualisation_tool/academic_data.json")
+    cleaning_json = os.path.join(base_path, "user_tools/visualisation_tool/cleaning_data.json")
     
     generate_academic_report(csv_file, mapping_file, output_json)
+    generate_cleaning_report(csv_file, mapping_file, cleaning_json)
     print("Done.")
+
