@@ -90,7 +90,7 @@ def generate_academic_report(csv_path, mapping_path, output_path):
     report["dataset_overview"]["total_missing_cells"] = int(df_typed.isna().sum().sum())
     report["dataset_overview"]["duplicate_rows"] = int(df_typed.duplicated().sum())
     
-    sample_df = df_typed.head(100).replace({np.nan: None})
+    sample_df = df_typed.head(1000).replace({np.nan: None})
     report["raw_sample"] = sample_df.to_dict(orient='records')
     
     for col in df_typed.columns:

@@ -84,3 +84,78 @@ h1, h2, h3, h4 { font-family: 'Libre Baskerville', serif; color: var(--text-main
 .chart-header-row h4 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 .toggle-log { font-size: 13px; display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-muted); font-weight: 500; }
 .chart-container { flex: 1; min-height: 300px; position: relative; width: 100%; }
+
+/* Case Explorer Styles */
+.case-explorer-panel {
+    margin-top: 50px;
+    border-top: 2px solid var(--text-main);
+    padding-top: 20px;
+    padding-bottom: 50px;
+}
+
+.case-selector {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.case-selector select {
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 14px;
+    background: white;
+}
+
+.case-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.case-item {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    padding: 12px 15px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+}
+
+.case-item .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+}
+
+.case-item .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.case-item.highlight {
+    background: var(--accent-light);
+    border-color: var(--accent);
+}
+
+/* Drill-Down Table Styling */
+.drill-down-table {
+    font-size: 11px;
+}
+.drill-down-table th {
+    white-space: nowrap;
+}
+.drill-down-table td {
+    border-right: 1px solid #f1f5f9;
+}
+
+/* STD-based Coloring Classes */
+.val-high { background-color: rgba(239, 68, 68, 0.15) !important; color: #b91c1c; font-weight: 600; }
+.val-low { background-color: rgba(59, 130, 246, 0.15) !important; color: #1d4ed8; font-weight: 600; }
+.val-normal { background-color: transparent; }

@@ -102,9 +102,41 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- NEW: Drill-Down Patient Table -->
+                    <div id="drill-down-container" class="analytics-card" style="display: none; margin-top: 20px;">
+                        <h4 id="drill-down-title">Patients matching selection</h4>
+                        <div class="table-wrapper" style="max-height: 400px;">
+                            <table class="academic-table drill-down-table">
+                                <thead id="drill-down-thead">
+                                    <!-- Dynamic headers -->
+                                </thead>
+                                <tbody id="drill-down-tbody">
+                                    <!-- Filtered patients -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
+
+        <!-- NEW: Individual Case Explorer Panel -->
+        <section class="case-explorer-panel">
+            <div class="section-heading">
+                <h3>Individual Case Analysis (Clinical Observation Review)</h3>
+                <div class="case-selector">
+                    <label for="case-dropdown">Select Encounter ID:</label>
+                    <select id="case-dropdown">
+                        <option value="">-- Choose an Observation --</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="case-detail-box" class="case-detail-grid" style="display: none;">
+                <!-- Individual feature cards will be injected here -->
+            </div>
+        </section>
     </div>
     <script src="app.js"></script>
 </body>
