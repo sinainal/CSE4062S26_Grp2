@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         });
 
-    // Setup Log Scale Toggle
     document.getElementById('toggle-log-scale').addEventListener('change', () => {
         if (currentFeatureData) {
             renderChart(currentFeatureData);
@@ -81,7 +80,6 @@ function showFeatureDetail(feat) {
     document.getElementById('detail-action-title').textContent = feat.cleaning_method;
     document.getElementById('detail-action-explanation').textContent = feat.cleaning_explanation;
 
-    // Render Stats Table
     const statsBody = document.getElementById('detail-stats-tbody');
     statsBody.innerHTML = '';
     
@@ -112,7 +110,6 @@ function showFeatureDetail(feat) {
         });
     }
 
-    // Auto-detect if log scale is needed (Max value is > 50x the Min non-zero value)
     const logToggle = document.getElementById('toggle-log-scale');
     if (feat.distribution && feat.distribution.values && feat.distribution.values.length > 0) {
         const maxVal = Math.max(...feat.distribution.values);
@@ -124,7 +121,6 @@ function showFeatureDetail(feat) {
         }
     }
 
-    // Render Chart Safely
     renderChart(feat);
 }
 
@@ -136,9 +132,7 @@ function renderChart(feat) {
         currentChart = new Chart(ctx, {
             type: 'bar',
             data: { labels: ['No Data'], datasets: [{ data: [0] }] },
-            options: {
-                plugins: { title: { display: true, text: 'No valid data available (All NaN)' } }
-            }
+            options: { plugins: { title: { display: true, text: 'No valid data available (All NaN)' } } }
         });
         return;
     }
@@ -164,7 +158,19 @@ function renderChart(feat) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            let label = context[0].label;
+                            // Check if there is a mapping for this raw value
+                            if (feat.value_mapping && feat.value_mapping[label]) {
+                                return `ID ${label} : ${feat.value_mapping[label]}`;
+                            }
+                            return label;
+                        }
+                    }
+                }
             },
             scales: {
                 y: {
@@ -175,11 +181,7 @@ function renderChart(feat) {
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { 
-                        font: { family: 'Inter' },
-                        maxRotation: 45,
-                        minRotation: 0
-                    }
+                    ticks: { font: { family: 'Inter' }, maxRotation: 45, minRotation: 0 }
                 }
             }
         }
