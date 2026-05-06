@@ -1,0 +1,243 @@
+Spring 2026 Data Science Course Project
+Medical Data Mining, Descriptive Analytics, and Predictive Analytics
+
+Dear Students,
+
+This semester, all project groups will work on the same medical dataset and develop a complete data science pipeline including data understanding, preprocessing, descriptive analytics, and predictive analytics. Compared to previous years, the project structure is simplified. There will be only two graded milestones:
+
+1. Progress Presentation
+2. Final Presentation
+
+Your project grade will be based primarily on your performance in these two presentations, including the technical quality of your work, the clarity of your explanations, the depth of your analysis, the quality of your visualizations, and your ability to answer questions during the presentation.
+
+Common Dataset
+
+All groups must use the following dataset for the project:
+
+Diabetes 130-US Hospitals for Years 1999–2008
+UCI Machine Learning Repository
+
+This dataset contains 101,766 hospital encounters, 47 features, mixed categorical and integer attributes, and missing values. It is explicitly suitable for classification and clustering. It also includes early readmission as a natural classification target and variables such as time_in_hospital that may be used for optional regression analysis. ([UCI Makine Öğrenimi Deposu][1])
+
+Project Objective
+
+Your objective is to perform a complete data science study on this medical dataset. The project must include the following components:
+
+1. Data understanding and preprocessing
+   You should examine the dataset carefully, identify feature types, analyze missing values, detect data quality problems, justify preprocessing steps, and prepare the final analytical dataset.
+
+2. Descriptive analytics
+   You must apply clustering and association rule mining methods to discover meaningful patterns in the data.
+
+Mandatory clustering methods:
+
+* k-means
+* hierarchical clustering
+* DBSCAN
+
+You are encouraged to apply additional clustering methods if you wish.
+
+Mandatory association rule mining method:
+
+* Apriori
+
+Your goal is to identify interesting and meaningful descriptive patterns that could be useful in a healthcare or hospital-management context.
+
+3. Predictive analytics
+   You must formulate and solve at least one predictive problem using the dataset.
+
+Mandatory predictive task:
+
+* classification
+
+Recommended classification target:
+
+* readmitted / early readmission
+
+You must apply feature selection methods and compare multiple predictive models.
+
+You should use at least 3 different classification algorithms and perform 6 to 10 experiments in total by varying:
+
+* algorithm type
+* hyperparameters
+* feature subsets
+* preprocessing choices where appropriate
+
+You are strongly encouraged to try algorithms such as:
+
+* k-NN
+* Naive Bayes
+* SVM
+* Decision Trees
+* Random Forest
+* Gradient Boosting / XGBoost if available
+* ANN / MLP
+
+* formulate and solve a regression task, for example by predicting a numeric variable such as time_in_hospital
+
+GitHub Repository Requirement
+
+Each group must open a private GitHub repository. The repository name must follow this format:
+
+CSE4062S26_GrpX
+
+Replace X with your group number.
+
+Rules for the repository:
+
+* This must be a regular private repository, not a group or organization repository.
+* Add all team members to the repository.
+* All team members must open GitHub accounts using their school e-mail addresses if possible.
+* Choose identifiable usernames.
+* Add me, mcganiz, to the repository as a contributor.
+* Do not upload the raw dataset to GitHub.
+* GitHub is only for your code, notebooks, reports, presentations, and documentation.
+
+All group members are expected to contribute actively. GitHub commit history may be used to evaluate the contribution level of team members.
+
+Progress Presentation
+Week 12
+Friday, May 8
+
+By the progress presentation, your group is expected to have completed the following:
+
+* team organization and repository setup
+* dataset download and initial inspection
+* preprocessing plan and initial preprocessing implementation
+* feature type analysis and dataset statistics
+* exploratory data analysis and visualizations
+* first results from clustering
+* first results from association rule mining
+* initial formulation of the predictive task
+* a clear plan for the remaining work
+
+For the progress presentation, prepare a presentation in PDF format named:
+
+CSE4062S26_GroupX_ProgressPresentation.pdf
+
+Upload the PDF to Google Classroom and also place it in your GitHub repository.
+
+Your progress presentation should include at least:
+
+* title slide
+* group number and full member list
+* member student numbers, full names, departments, and e-mail addresses
+* dataset overview
+* number of rows and columns
+* important features and their types
+* missing-value analysis
+* preprocessing steps completed so far
+* descriptive analytics results so far
+* initial insights and patterns
+* predictive analytics plan
+* work distribution among team members
+
+You should aim for a clear and concise presentation. Around 10 to 15 slides is appropriate.
+
+Final Presentation
+Week 16
+Friday, June 5
+
+By the final presentation, your group is expected to complete the full project.
+
+Your final presentation must include:
+
+1. Dataset understanding and preprocessing
+
+* full data cleaning and preprocessing pipeline
+* final selected attributes
+* explanation of transformations and encoding steps
+
+2. Descriptive analytics
+
+* clustering with k-means, hierarchical clustering, and DBSCAN
+* comparison and interpretation of clustering results
+* Apriori association rule mining results
+* discussion of the most interesting and meaningful patterns
+
+3. Predictive analytics
+
+* feature selection using several methods
+* ranked feature tables
+* at least 6 to 10 predictive experiments
+* at least 3 different classification algorithms
+* comparison of evaluation metrics
+* confusion matrix of the best model
+* ROC curve for different models if applicable
+* statistical significance analysis between the best model and the closest competitor
+* interpretation of results
+
+4. Conclusions
+
+* what you learned from the descriptive analysis
+* what you learned from the predictive analysis
+* practical insights you obtained from the medical data
+* limitations of your work
+* possible future improvements
+
+For the final presentation, prepare a presentation in PDF format named:
+
+CSE4062S26_GroupX_FinalPresentation.pdf
+
+The final presentation should be more complete and detailed than the progress presentation. A maximum of 20 slides is recommended.
+
+Final Project Package
+
+Although grading will be based mainly on your presentations, you must also submit a final project package on the final presentation date.
+
+Your final package must include the following:
+
+1. Code package
+   A ZIP download of your GitHub repository, cleaned, commented, and organized.
+
+2. Preprocessed data
+   Your final preprocessed version of the data, after preprocessing and before predictive modeling, in CSV or preferably XLSX format.
+   Compress this file or folder if necessary.
+
+3. Final project report
+   A PDF report summarizing your descriptive analytics results, predictive analytics results, insights, conclusions, and important visual outputs.
+
+4. Teamwork and contribution report
+   A separate report of at least one page explaining your contributions, collaboration process, and what you gained from multidisciplinary teamwork in this project.
+   This is mandatory.
+
+Combine all of these into a single ZIP file named:
+
+CSE4062S26_GroupX_ProjectPackage.zip
+
+Only one student from each group needs to upload the final ZIP file to Google Classroom, but all group members are responsible for making sure that the GitHub repository is complete and updated by the deadline.
+
+Presentation-Based Grading
+
+Your grade will be based on the two presentations as follows:
+
+* Progress Presentation: 40%
+* Final Presentation: 60%
+
+The final grade will reflect:
+
+* technical correctness
+* completeness of the required analyses
+* quality of preprocessing and experimental design
+* depth of insights
+* presentation quality
+* quality of visualizations and tables
+* ability to answer questions clearly
+* evidence of balanced teamwork
+
+Important Rules
+
+* Deadlines are sharp. Late submissions will not be accepted.
+* All required files must be in GitHub by the relevant deadline.
+* All presentations must be uploaded to Google Classroom by the deadline.
+* Raw data must not be uploaded to GitHub.
+* Your work must be clearly documented and reproducible.
+* The first page or opening slide of every presentation/report must include:
+  course code, semester, group number, project title, list of members with student numbers, full names, departments, and e-mail addresses.
+
+Advice
+
+You are encouraged to use Trello, GitHub Issues, or a similar project management tool to organize your teamwork. Proper project management and balanced team collaboration may positively affect your evaluation during the final presentation.
+
+
+[1]: https://archive.ics.uci.edu/dataset/296/diabetes%2B130-us%2Bhospitals%2Bfor%2Byears%2B1999-2008 "UCI Machine Learning Repository"
