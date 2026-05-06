@@ -3,40 +3,40 @@ import json
 import os
 import numpy as np
 
-# Comprehensive Dictionary for Diabetes 130-US Hospitals Dataset
+# Comprehensive and Highly Detailed Academic Dictionary for Diabetes 130-US Hospitals Dataset
 FEATURE_DESCRIPTIONS = {
-    "encounter_id": "Unique identifier of an encounter.",
-    "patient_nbr": "Unique identifier of a patient.",
-    "race": "Values: Caucasian, Asian, African American, Hispanic, and other.",
-    "gender": "Values: male, female, and unknown/invalid.",
-    "age": "Grouped in 10-year intervals: [0, 10), [10, 20), ..., [90, 100).",
-    "weight": "Weight in pounds.",
-    "admission_type_id": "Integer identifier. Hover over chart bars to see mapping.",
-    "discharge_disposition_id": "Integer identifier. Hover over chart bars to see mapping.",
-    "admission_source_id": "Integer identifier. Hover over chart bars to see mapping.",
-    "time_in_hospital": "Integer number of days between admission and discharge.",
-    "payer_code": "Integer identifier corresponding to 23 distinct values.",
-    "medical_specialty": "Integer identifier of a specialty of the admitting physician.",
-    "num_lab_procedures": "Number of lab tests performed during the encounter.",
-    "num_procedures": "Number of procedures (other than lab tests) performed during the encounter.",
-    "num_medications": "Number of distinct generic names administered during the encounter.",
-    "number_outpatient": "Number of outpatient visits of the patient in the year preceding the encounter.",
-    "number_emergency": "Number of emergency visits of the patient in the year preceding the encounter.",
-    "number_inpatient": "Number of inpatient visits of the patient in the year preceding the encounter.",
-    "diag_1": "The primary diagnosis (coded as first three digits of ICD9).",
-    "diag_2": "Secondary diagnosis (coded as first three digits of ICD9).",
-    "diag_3": "Additional secondary diagnosis (coded as first three digits of ICD9).",
-    "number_diagnoses": "Number of diagnoses entered to the system.",
-    "max_glu_serum": "Indicates the range of the result or if the test was not taken.",
-    "A1Cresult": "Indicates the range of the result or if the test was not taken.",
-    "change": "Indicates if there was a change in diabetic medications.",
-    "diabetesMed": "Indicates if there was any diabetic medication prescribed.",
-    "readmitted": "Target Variable: Days to inpatient readmission."
+    "encounter_id": "Unique identifier for each admission/encounter. Useful for relational database mapping but should be removed during modeling to prevent data leakage, as it holds no clinical predictive value.",
+    "patient_nbr": "Unique identifier for each patient. Crucial for identifying readmissions, as a single patient can have multiple encounters. Must be dropped before modeling to prevent the model from memorizing specific patients.",
+    "race": "The racial or ethnic background of the patient (Caucasian, Asian, African American, Hispanic, or Other). Important for understanding demographic disparities in diabetes care, healthcare access, and readmission rates.",
+    "gender": "The biological sex of the patient (Male, Female, or Unknown/Invalid). Used to control for biological variance in disease progression and medication efficacy.",
+    "age": "Patient age, structured in 10-year ordinal intervals (e.g., [0-10), [10-20), up to [90-100)). Age is a primary risk factor for diabetes complications, healing rate, and readmission probability.",
+    "weight": "The patient's weight in pounds. While clinically vital for BMI and dosage calculations, this feature is notoriously missing >95% of its data in this dataset and is typically dropped during preprocessing.",
+    "admission_type_id": "Integer identifier indicating the urgency or type of admission (e.g., Emergency, Urgent, Elective). Emergency admissions often correlate with higher instability and readmission risk. (Mapped from IDS_mapping.csv)",
+    "discharge_disposition_id": "Integer identifier indicating where the patient was discharged to (e.g., Home, Hospice, SNF). Crucial for filtering out terminal patients (Hospice/Expired) who logically cannot be readmitted. (Mapped from IDS_mapping.csv)",
+    "admission_source_id": "Integer identifier indicating where the patient came from before admission (e.g., Emergency Room, Physician Referral, Transfer). Indicates the initial severity of the patient's condition. (Mapped from IDS_mapping.csv)",
+    "time_in_hospital": "The total duration of the hospital stay in days. Longer stays generally indicate more severe complications, intensive treatments, or slower recovery, strongly influencing readmission likelihood.",
+    "payer_code": "Indicates the patient's health insurance type (e.g., Medicare, Blue Cross, Self-Pay). Can serve as a proxy for socioeconomic status, which heavily impacts post-discharge care access and medication adherence.",
+    "medical_specialty": "The specialty of the admitting physician (e.g., Cardiology, Internal Medicine, Surgery). Reflects the primary physiological system being treated during the encounter.",
+    "num_lab_procedures": "The total number of laboratory tests performed during the patient's stay. High numbers often correlate with diagnostic uncertainty or severe, fluctuating health conditions.",
+    "num_procedures": "The total number of medical procedures (excluding lab tests) performed, such as surgeries or imaging. Indicates the invasiveness and intensity of the hospital intervention.",
+    "num_medications": "The number of distinct generic medications administered. Polypharmacy (high number of medications) is a known risk factor for adverse drug events and hospital readmissions.",
+    "number_outpatient": "Number of outpatient visits the patient had in the year prior to this encounter. High outpatient visits may indicate proactive chronic illness management or frequent follow-ups.",
+    "number_emergency": "Number of emergency room visits by the patient in the preceding year. A very strong predictor of systemic health instability, lack of primary care, and future readmissions.",
+    "number_inpatient": "Number of times the patient was hospitalized in the preceding year. Historical hospitalization is statistically one of the strongest predictive features for future readmission.",
+    "diag_1": "The primary ICD-9 diagnosis code that resulted in the admission. Typically requires grouping into broader clinical categories (e.g., Circulatory, Respiratory) due to extremely high cardinality.",
+    "diag_2": "The secondary ICD-9 diagnosis code. Captures comorbidities that complicate the primary diagnosis. Also requires categorical grouping to be useful for machine learning models.",
+    "diag_3": "An additional secondary ICD-9 diagnosis code, representing further comorbid conditions. Crucial for assessing the overall complexity of the patient's health state.",
+    "number_diagnoses": "The total number of diagnoses recorded in the system for this encounter. A direct proxy for patient multimorbidity (having multiple chronic conditions) and overall health complexity.",
+    "max_glu_serum": "The results of the maximum glucose serum test, if taken. Used to measure acute blood sugar levels. Values indicate normal, >200, or >300 mg/dL. 'None' means the test was not administered.",
+    "A1Cresult": "The result of the HbA1c test, which measures average blood sugar over the past 2-3 months. Critical for assessing long-term diabetes control. Values include normal, >7%, or >8%.",
+    "change": "A binary flag indicating whether the dosage or generic name of ANY diabetic medication was changed during the encounter. Medication changes often indicate uncontrolled diabetes requiring intervention.",
+    "diabetesMed": "A binary flag indicating whether any diabetic medication was prescribed to the patient. Distinguishes between diet-controlled diabetics and medication-dependent diabetics.",
+    "readmitted": "The Target Variable. Indicates if the patient was readmitted to the hospital. Classes: '<30' (within 30 days, often penalized by Medicare), '>30' (after 30 days), or 'NO' (no readmission)."
 }
 
 medications = ['metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride', 'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide', 'pioglitazone', 'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone', 'tolazamide', 'examide', 'citoglipton', 'insulin', 'glyburide-metformin', 'glipizide-metformin', 'glimepiride-pioglitazone', 'metformin-rosiglitazone', 'metformin-pioglitazone']
 for med in medications:
-    FEATURE_DESCRIPTIONS[med] = f"Indicates whether the drug {med} was prescribed. Values: 'up', 'down', 'steady', and 'no'."
+    FEATURE_DESCRIPTIONS[med] = f"Indicates the administration status of the specific diabetic medication '{med}' during the encounter. 'Up' means the dosage was increased, 'Down' means decreased, 'Steady' means the dosage remained the same, and 'No' indicates the drug was not prescribed. Changes in these medications often signal clinical adjustments to stabilize blood glucose."
 
 def load_ids_mapping(mapping_path):
     mapping = {}
@@ -64,7 +64,6 @@ def load_ids_mapping(mapping_path):
                 parts = line.split(',', 1)
                 if len(parts) == 2:
                     try:
-                        # Extract integer explicitly
                         key = str(int(float(parts[0]))) 
                         val = parts[1].strip('"').strip()
                         mapping[current_map][key] = val
@@ -74,14 +73,10 @@ def load_ids_mapping(mapping_path):
 
 def generate_academic_report(csv_path, mapping_path, output_path):
     print("Loading data...")
-    # Load EXACTLY as strings first to prevent Pandas from converting integers to floats if NaNs are present.
-    # This prevents '1' becoming '1.0' on the X-axis.
     df_raw = pd.read_csv(csv_path, dtype=str)
     df_raw.replace('?', np.nan, inplace=True)
     
-    # We also need a typed version for statistics (mean, std, etc)
     df_typed = pd.read_csv(csv_path, na_values=['?'])
-    
     mappings = load_ids_mapping(mapping_path)
     
     report = {
@@ -100,7 +95,7 @@ def generate_academic_report(csv_path, mapping_path, output_path):
     
     for col in df_typed.columns:
         typed_col = df_typed[col]
-        raw_col = df_raw[col].dropna() # EXACT string values from CSV
+        raw_col = df_raw[col].dropna() 
         
         is_numeric = pd.api.types.is_numeric_dtype(typed_col)
         
@@ -164,21 +159,15 @@ def generate_academic_report(csv_path, mapping_path, output_path):
             feature_info["stats"]["q75"] = float(clean_typed.quantile(0.75)) if not clean_typed.empty else None
             feature_info["stats"]["max"] = float(clean_typed.max()) if not clean_typed.empty else None
             
-        # --- ZERO ASSUMPTION DISTRIBUTION GENERATION ---
-        # 1. Get raw exact value counts as strings to preserve format. No np.histogram.
         if not raw_col.empty:
             val_counts = raw_col.value_counts()
             
-            # 2. To sort correctly, check if the raw strings can be parsed to floats.
             if is_numeric:
-                # Create a temporary numeric series to sort by the true numerical value
                 temp_numeric_index = pd.to_numeric(val_counts.index, errors='coerce')
-                # Sort using the numeric index
                 sorted_indices = np.argsort(temp_numeric_index.values)
                 sorted_labels = val_counts.index.values[sorted_indices]
                 sorted_values = val_counts.values[sorted_indices]
                 
-                # Take top 100 maximum to prevent browser crash, but it will be EXACT values.
                 if len(sorted_labels) > 150:
                     feature_info["distribution"]["labels"] = sorted_labels[:150].tolist()
                     feature_info["distribution"]["values"] = sorted_values[:150].tolist()
@@ -186,13 +175,11 @@ def generate_academic_report(csv_path, mapping_path, output_path):
                     feature_info["distribution"]["labels"] = sorted_labels.tolist()
                     feature_info["distribution"]["values"] = sorted_values.tolist()
             else:
-                # For categoricals, sort by the exact string label alphabetically.
                 sorted_indices = np.argsort(val_counts.index.values)
                 sorted_labels = val_counts.index.values[sorted_indices]
                 sorted_values = val_counts.values[sorted_indices]
                 
                 if len(sorted_labels) > 150:
-                    # If too many categories (like diag_1), fallback to frequency sort so top 50 are shown
                     val_counts = raw_col.value_counts().head(50)
                     feature_info["distribution"]["labels"] = val_counts.index.tolist()
                     feature_info["distribution"]["values"] = val_counts.values.tolist()
