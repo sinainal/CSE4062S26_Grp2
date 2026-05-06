@@ -1,0 +1,209 @@
+{
+  "metformin": {
+    "fr": 4.04,
+    "up": 0.0057,
+    "variance": 0.167618,
+    "dominant_p": 0.787023,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "repaglinide": {
+    "fr": 84.42,
+    "up": 0.0057,
+    "variance": 0.012934,
+    "dominant_p": 0.986894,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "nateglinide": {
+    "fr": 148.78,
+    "up": 0.0057,
+    "variance": 0.006968,
+    "dominant_p": 0.992983,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "chlorpropamide": {
+    "fr": 1059.08,
+    "up": 0.0057,
+    "variance": 0.001014,
+    "dominant_p": 0.998985,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "glimepiride": {
+    "fr": 19.9,
+    "up": 0.0057,
+    "variance": 0.050045,
+    "dominant_p": 0.947163,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "acetohexamide": {
+    "fr": 69969.0,
+    "up": 0.0029,
+    "variance": 1.4e-05,
+    "dominant_p": 0.999986,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "glipizide": {
+    "fr": 7.56,
+    "up": 0.0057,
+    "variance": 0.112145,
+    "dominant_p": 0.871288,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "glyburide": {
+    "fr": 9.22,
+    "up": 0.0057,
+    "variance": 0.098772,
+    "dominant_p": 0.888881,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "tolbutamide": {
+    "fr": 4114.88,
+    "up": 0.0029,
+    "variance": 0.000243,
+    "dominant_p": 0.999757,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "pioglitazone": {
+    "fr": 12.93,
+    "up": 0.0057,
+    "variance": 0.069548,
+    "dominant_p": 0.924796,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "rosiglitazone": {
+    "fr": 14.66,
+    "up": 0.0057,
+    "variance": 0.062164,
+    "dominant_p": 0.9334,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "acarbose": {
+    "fr": 367.21,
+    "up": 0.0043,
+    "variance": 0.00285,
+    "dominant_p": 0.997142,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "miglitol": {
+    "fr": 3886.11,
+    "up": 0.0057,
+    "variance": 0.000286,
+    "dominant_p": 0.999714,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "troglitazone": {
+    "fr": 23322.33,
+    "up": 0.0029,
+    "variance": 4.3e-05,
+    "dominant_p": 0.999957,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "tolazamide": {
+    "fr": 2331.33,
+    "up": 0.0029,
+    "variance": 0.000429,
+    "dominant_p": 0.999571,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "examide": {
+    "fr": Infinity,
+    "up": 0.0014,
+    "variance": 0.0,
+    "dominant_p": 1.0,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "citoglipton": {
+    "fr": Infinity,
+    "up": 0.0014,
+    "variance": 0.0,
+    "dominant_p": 1.0,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "insulin": {
+    "fr": 1.58,
+    "up": 0.0057,
+    "variance": 0.249891,
+    "dominant_p": 0.489567,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "glyburide-metformin": {
+    "fr": 143.25,
+    "up": 0.0057,
+    "variance": 0.007039,
+    "dominant_p": 0.992911,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "glipizide-metformin": {
+    "fr": 9994.71,
+    "up": 0.0029,
+    "variance": 0.0001,
+    "dominant_p": 0.9999,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "glimepiride-pioglitazone": {
+    "fr": Infinity,
+    "up": 0.0014,
+    "variance": 0.0,
+    "dominant_p": 1.0,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "metformin-rosiglitazone": {
+    "fr": 34984.0,
+    "up": 0.0029,
+    "variance": 2.9e-05,
+    "dominant_p": 0.999971,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "metformin-pioglitazone": {
+    "fr": 69969.0,
+    "up": 0.0029,
+    "variance": 1.4e-05,
+    "dominant_p": 0.999986,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  }
+}

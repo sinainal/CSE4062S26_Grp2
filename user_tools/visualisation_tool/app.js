@@ -1,5 +1,6 @@
 let academicData = null;
 let cleaningData = null;
+let nzvData = null;
 let currentChart = null;
 let cleanChart = null;
 let currentFeatureData = null;
@@ -12,13 +13,16 @@ document.addEventListener('DOMContentLoaded', () => {
     Promise.all([
         fetch('academic_data.json').then(r => r.json()),
         fetch('cleaning_data.json').then(r => r.json()),
-        fetch('icd9_mapping.json').then(r => r.json()).catch(() => ({}))
-    ]).then(([data, cleaning, mapping]) => {
+        fetch('icd9_mapping.json').then(r => r.json()).catch(() => ({})),
+        fetch('nzv_report.json').then(r => r.json()).catch(() => ({}))
+    ]).then(([data, cleaning, mapping, nzv]) => {
         academicData = data;
         cleaningData = cleaning;
         icd9Mapping = mapping;
+        nzvData = nzv;
         initRawPage();
         initCleanPage();
+        initNZVPanel();
     }).catch(err => {
         console.error(err);
         document.body.innerHTML = `<div style="padding:50px;text-align:center;color:red"><h2>Error loading data</h2><p>${err}</p></div>`;
@@ -382,4 +386,99 @@ function renderCleanBrowser(filterCol = null, filterVal = null) {
         tbody.appendChild(tr);
         rendered++;
     }
+}
+
+// ==================== NZV METHODOLOGY PANEL ====================
+function initNZVPanel() {
+    if (!nzvData) return;
+
+    // Populate NZV table
+    const tbody = document.getElementById('nzv-tbody');
+    tbody.innerHTML = '';
+    Object.entries(nzvData).forEach(([col, m]) => {
+        const drop = m.drop;
+        const tr = document.createElement('tr');
+        if (drop) tr.className = 'feat-dropped';
+
+        const frStr = m.fr === Infinity || m.fr > 999999 ? '∞' : m.fr.toFixed(1);
+        const decisionBadge = drop
+            ? '<span class="badge-drop">DROP</span>'
+            : '<span class="badge-keep">KEEP</span>';
+        const nzvBadge = m.is_nzv
+            ? '<span class="badge-nzv-yes">Yes</span>'
+            : '<span class="badge-nzv-no">No</span>';
+        const varBadge = m.below_var_thresh
+            ? '<span class="badge-nzv-yes">Yes</span>'
+            : '<span class="badge-nzv-no">No</span>';
+
+        tr.innerHTML = `
+            <td><strong>${col}</strong></td>
+            <td>${frStr}</td>
+            <td>${m.up.toFixed(4)}</td>
+            <td>${m.variance.toFixed(6)}</td>
+            <td>${nzvBadge}</td>
+            <td>${varBadge}</td>
+            <td>${decisionBadge}</td>`;
+        tbody.appendChild(tr);
+    });
+
+    // Populate code display
+    const dropped = Object.entries(nzvData).filter(([,m]) => m.drop).map(([c]) => `'${c}'`);
+    const kept    = Object.entries(nzvData).filter(([,m]) => !m.drop).map(([c]) => `'${c}'`);
+    const code = `# Near-Zero Variance (NZV) Cleaning Pipeline
+# Ref: Kuhn & Johnson (2013); Pedregosa et al. (2011)
+
+import pandas as pd
+import numpy as np
+
+FR_THRESHOLD  = 20.0   # Frequency Ratio threshold
+UP_THRESHOLD  = 10.0   # Uniqueness Percentage threshold (%)
+VAR_THRESHOLD = 0.0475  # p0*(1-p0) where p0=0.95
+
+def is_nzv(series):
+    vc = series.dropna().value_counts()
+    n  = len(series.dropna())
+    if len(vc) == 0: return True, float('inf'), 0.0, 0.0
+    fr = vc.iloc[0] / (vc.iloc[1] if len(vc) > 1 else 1)
+    up = (len(vc) / n) * 100
+    p  = vc.iloc[0] / n
+    var = p * (1 - p)
+    drop = (fr > FR_THRESHOLD and up < UP_THRESHOLD) or (var < VAR_THRESHOLD)
+    return drop, fr, up, var
+
+df = pd.read_csv('diabetic_data.csv', na_values=['?'])
+
+# --- ROW FILTERING (Strack et al., 2014) ---
+df = df.sort_values('encounter_id')
+df = df.drop_duplicates(subset=['patient_nbr'], keep='first')
+df = df[~df['discharge_disposition_id'].isin([11,13,14,19,20,21])]
+df = df[df['gender'] != 'Unknown/Invalid']
+
+# --- NZV MEDICATION REMOVAL ---
+DROP_MEDS = [
+${dropped.map(c => `    ${c},`).join('\n')}
+]
+df = df.drop(columns=DROP_MEDS)
+# Kept: ${kept.join(', ')}
+
+# --- MISSING VALUE IMPUTATION ---
+df['race']              = df['race'].fillna('Unknown')
+df['medical_specialty'] = df['medical_specialty'].fillna('Missing')
+for col in ['diag_1', 'diag_2', 'diag_3']:
+    df[col] = df[col].fillna('Unknown')
+
+print(f"Final shape: {df.shape}")
+print(f"Readmission rate (<30d): {(df['readmitted']=='<30').mean():.4f}")`;
+
+    const pre = document.getElementById('cleaning-code-display');
+    pre.textContent = code;
+}
+
+function copyCode() {
+    const text = document.getElementById('cleaning-code-display').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
 }

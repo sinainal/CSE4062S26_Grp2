@@ -125,6 +125,61 @@
         <!-- ===================== PAGE 2: DATA CLEANING AUDIT ===================== -->
         <div id="page-clean" style="display:none;">
 
+            <!-- NZV Methodology Panel -->
+            <section class="methodology-panel">
+                <div class="methodology-header">
+                    <h3>Preprocessing Methodology</h3>
+                    <p class="methodology-subtitle">Near-Zero Variance (NZV) Criterion — Kuhn &amp; Johnson (2013) &amp; Scikit-learn (Pedregosa et al., 2011)</p>
+                </div>
+                <div class="methodology-body">
+                    <div class="formula-block">
+                        <h4>Criterion A — Frequency Ratio (FR)</h4>
+                        <div class="formula">FR = count(most common value) / count(second most common value)</div>
+                        <p>Drop if <strong>FR &gt; 20</strong> (single dominant value)</p>
+                        <h4 style="margin-top:12px;">Criterion B — Uniqueness Percentage (UP)</h4>
+                        <div class="formula">UP = (n_unique / n_total) &times; 100</div>
+                        <p>Drop if <strong>UP &lt; 10%</strong> (too little diversity)</p>
+                        <h4 style="margin-top:12px;">Criterion C — Variance Threshold (Scikit-learn)</h4>
+                        <div class="formula">&sigma;&sup2; = p &times; (1 &minus; p) &nbsp;|&nbsp; threshold t = 0.95 &times; 0.05 = 0.0475</div>
+                        <p>Drop if <strong>&sigma;&sup2; &lt; 0.0475</strong> (feature same in &gt;95% of rows)</p>
+                        <p class="ref-text">A feature is removed if <strong>NZV (A &amp; B)</strong> OR <strong>Variance &lt; threshold (C)</strong> is satisfied.</p>
+                    </div>
+                    <div class="code-block-wrapper">
+                        <h4>Executable Cleaning Code</h4>
+                        <div class="code-toolbar">
+                            <span class="code-lang">Python</span>
+                            <button class="copy-btn" onclick="copyCode()">Copy</button>
+                        </div>
+                        <pre id="cleaning-code-display"><code></code></pre>
+                    </div>
+                    <div class="references-block">
+                        <h4>References</h4>
+                        <ol class="ref-list">
+                            <li>Strack, B. et al. (2014). <em>Impact of HbA1c Measurement on Hospital Readmission Rates.</em> BioMed Research International, 781670. doi:10.1155/2014/781670</li>
+                            <li>Kuhn, M. &amp; Johnson, K. (2013). <em>Applied Predictive Modeling</em> (pp. 43–47). Springer. ISBN 978-1-4614-6848-6.</li>
+                            <li>Pedregosa, F. et al. (2011). <em>Scikit-learn: Machine Learning in Python.</em> JMLR, 12, 2825–2830.</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NZV Medication Table -->
+            <section class="full-width-section" style="margin-top:0;">
+                <div class="analytics-card">
+                    <div class="section-heading">
+                        <h3>Medication Column NZV Analysis</h3>
+                    </div>
+                    <div class="table-wrapper" style="max-height:300px; overflow-y:auto; border:1px solid var(--border-color);">
+                        <table class="academic-table">
+                            <thead>
+                                <tr><th>Medication</th><th>FR</th><th>UP (%)</th><th>&sigma;&sup2;</th><th>NZV?</th><th>Below Var. Threshold?</th><th>Decision</th></tr>
+                            </thead>
+                            <tbody id="nzv-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- Cleaning Stats Banner -->
             <section class="overview-panel">
                 <div class="stat-box stat-danger">

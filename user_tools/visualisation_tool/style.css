@@ -205,3 +205,71 @@ h1, h2, h3, h4 { font-family: 'Libre Baskerville', serif; color: var(--text-main
 .legend-dot-deleted  { background: rgba(185,28,28,0.7); }
 .legend-dot-modified { background: rgba(200,160,0,0.85); }
 .legend-dot-kept     { background: #cbd5e1; }
+
+/* === METHODOLOGY PANEL === */
+.methodology-panel {
+    border: 1px solid var(--border-color);
+    margin-bottom: 25px;
+    background: var(--bg-panel);
+}
+.methodology-header {
+    background: var(--accent);
+    color: white;
+    padding: 14px 20px;
+}
+.methodology-header h3 { color: white; margin-bottom: 3px; font-size: 16px; }
+.methodology-subtitle { font-size: 12px; opacity: 0.85; font-style: italic; font-family: 'Inter', sans-serif; }
+.methodology-body {
+    display: grid;
+    grid-template-columns: 280px 1fr 240px;
+    gap: 20px;
+    padding: 20px;
+}
+.formula-block h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); margin-bottom: 6px; font-family: 'Inter', sans-serif; }
+.formula {
+    font-family: 'Courier New', monospace;
+    background: #1e293b;
+    color: #93c5fd;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-bottom: 5px;
+    border-left: 3px solid var(--accent);
+}
+.formula-block p { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
+.ref-text { color: var(--accent); font-weight: 600; margin-top: 10px !important; border-top: 1px solid var(--border-color); padding-top: 8px; }
+
+/* Code block */
+.code-block-wrapper h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); margin-bottom: 8px; font-family: 'Inter', sans-serif; }
+.code-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.code-lang { font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+.copy-btn { padding: 3px 12px; font-size: 10px; border: 1px solid var(--border-color); background: white; cursor: pointer; border-radius: 3px; font-family: 'Inter', sans-serif; }
+.copy-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+#cleaning-code-display {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    overflow-y: auto;
+    max-height: 280px;
+    line-height: 1.6;
+    white-space: pre;
+    margin: 0;
+}
+#cleaning-code-display .kw  { color: #93c5fd; }
+#cleaning-code-display .fn  { color: #6ee7b7; }
+#cleaning-code-display .cm  { color: #64748b; font-style: italic; }
+#cleaning-code-display .st  { color: #fca5a5; }
+#cleaning-code-display .nm  { color: #fde68a; }
+
+/* References */
+.references-block h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); margin-bottom: 8px; font-family: 'Inter', sans-serif; }
+.ref-list { padding-left: 16px; }
+.ref-list li { font-size: 10.5px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5; }
+.ref-list li em { color: var(--text-main); }
+
+/* NZV table badges */
+.badge-nzv-yes  { background: rgba(185,28,28,0.12); color: #b91c1c; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.badge-nzv-no   { background: rgba(21,128,61,0.1);  color: #15803d; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
