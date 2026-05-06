@@ -3,13 +3,31 @@
 ## 📊 Project Overview
 This repository contains an academic-grade data science pipeline for the **Diabetes 130-US Hospitals (1999-2008)** dataset. Our objective is to predict 30-day hospital readmission using advanced feature engineering and machine learning, grounded in original clinical research.
 
+## Quick Start
+From the project root, run:
+
+```bash
+bash start.sh
+```
+
+This will:
+- generate the cleaned dataset and model-ready outputs,
+- refresh the JSON reports used by the dashboard,
+- start the local visualization server on port `8000`.
+
+If you only want to serve the dashboard after preprocessing is already done:
+
+```bash
+python3 -m http.server 8000 --directory user_tools/visualisation_tool
+```
+
 ## 🛠 Clinical Analysis Tool
 We have developed a custom **Clinical Visualization & Discovery Tool** located in `/user_tools/visualisation_tool/`. 
 - **Features:** Real-time distribution analysis, Z-score based outlier highlighting, and dynamic clinical record browsing.
 - **ICD-9 Integration:** The tool now features a live mapping of 14,000+ ICD-9 codes to their full clinical descriptions via interactive tooltips.
 - **Model-Ready Dataset View:** The dashboard includes a dedicated section that previews the actual one-hot encoded, standardized modeling table.
 - **Baseline ML Test:** A simple Logistic Regression baseline is trained directly on the model-ready dataset as a sanity check before adding stronger models.
-- **Usage:** Run `python3 -m http.server 8000` in the tool directory to access the dashboard.
+- **Usage:** Run `bash start.sh` from the project root, or `python3 -m http.server 8000 --directory user_tools/visualisation_tool` if the reports are already generated.
 
 ## 🧼 Data Preprocessing & Cleaning (Core Methodology)
 Our preprocessing strategy is strictly aligned with the original **Strack et al. (2014)** study and modern ML best practices (2024). The logic is implemented in `data_harness.py`.
@@ -45,6 +63,7 @@ Our preprocessing strategy is strictly aligned with the original **Strack et al.
 - `/data/`: Raw and cleaned datasets.
 - `/user_tools/visualisation_tool/`: Interactive analysis dashboard.
 - `data_harness.py`: The primary preprocessing engine.
+- `start.sh`: Convenience script that runs preprocessing and launches the local dashboard.
 - `articles/`: Local library of relevant academic papers.
 
 ---
