@@ -420,6 +420,32 @@ function initModelReadyPage() {
         ['Sample encoded columns', modelReadyData.sample_columns.join(', ')]
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
+    const num = modelReadyData.numeric_pipeline || {};
+    document.getElementById('ready-numeric-pipeline').innerHTML = [
+        ['Columns', (num.columns || []).join(', ')],
+        ['Missing values', num.missing_strategy],
+        ['Normalization', num.normalization],
+        ['Formula', num.normalization_formula],
+        ['Rationale', num.why]
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v || ''}</td></tr>`).join('');
+
+    const cat = modelReadyData.categorical_pipeline || {};
+    document.getElementById('ready-categorical-pipeline').innerHTML = [
+        ['Columns', (cat.columns || []).join(', ')],
+        ['Missing values', cat.missing_strategy],
+        ['Encoding', cat.encoding],
+        ['Rationale', cat.why]
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v || ''}</td></tr>`).join('');
+
+    const clinical = modelReadyData.clinical_feature_engineering || {};
+    document.getElementById('ready-clinical-engineering').innerHTML = Object.entries(clinical)
+        .map(([k, v]) => `<tr><th>${k.replace(/_/g, ' ')}</th><td>${v}</td></tr>`).join('');
+
+    const groupRows = Object.entries(modelReadyData.encoded_feature_groups || {})
+        .sort((a, b) => b[1] - a[1])
+        .map(([k, v]) => `<tr><th>${k}</th><td>${v} encoded columns</td></tr>`);
+    document.getElementById('ready-encoded-groups').innerHTML = groupRows.join('');
+
     renderModelReadyPreview();
 }
 
@@ -446,8 +472,9 @@ function formatCell(value) {
 // ==================== PAGE 4: BASELINE ML TEST ====================
 function initBaselineMLPage() {
     if (!baselineModelData) return;
-    const m = baselineModelData.metrics;
-    document.getElementById('ml-model-name').textContent = 'LogReg';
+    const best = baselineModelData.best_model || baselineModelData;
+    const m = best.metrics || baselineModelData.metrics;
+    document.getElementById('ml-model-name').textContent = best.model_name || baselineModelData.model_name;
     document.getElementById('ml-auc').textContent = m.roc_auc.toFixed(3);
     document.getElementById('ml-recall').textContent = m.recall.toFixed(3);
     document.getElementById('ml-f1').textContent = m.f1.toFixed(3);
@@ -461,11 +488,15 @@ function initBaselineMLPage() {
         ['Recall', m.recall.toFixed(4)],
         ['F1', m.f1.toFixed(4)],
         ['ROC-AUC', m.roc_auc.toFixed(4)],
+        ['Best model', best.model_name || baselineModelData.model_name],
+        ['Feature matrix', best.feature_mode || 'model-ready encoded features'],
         ['Test positive rate', `${(baselineModelData.class_balance.test_positive_rate * 100).toFixed(2)}%`]
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
-    const labels = baselineModelData.confusion_matrix.labels;
-    const matrix = baselineModelData.confusion_matrix.matrix;
+    renderModelComparison();
+
+    const labels = best.confusion_matrix.labels;
+    const matrix = best.confusion_matrix.matrix;
     document.getElementById('ml-confusion-table').innerHTML = `
         <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th></tr></thead>
         <tbody>
@@ -476,12 +507,40 @@ function initBaselineMLPage() {
 
     renderCoefficientTable('ml-positive-features', baselineModelData.top_positive_features);
     renderCoefficientTable('ml-negative-features', baselineModelData.top_negative_features);
+    renderImportanceTable('ml-rf-features', findModel('Random Forest')?.top_features);
+    renderImportanceTable('ml-xgb-features', findModel('XGBoost')?.top_features);
 }
 
 function renderCoefficientTable(targetId, rows) {
-    document.getElementById(targetId).innerHTML = rows.map(row => (
+    document.getElementById(targetId).innerHTML = (rows || []).map(row => (
         `<tr><th>${row.feature}</th><td>${row.coefficient.toFixed(4)}</td></tr>`
-    )).join('');
+    )).join('') || '<tr><td>No coefficient data available.</td></tr>';
+}
+
+function findModel(name) {
+    return (baselineModelData.models || []).find(model => model.model_name === name);
+}
+
+function renderModelComparison() {
+    const rows = baselineModelData.models || [baselineModelData];
+    document.getElementById('ml-comparison-tbody').innerHTML = rows.map(row => {
+        const m = row.metrics;
+        const bestClass = baselineModelData.best_model?.model_name === row.model_name ? ' class="active-row"' : '';
+        return `<tr${bestClass}>
+            <td><strong>${row.model_name}</strong></td>
+            <td>${m.roc_auc.toFixed(4)}</td>
+            <td>${m.accuracy.toFixed(4)}</td>
+            <td>${m.precision.toFixed(4)}</td>
+            <td>${m.recall.toFixed(4)}</td>
+            <td>${m.f1.toFixed(4)}</td>
+        </tr>`;
+    }).join('');
+}
+
+function renderImportanceTable(targetId, rows) {
+    document.getElementById(targetId).innerHTML = (rows || []).map(row => (
+        `<tr><th>${row.feature}</th><td>${row.importance.toFixed(4)}</td></tr>`
+    )).join('') || '<tr><td>Model not available or no importances were produced.</td></tr>';
 }
 
 // initNZVPanel removed — code generation moved into openNZVModal()

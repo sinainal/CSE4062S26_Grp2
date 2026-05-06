@@ -24,9 +24,9 @@ from pathlib import Path
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     accuracy_score,
-    classification_report,
     confusion_matrix,
     f1_score,
     precision_score,
@@ -36,6 +36,11 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+try:
+    from xgboost import XGBClassifier
+except ImportError:
+    XGBClassifier = None
 
 # ============================================================
 # NEAR-ZERO VARIANCE (NZV) DETECTOR
@@ -298,6 +303,32 @@ def make_model_ready_data(cleaned_df, nzv_report=None, verbose=True):
     model_ready = pd.DataFrame(X_encoded, columns=feature_names, index=df.index)
     model_ready.insert(0, 'readmitted', y.values)
 
+    numeric_pipeline = {
+        'columns': numeric_cols,
+        'missing_strategy': 'SimpleImputer(strategy="median")',
+        'normalization': 'StandardScaler',
+        'normalization_formula': 'z = (x - training_mean) / training_standard_deviation',
+        'why': 'Median imputation is robust to skew/outliers; z-score scaling keeps numeric magnitudes comparable for linear models.',
+    }
+    categorical_pipeline = {
+        'columns': categorical_cols,
+        'missing_strategy': 'SimpleImputer(strategy="most_frequent")',
+        'encoding': 'OneHotEncoder(handle_unknown="ignore")',
+        'why': 'One-hot encoding prevents numeric category IDs from being interpreted as ordinal distances; unknown future categories are ignored safely.',
+    }
+    clinical_feature_engineering = {
+        'age': 'Age brackets such as [60-70) are converted to midpoint values such as 65 before scaling.',
+        'icd9': 'diag_1, diag_2, and diag_3 are grouped into Circulatory, Respiratory, Digestive, Diabetes, Injury, Musculoskeletal, Genitourinary, Neoplasms, or Other.',
+        'target': "readmitted is converted to binary: '<30' = 1, '>30' and 'NO' = 0.",
+        'medication_complexity': "num_medications_changed counts medication columns marked 'Up' or 'Down' before near-zero variance medication columns are dropped.",
+        'clinical_none_values': "A1Cresult='None' and max_glu_serum='None' are preserved as meaningful 'test not performed' categories.",
+    }
+
+    encoded_feature_groups = {}
+    for col in categorical_cols:
+        prefix = f'{col}_'
+        encoded_feature_groups[col] = int(sum(name.startswith(prefix) for name in feature_names))
+
     transformations = [
         "Removed leakage/high-missing columns: weight, payer_code, encounter_id, patient_nbr.",
         "Converted age brackets to numeric midpoints.",
@@ -319,6 +350,10 @@ def make_model_ready_data(cleaned_df, nzv_report=None, verbose=True):
         'categorical_columns_before_encoding': categorical_cols,
         'dropped_columns': HIGH_MISSING_AND_ID_COLS + dropped_med_cols,
         'dropped_nzv_medications': dropped_med_cols,
+        'numeric_pipeline': numeric_pipeline,
+        'categorical_pipeline': categorical_pipeline,
+        'clinical_feature_engineering': clinical_feature_engineering,
+        'encoded_feature_groups': encoded_feature_groups,
         'transformations': transformations,
         'sample_columns': model_ready.columns[:30].tolist(),
         'sample_rows': model_ready.head(100).round(6).to_dict(orient='records'),
@@ -331,34 +366,19 @@ def make_model_ready_data(cleaned_df, nzv_report=None, verbose=True):
     return model_ready, report
 
 
-def run_baseline_model(model_ready_df, verbose=True):
-    """Train a simple baseline Logistic Regression model for the UI test page."""
-    X = model_ready_df.drop(columns=['readmitted'])
-    y = model_ready_df['readmitted'].astype(int)
+def _evaluate_classifier(name, clf, X_train, X_test, y_train, y_test, feature_names, feature_mode):
+    X_train_values = X_train.to_numpy()
+    X_test_values = X_test.to_numpy()
+    clf.fit(X_train_values, y_train)
+    y_pred = clf.predict(X_test_values)
+    if hasattr(clf, 'predict_proba'):
+        y_score = clf.predict_proba(X_test_values)[:, 1]
+    else:
+        y_score = clf.decision_function(X_test_values)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
-
-    clf = LogisticRegression(max_iter=1000, class_weight='balanced', solver='liblinear')
-    clf.fit(X_train, y_train)
-
-    y_pred = clf.predict(X_test)
-    y_score = clf.predict_proba(X_test)[:, 1]
-
-    cm = confusion_matrix(y_test, y_pred).tolist()
-    coefs = pd.Series(clf.coef_[0], index=X.columns)
-    top_positive = coefs.sort_values(ascending=False).head(12)
-    top_negative = coefs.sort_values(ascending=True).head(12)
-
-    report = {
-        'model_name': 'Logistic Regression Baseline',
-        'purpose': 'Fast sanity check for the model-ready pipeline; stronger models will be added later.',
-        'split': {'train_rows': int(len(X_train)), 'test_rows': int(len(X_test)), 'test_size': 0.2, 'random_state': 42},
-        'class_balance': {
-            'train_positive_rate': round(float(y_train.mean()), 6),
-            'test_positive_rate': round(float(y_test.mean()), 6),
-        },
+    result = {
+        'model_name': name,
+        'feature_mode': feature_mode,
         'metrics': {
             'accuracy': round(float(accuracy_score(y_test, y_pred)), 6),
             'precision': round(float(precision_score(y_test, y_pred, zero_division=0)), 6),
@@ -368,17 +388,116 @@ def run_baseline_model(model_ready_df, verbose=True):
         },
         'confusion_matrix': {
             'labels': ['Not <30', '<30'],
-            'matrix': cm,
+            'matrix': confusion_matrix(y_test, y_pred).tolist(),
         },
-        'classification_report': classification_report(y_test, y_pred, output_dict=True, zero_division=0),
-        'top_positive_features': [{'feature': k, 'coefficient': round(float(v), 6)} for k, v in top_positive.items()],
-        'top_negative_features': [{'feature': k, 'coefficient': round(float(v), 6)} for k, v in top_negative.items()],
+    }
+
+    if hasattr(clf, 'coef_'):
+        coefs = pd.Series(clf.coef_[0], index=feature_names)
+        result['top_positive_features'] = [
+            {'feature': k, 'coefficient': round(float(v), 6)}
+            for k, v in coefs.sort_values(ascending=False).head(12).items()
+        ]
+        result['top_negative_features'] = [
+            {'feature': k, 'coefficient': round(float(v), 6)}
+            for k, v in coefs.sort_values(ascending=True).head(12).items()
+        ]
+    elif hasattr(clf, 'feature_importances_'):
+        importances = pd.Series(clf.feature_importances_, index=feature_names)
+        result['top_features'] = [
+            {'feature': k, 'importance': round(float(v), 6)}
+            for k, v in importances.sort_values(ascending=False).head(15).items()
+        ]
+
+    return result
+
+
+def run_baseline_model(model_ready_df, verbose=True):
+    """Train several baseline models for the UI test page."""
+    X = model_ready_df.drop(columns=['readmitted'])
+    y = model_ready_df['readmitted'].astype(int)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    pos_count = int(y_train.sum())
+    neg_count = int(len(y_train) - pos_count)
+    scale_pos_weight = neg_count / pos_count if pos_count else 1.0
+
+    model_specs = [
+        (
+            'Logistic Regression',
+            LogisticRegression(max_iter=1000, class_weight='balanced', solver='liblinear'),
+            'standardized numeric + one-hot categorical',
+        ),
+        (
+            'Random Forest',
+            RandomForestClassifier(
+                n_estimators=160,
+                max_depth=12,
+                min_samples_leaf=25,
+                class_weight='balanced_subsample',
+                random_state=42,
+                n_jobs=-1,
+            ),
+            'standardized numeric + one-hot categorical',
+        ),
+    ]
+
+    if XGBClassifier is not None:
+        model_specs.append((
+            'XGBoost',
+            XGBClassifier(
+                n_estimators=260,
+                max_depth=4,
+                learning_rate=0.05,
+                subsample=0.85,
+                colsample_bytree=0.85,
+                objective='binary:logistic',
+                eval_metric='logloss',
+                scale_pos_weight=scale_pos_weight,
+                random_state=42,
+                n_jobs=-1,
+                tree_method='hist',
+            ),
+            'standardized numeric + one-hot categorical',
+        ))
+
+    model_results = [
+        _evaluate_classifier(name, clf, X_train, X_test, y_train, y_test, X.columns, feature_mode)
+        for name, clf, feature_mode in model_specs
+    ]
+    best_model = max(model_results, key=lambda r: r['metrics']['roc_auc'])
+    logistic_result = next(r for r in model_results if r['model_name'] == 'Logistic Regression')
+
+    report = {
+        'model_name': best_model['model_name'],
+        'purpose': 'Baseline comparison across simple ML models on the same model-ready dataset. These are first-pass sanity checks before deeper tuning.',
+        'split': {'train_rows': int(len(X_train)), 'test_rows': int(len(X_test)), 'test_size': 0.2, 'random_state': 42},
+        'class_balance': {
+            'train_positive_rate': round(float(y_train.mean()), 6),
+            'test_positive_rate': round(float(y_test.mean()), 6),
+            'scale_pos_weight_for_xgboost': round(float(scale_pos_weight), 6),
+        },
+        'models': model_results,
+        'best_model': best_model,
+        'metrics': best_model['metrics'],
+        'confusion_matrix': best_model['confusion_matrix'],
+        'top_positive_features': logistic_result.get('top_positive_features', []),
+        'top_negative_features': logistic_result.get('top_negative_features', []),
+        'notes': [
+            'Random Forest uses class_weight=balanced_subsample to reduce majority-class dominance.',
+            'XGBoost uses scale_pos_weight = negative_train_count / positive_train_count when xgboost is installed.',
+            'All models are evaluated on the same stratified 80/20 split.',
+        ],
     }
 
     if verbose:
-        print("  Baseline Logistic Regression:")
-        for key, val in report['metrics'].items():
-            print(f"    {key}: {val}")
+        print("  Baseline model comparison:")
+        for result in model_results:
+            metrics = result['metrics']
+            print(f"    {result['model_name']}: AUC={metrics['roc_auc']} F1={metrics['f1']} Recall={metrics['recall']}")
 
     return report
 

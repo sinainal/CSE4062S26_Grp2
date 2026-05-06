@@ -1,6 +1,6 @@
 {
-  "model_name": "Logistic Regression Baseline",
-  "purpose": "Fast sanity check for the model-ready pipeline; stronger models will be added later.",
+  "model_name": "XGBoost",
+  "purpose": "Baseline comparison across simple ML models on the same model-ready dataset. These are first-pass sanity checks before deeper tuning.",
   "split": {
     "train_rows": 55976,
     "test_rows": 13994,
@@ -9,14 +9,411 @@
   },
   "class_balance": {
     "train_positive_rate": 0.089717,
-    "test_positive_rate": 0.089681
+    "test_positive_rate": 0.089681,
+    "scale_pos_weight_for_xgboost": 10.146157
+  },
+  "models": [
+    {
+      "model_name": "Logistic Regression",
+      "feature_mode": "standardized numeric + one-hot categorical",
+      "metrics": {
+        "accuracy": 0.622767,
+        "precision": 0.127269,
+        "recall": 0.54741,
+        "f1": 0.206523,
+        "roc_auc": 0.627821
+      },
+      "confusion_matrix": {
+        "labels": [
+          "Not <30",
+          "<30"
+        ],
+        "matrix": [
+          [
+            8028,
+            4711
+          ],
+          [
+            568,
+            687
+          ]
+        ]
+      },
+      "top_positive_features": [
+        {
+          "feature": "medical_specialty_AllergyandImmunology",
+          "coefficient": 1.381776
+        },
+        {
+          "feature": "medical_specialty_Hematology/Oncology",
+          "coefficient": 1.299772
+        },
+        {
+          "feature": "medical_specialty_Psychiatry-Child/Adolescent",
+          "coefficient": 1.120552
+        },
+        {
+          "feature": "medical_specialty_Oncology",
+          "coefficient": 0.930534
+        },
+        {
+          "feature": "medical_specialty_Anesthesiology",
+          "coefficient": 0.893669
+        },
+        {
+          "feature": "medical_specialty_Anesthesiology-Pediatric",
+          "coefficient": 0.796738
+        },
+        {
+          "feature": "medical_specialty_PhysicalMedicineandRehabilitation",
+          "coefficient": 0.747696
+        },
+        {
+          "feature": "medical_specialty_OutreachServices",
+          "coefficient": 0.742141
+        },
+        {
+          "feature": "medical_specialty_Surgeon",
+          "coefficient": 0.734922
+        },
+        {
+          "feature": "medical_specialty_Psychiatry",
+          "coefficient": 0.730479
+        },
+        {
+          "feature": "medical_specialty_Nephrology",
+          "coefficient": 0.656118
+        },
+        {
+          "feature": "medical_specialty_InfectiousDiseases",
+          "coefficient": 0.62324
+        }
+      ],
+      "top_negative_features": [
+        {
+          "feature": "medical_specialty_Pediatrics-Endocrinology",
+          "coefficient": -2.155149
+        },
+        {
+          "feature": "medical_specialty_Hematology",
+          "coefficient": -1.773545
+        },
+        {
+          "feature": "medical_specialty_Gynecology",
+          "coefficient": -1.576281
+        },
+        {
+          "feature": "medical_specialty_SurgicalSpecialty",
+          "coefficient": -1.166529
+        },
+        {
+          "feature": "medical_specialty_Pathology",
+          "coefficient": -0.874772
+        },
+        {
+          "feature": "medical_specialty_Surgery-Maxillofacial",
+          "coefficient": -0.817142
+        },
+        {
+          "feature": "medical_specialty_PhysicianNotFound",
+          "coefficient": -0.808315
+        },
+        {
+          "feature": "medical_specialty_Surgery-Colon&Rectal",
+          "coefficient": -0.808273
+        },
+        {
+          "feature": "medical_specialty_Endocrinology-Metabolism",
+          "coefficient": -0.747228
+        },
+        {
+          "feature": "medical_specialty_Otolaryngology",
+          "coefficient": -0.71367
+        },
+        {
+          "feature": "medical_specialty_Pediatrics-CriticalCare",
+          "coefficient": -0.613469
+        },
+        {
+          "feature": "medical_specialty_DCPTEAM",
+          "coefficient": -0.576542
+        }
+      ]
+    },
+    {
+      "model_name": "Random Forest",
+      "feature_mode": "standardized numeric + one-hot categorical",
+      "metrics": {
+        "accuracy": 0.679363,
+        "precision": 0.13864,
+        "recall": 0.494024,
+        "f1": 0.216518,
+        "roc_auc": 0.635948
+      },
+      "confusion_matrix": {
+        "labels": [
+          "Not <30",
+          "<30"
+        ],
+        "matrix": [
+          [
+            8887,
+            3852
+          ],
+          [
+            635,
+            620
+          ]
+        ]
+      },
+      "top_features": [
+        {
+          "feature": "discharge_disposition_id",
+          "importance": 0.13807
+        },
+        {
+          "feature": "number_inpatient",
+          "importance": 0.09211
+        },
+        {
+          "feature": "time_in_hospital",
+          "importance": 0.069568
+        },
+        {
+          "feature": "num_lab_procedures",
+          "importance": 0.067074
+        },
+        {
+          "feature": "num_medications",
+          "importance": 0.066322
+        },
+        {
+          "feature": "age",
+          "importance": 0.05311
+        },
+        {
+          "feature": "number_diagnoses",
+          "importance": 0.040258
+        },
+        {
+          "feature": "num_procedures",
+          "importance": 0.026184
+        },
+        {
+          "feature": "admission_type_id",
+          "importance": 0.02047
+        },
+        {
+          "feature": "admission_source_id",
+          "importance": 0.017961
+        },
+        {
+          "feature": "number_emergency",
+          "importance": 0.016306
+        },
+        {
+          "feature": "diag_1_Circulatory",
+          "importance": 0.012502
+        },
+        {
+          "feature": "diag_1_Respiratory",
+          "importance": 0.012193
+        },
+        {
+          "feature": "gender_Male",
+          "importance": 0.010946
+        },
+        {
+          "feature": "number_outpatient",
+          "importance": 0.010725
+        }
+      ]
+    },
+    {
+      "model_name": "XGBoost",
+      "feature_mode": "standardized numeric + one-hot categorical",
+      "metrics": {
+        "accuracy": 0.655424,
+        "precision": 0.137574,
+        "recall": 0.539442,
+        "f1": 0.219236,
+        "roc_auc": 0.64684
+      },
+      "confusion_matrix": {
+        "labels": [
+          "Not <30",
+          "<30"
+        ],
+        "matrix": [
+          [
+            8495,
+            4244
+          ],
+          [
+            578,
+            677
+          ]
+        ]
+      },
+      "top_features": [
+        {
+          "feature": "discharge_disposition_id",
+          "importance": 0.033893
+        },
+        {
+          "feature": "number_inpatient",
+          "importance": 0.031813
+        },
+        {
+          "feature": "diag_1_Musculoskeletal",
+          "importance": 0.016228
+        },
+        {
+          "feature": "diag_1_Circulatory",
+          "importance": 0.015373
+        },
+        {
+          "feature": "diabetesMed_No",
+          "importance": 0.013235
+        },
+        {
+          "feature": "diag_2_Neoplasms",
+          "importance": 0.012949
+        },
+        {
+          "feature": "glipizide_Steady",
+          "importance": 0.011236
+        },
+        {
+          "feature": "time_in_hospital",
+          "importance": 0.011081
+        },
+        {
+          "feature": "number_emergency",
+          "importance": 0.010982
+        },
+        {
+          "feature": "number_diagnoses",
+          "importance": 0.010865
+        },
+        {
+          "feature": "medical_specialty_Emergency/Trauma",
+          "importance": 0.01058
+        },
+        {
+          "feature": "A1Cresult_None",
+          "importance": 0.010414
+        },
+        {
+          "feature": "diag_1_Respiratory",
+          "importance": 0.010092
+        },
+        {
+          "feature": "medical_specialty_ObstetricsandGynecology",
+          "importance": 0.010038
+        },
+        {
+          "feature": "age",
+          "importance": 0.009947
+        }
+      ]
+    }
+  ],
+  "best_model": {
+    "model_name": "XGBoost",
+    "feature_mode": "standardized numeric + one-hot categorical",
+    "metrics": {
+      "accuracy": 0.655424,
+      "precision": 0.137574,
+      "recall": 0.539442,
+      "f1": 0.219236,
+      "roc_auc": 0.64684
+    },
+    "confusion_matrix": {
+      "labels": [
+        "Not <30",
+        "<30"
+      ],
+      "matrix": [
+        [
+          8495,
+          4244
+        ],
+        [
+          578,
+          677
+        ]
+      ]
+    },
+    "top_features": [
+      {
+        "feature": "discharge_disposition_id",
+        "importance": 0.033893
+      },
+      {
+        "feature": "number_inpatient",
+        "importance": 0.031813
+      },
+      {
+        "feature": "diag_1_Musculoskeletal",
+        "importance": 0.016228
+      },
+      {
+        "feature": "diag_1_Circulatory",
+        "importance": 0.015373
+      },
+      {
+        "feature": "diabetesMed_No",
+        "importance": 0.013235
+      },
+      {
+        "feature": "diag_2_Neoplasms",
+        "importance": 0.012949
+      },
+      {
+        "feature": "glipizide_Steady",
+        "importance": 0.011236
+      },
+      {
+        "feature": "time_in_hospital",
+        "importance": 0.011081
+      },
+      {
+        "feature": "number_emergency",
+        "importance": 0.010982
+      },
+      {
+        "feature": "number_diagnoses",
+        "importance": 0.010865
+      },
+      {
+        "feature": "medical_specialty_Emergency/Trauma",
+        "importance": 0.01058
+      },
+      {
+        "feature": "A1Cresult_None",
+        "importance": 0.010414
+      },
+      {
+        "feature": "diag_1_Respiratory",
+        "importance": 0.010092
+      },
+      {
+        "feature": "medical_specialty_ObstetricsandGynecology",
+        "importance": 0.010038
+      },
+      {
+        "feature": "age",
+        "importance": 0.009947
+      }
+    ]
   },
   "metrics": {
-    "accuracy": 0.622767,
-    "precision": 0.127269,
-    "recall": 0.54741,
-    "f1": 0.206523,
-    "roc_auc": 0.627821
+    "accuracy": 0.655424,
+    "precision": 0.137574,
+    "recall": 0.539442,
+    "f1": 0.219236,
+    "roc_auc": 0.64684
   },
   "confusion_matrix": {
     "labels": [
@@ -25,41 +422,14 @@
     ],
     "matrix": [
       [
-        8028,
-        4711
+        8495,
+        4244
       ],
       [
-        568,
-        687
+        578,
+        677
       ]
     ]
-  },
-  "classification_report": {
-    "0": {
-      "precision": 0.9339227547696604,
-      "recall": 0.6301907528063427,
-      "f1-score": 0.7525662057651746,
-      "support": 12739.0
-    },
-    "1": {
-      "precision": 0.12726935902185996,
-      "recall": 0.547410358565737,
-      "f1-score": 0.20652337291447467,
-      "support": 1255.0
-    },
-    "accuracy": 0.6227669001000429,
-    "macro avg": {
-      "precision": 0.5305960568957602,
-      "recall": 0.5888005556860398,
-      "f1-score": 0.47954478933982464,
-      "support": 13994.0
-    },
-    "weighted avg": {
-      "precision": 0.8615810360571058,
-      "recall": 0.6227669001000429,
-      "f1-score": 0.7035963790374608,
-      "support": 13994.0
-    }
   },
   "top_positive_features": [
     {
@@ -160,5 +530,10 @@
       "feature": "medical_specialty_DCPTEAM",
       "coefficient": -0.576542
     }
+  ],
+  "notes": [
+    "Random Forest uses class_weight=balanced_subsample to reduce majority-class dominance.",
+    "XGBoost uses scale_pos_weight = negative_train_count / positive_train_count when xgboost is installed.",
+    "All models are evaluated on the same stratified 80/20 split."
   ]
 }

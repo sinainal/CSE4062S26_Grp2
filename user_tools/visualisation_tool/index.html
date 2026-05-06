@@ -290,6 +290,36 @@
                 </div>
             </section>
 
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Numeric Normalization Pipeline</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ready-numeric-pipeline"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>Categorical Encoding Pipeline</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ready-categorical-pipeline"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Clinical Feature Engineering</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ready-clinical-engineering"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>One-Hot Expansion Counts</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ready-encoded-groups"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="full-width-section">
                 <div class="analytics-card">
                     <div class="section-heading">
@@ -333,7 +363,7 @@
 
             <section class="model-ready-grid">
                 <div class="analytics-card">
-                    <h3>Test Summary</h3>
+                    <h3>Best Model Summary</h3>
                     <p class="inline-note" id="ml-purpose"></p>
                     <table class="academic-table stats-table">
                         <tbody id="ml-metrics-tbody"></tbody>
@@ -345,17 +375,52 @@
                 </div>
             </section>
 
+            <section class="full-width-section">
+                <div class="analytics-card">
+                    <h3>Model Comparison</h3>
+                    <p class="inline-note">All models use the same stratified 80/20 split and the same model-ready encoded feature matrix.</p>
+                    <table class="academic-table">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>ROC-AUC</th>
+                                <th>Accuracy</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ml-comparison-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="model-ready-grid">
                 <div class="analytics-card">
-                    <h3>Top Positive Coefficients</h3>
+                    <h3>Logistic Regression: Top Positive Coefficients</h3>
                     <table class="academic-table stats-table">
                         <tbody id="ml-positive-features"></tbody>
                     </table>
                 </div>
                 <div class="analytics-card">
-                    <h3>Top Negative Coefficients</h3>
+                    <h3>Logistic Regression: Top Negative Coefficients</h3>
                     <table class="academic-table stats-table">
                         <tbody id="ml-negative-features"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Random Forest: Top Feature Importances</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ml-rf-features"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>XGBoost: Top Feature Importances</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ml-xgb-features"></tbody>
                     </table>
                 </div>
             </section>

@@ -78,6 +78,77 @@
     "metformin-rosiglitazone",
     "metformin-pioglitazone"
   ],
+  "numeric_pipeline": {
+    "columns": [
+      "age",
+      "admission_type_id",
+      "discharge_disposition_id",
+      "admission_source_id",
+      "time_in_hospital",
+      "num_lab_procedures",
+      "num_procedures",
+      "num_medications",
+      "number_outpatient",
+      "number_emergency",
+      "number_inpatient",
+      "number_diagnoses",
+      "num_medications_changed"
+    ],
+    "missing_strategy": "SimpleImputer(strategy=\"median\")",
+    "normalization": "StandardScaler",
+    "normalization_formula": "z = (x - training_mean) / training_standard_deviation",
+    "why": "Median imputation is robust to skew/outliers; z-score scaling keeps numeric magnitudes comparable for linear models."
+  },
+  "categorical_pipeline": {
+    "columns": [
+      "race",
+      "gender",
+      "medical_specialty",
+      "diag_1",
+      "diag_2",
+      "diag_3",
+      "max_glu_serum",
+      "A1Cresult",
+      "metformin",
+      "glimepiride",
+      "glipizide",
+      "glyburide",
+      "pioglitazone",
+      "rosiglitazone",
+      "insulin",
+      "change",
+      "diabetesMed"
+    ],
+    "missing_strategy": "SimpleImputer(strategy=\"most_frequent\")",
+    "encoding": "OneHotEncoder(handle_unknown=\"ignore\")",
+    "why": "One-hot encoding prevents numeric category IDs from being interpreted as ordinal distances; unknown future categories are ignored safely."
+  },
+  "clinical_feature_engineering": {
+    "age": "Age brackets such as [60-70) are converted to midpoint values such as 65 before scaling.",
+    "icd9": "diag_1, diag_2, and diag_3 are grouped into Circulatory, Respiratory, Digestive, Diabetes, Injury, Musculoskeletal, Genitourinary, Neoplasms, or Other.",
+    "target": "readmitted is converted to binary: '<30' = 1, '>30' and 'NO' = 0.",
+    "medication_complexity": "num_medications_changed counts medication columns marked 'Up' or 'Down' before near-zero variance medication columns are dropped.",
+    "clinical_none_values": "A1Cresult='None' and max_glu_serum='None' are preserved as meaningful 'test not performed' categories."
+  },
+  "encoded_feature_groups": {
+    "race": 6,
+    "gender": 2,
+    "medical_specialty": 71,
+    "diag_1": 9,
+    "diag_2": 9,
+    "diag_3": 9,
+    "max_glu_serum": 4,
+    "A1Cresult": 4,
+    "metformin": 4,
+    "glimepiride": 4,
+    "glipizide": 4,
+    "glyburide": 4,
+    "pioglitazone": 4,
+    "rosiglitazone": 4,
+    "insulin": 4,
+    "change": 2,
+    "diabetesMed": 2
+  },
   "transformations": [
     "Removed leakage/high-missing columns: weight, payer_code, encounter_id, patient_nbr.",
     "Converted age brackets to numeric midpoints.",
