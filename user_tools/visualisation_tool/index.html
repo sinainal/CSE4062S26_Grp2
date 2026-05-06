@@ -103,8 +103,11 @@
         <section class="full-width-section">
             <div id="drill-down-container" class="analytics-card">
                 <div class="section-heading">
-                    <h3 id="drill-down-title">Clinical Record Browser (All Observations)</h3>
-                    <p class="subtitle" style="font-size: 12px; margin-left: 10px;">Click on a chart bar above to filter this list</p>
+                    <h3 id="drill-down-title">Clinical Record Browser</h3>
+                    <div class="limit-selector" style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                        <label for="table-limit">Display Limit:</label>
+                        <input type="number" id="table-limit" value="100" min="1" max="2000" style="width: 70px; padding: 2px 5px;">
+                    </div>
                 </div>
                 <div class="table-wrapper patient-table-wrapper">
                     <table class="academic-table drill-down-table">

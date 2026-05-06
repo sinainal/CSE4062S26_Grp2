@@ -1,6 +1,7 @@
 let academicData = null;
 let currentChart = null;
 let currentFeatureData = null;
+let lastFilter = { name: null, label: null };
 
 const MEDICATION_LIST = ['metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride', 'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide', 'pioglitazone', 'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone', 'tolazamide', 'examide', 'citoglipton', 'insulin', 'glyburide-metformin', 'glipizide-metformin', 'glimepiride-pioglitazone', 'metformin-rosiglitazone', 'metformin-pioglitazone'];
 
@@ -19,6 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggle-log-scale').addEventListener('change', () => {
         if (currentFeatureData) renderChart(currentFeatureData);
     });
+
+    // Re-render table when limit changes
+    document.getElementById('table-limit').addEventListener('change', () => {
+        showDrillDown(lastFilter.name, lastFilter.label);
+    });
 });
 
 function initDashboard() {
@@ -29,7 +35,7 @@ function initDashboard() {
     document.getElementById('overview-dupes').textContent = overview.duplicate_rows.toLocaleString();
 
     renderFeatureList();
-    showDrillDown(null, null); // Show all by default
+    showDrillDown(null, null);
 
     document.getElementById('feature-search').addEventListener('input', (e) => {
         renderFeatureList(e.target.value);
@@ -133,18 +139,20 @@ function renderChart(feat) {
 }
 
 function showDrillDown(featureName, valueLabel) {
+    lastFilter = { name: featureName, label: valueLabel };
     const title = document.getElementById('drill-down-title');
     const thead = document.getElementById('drill-down-thead');
     const tbody = document.getElementById('drill-down-tbody');
+    const limit = parseInt(document.getElementById('table-limit').value) || 100;
 
     const filtered = featureName 
         ? academicData.raw_sample.filter(row => String(row[featureName]) === String(valueLabel))
         : academicData.raw_sample;
     
     if (!featureName) {
-        title.textContent = `Clinical Record Browser (Showing first 100 of ${filtered.length.toLocaleString()} total observations)`;
+        title.textContent = `Clinical Record Browser (Showing top ${limit} of ${filtered.length.toLocaleString()} total)`;
     } else {
-        title.textContent = `Filtered View: ${filtered.length.toLocaleString()} Patients where ${featureName} is ${valueLabel} (Showing first 100 matches)`;
+        title.textContent = `Filtered View: ${filtered.length.toLocaleString()} Patients where ${featureName} is ${valueLabel} (Limit: ${limit})`;
     }
 
     const baseCols = Object.keys(academicData.raw_sample[0]).filter(c => !MEDICATION_LIST.includes(c));
@@ -153,16 +161,13 @@ function showDrillDown(featureName, valueLabel) {
     thead.innerHTML = `<tr>${allCols.map(c => `<th>${c.replace(/_/g, ' ')}</th>`).join('')}</tr>`;
     tbody.innerHTML = '';
 
-    // Memory efficient rendering: Only render up to 100 rows in the DOM
-    const renderLimit = Math.min(filtered.length, 100);
+    const renderLimit = Math.min(filtered.length, limit);
 
     for (let i = 0; i < renderLimit; i++) {
         const row = filtered[i];
         const tr = document.createElement('tr');
-        
         allCols.forEach(col => {
             const td = document.createElement('td');
-            
             if (col === 'active_medications') {
                 let activeMeds = [];
                 MEDICATION_LIST.forEach(m => {
@@ -175,7 +180,6 @@ function showDrillDown(featureName, valueLabel) {
             } else {
                 const val = row[col];
                 td.textContent = val === null ? 'NaN' : val;
-
                 const featInfo = academicData.features[col];
                 if (featInfo && featInfo.type === 'Numeric' && featInfo.stats && val !== null) {
                     const z = (val - featInfo.stats.mean) / featInfo.stats.std;
@@ -188,4 +192,3 @@ function showDrillDown(featureName, valueLabel) {
         tbody.appendChild(tr);
     }
 }
-
