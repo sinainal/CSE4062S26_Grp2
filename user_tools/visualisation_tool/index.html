@@ -21,6 +21,7 @@
                 <button class="tab-btn" id="tab-ml" onclick="switchPage('ml')">IV. Baseline ML Test</button>
                 <button class="tab-btn" id="tab-lab" onclick="switchPage('lab')">V. Live Model Lab</button>
                 <button class="tab-btn" id="tab-cluster" onclick="switchPage('cluster')">VI. Clustering Lab</button>
+                <button class="tab-btn" id="tab-apriori" onclick="switchPage('apriori')">VII. Association Mining</button>
             </nav>
         </header>
 
@@ -397,6 +398,53 @@
                 </div>
             </section>
 
+            <section class="full-width-section">
+                <div class="analytics-card">
+                    <h3>Feature Selection &amp; Feature-Subset Benchmarks</h3>
+                    <p class="inline-note">Feature rankings are produced with mutual information, chi-square, random-forest importances, and absolute logistic coefficients. Subset benchmarks retrain Logistic Regression and Random Forest on the top-ranked feature sets.</p>
+                    <table class="academic-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Top Feature</th>
+                                <th>Score</th>
+                                <th>Top 5 Features</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feature-selection-summary"></tbody>
+                    </table>
+                    <table class="academic-table" style="margin-top:16px;">
+                        <thead>
+                            <tr>
+                                <th>Feature Set</th>
+                                <th>Model</th>
+                                <th>Feature Count</th>
+                                <th>ROC-AUC</th>
+                                <th>Accuracy</th>
+                                <th>Recall</th>
+                                <th>F1</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feature-subset-comparison"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card chart-card">
+                    <h3>ROC Curve Comparison</h3>
+                    <div class="chart-container">
+                        <canvas id="ml-roc-chart"></canvas>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Best-vs-Closest Significance</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="ml-significance-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="model-ready-grid">
                 <div class="analytics-card">
                     <h3>Logistic Regression: Top Positive Coefficients</h3>
@@ -476,6 +524,15 @@
             </section>
 
             <section class="full-width-section">
+                <div class="analytics-card chart-card">
+                    <h3>ROC Curve</h3>
+                    <div class="chart-container">
+                        <canvas id="lab-roc-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="full-width-section">
                 <div class="analytics-card">
                     <h3>Best Run per Algorithm</h3>
                     <table class="academic-table">
@@ -530,10 +587,14 @@
             <section class="model-ready-grid">
                 <div class="analytics-card">
                     <h3>Clustering Controls</h3>
-                    <p class="inline-note">PCA projection is built from the final encoded model matrix; KMeans labels can be inspected for k=2 through k=8.</p>
+                    <p class="inline-note">PCA projection is built from the final encoded model matrix; compare KMeans, hierarchical clustering, and DBSCAN on the same 2D projection.</p>
                     <div class="control-grid">
                         <label class="control-field">
-                            <span>Number of clusters</span>
+                            <span>Method</span>
+                            <select id="cluster-method-select"></select>
+                        </label>
+                        <label class="control-field">
+                            <span id="cluster-param-label">Number of clusters</span>
                             <select id="cluster-k-select"></select>
                         </label>
                         <label class="control-field">
@@ -547,6 +608,24 @@
                         </label>
                     </div>
                 </div>
+                <div class="analytics-card">
+                    <h3>Method Comparison</h3>
+                    <table class="academic-table stats-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Best Config</th>
+                                <th>Silhouette</th>
+                                <th>Clusters</th>
+                                <th>Noise</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cluster-method-comparison"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="full-width-section">
                 <div class="analytics-card">
                     <h3>Cluster Summary</h3>
                     <table class="academic-table stats-table">
@@ -564,6 +643,69 @@
                     <div class="chart-container cluster-chart-container">
                         <canvas id="cluster-chart"></canvas>
                     </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===================== PAGE 7: ASSOCIATION MINING ===================== -->
+        <div id="page-apriori" style="display:none;">
+            <section class="overview-panel">
+                <div class="stat-box">
+                    <h4>Transactions</h4>
+                    <p id="apriori-transactions">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Frequent Itemsets</h4>
+                    <p id="apriori-itemsets">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Association Rules</h4>
+                    <p id="apriori-rules">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Min Support</h4>
+                    <p id="apriori-support">...</p>
+                </div>
+            </section>
+
+            <section class="full-width-section">
+                <div class="analytics-card">
+                    <h3>Apriori Overview</h3>
+                    <p class="inline-note" id="apriori-note"></p>
+                    <table class="academic-table stats-table">
+                        <tbody id="apriori-method-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Top Frequent Itemsets</h3>
+                    <table class="academic-table">
+                        <thead>
+                            <tr>
+                                <th>Items</th>
+                                <th>Support</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apriori-itemsets-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>Top Association Rules</h3>
+                    <table class="academic-table">
+                        <thead>
+                            <tr>
+                                <th>Antecedent</th>
+                                <th>Consequent</th>
+                                <th>Support</th>
+                                <th>Confidence</th>
+                                <th>Lift</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apriori-rules-tbody"></tbody>
+                    </table>
                 </div>
             </section>
         </div>

@@ -135,7 +135,7 @@
     "drop": true
   },
   "examide": {
-    "fr": Infinity,
+    "fr": null,
     "up": 0.0014,
     "variance": 0.0,
     "dominant_p": 1.0,
@@ -144,7 +144,7 @@
     "drop": true
   },
   "citoglipton": {
-    "fr": Infinity,
+    "fr": null,
     "up": 0.0014,
     "variance": 0.0,
     "dominant_p": 1.0,
@@ -180,7 +180,7 @@
     "drop": true
   },
   "glimepiride-pioglitazone": {
-    "fr": Infinity,
+    "fr": null,
     "up": 0.0014,
     "variance": 0.0,
     "dominant_p": 1.0,

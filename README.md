@@ -27,6 +27,8 @@ We have developed a custom **Clinical Visualization & Discovery Tool** located i
 - **ICD-9 Integration:** The tool now features a live mapping of 14,000+ ICD-9 codes to their full clinical descriptions via interactive tooltips.
 - **Model-Ready Dataset View:** The dashboard includes a dedicated section that previews the actual one-hot encoded, standardized modeling table.
 - **Baseline ML Test:** A simple Logistic Regression baseline is trained directly on the model-ready dataset as a sanity check before adding stronger models.
+- **Model Comparison:** The dashboard now includes feature selection rankings, ROC curves, and significance comparison for the strongest predictive models.
+- **Descriptive Mining:** The clustering lab compares K-Means, hierarchical clustering, and DBSCAN, and the association-mining page summarizes Apriori-style rules.
 - **Usage:** Run `bash start.sh` from the project root, or `python3 -m http.server 8000 --directory user_tools/visualisation_tool` if the reports are already generated.
 
 ## 🧼 Data Preprocessing & Cleaning (Core Methodology)

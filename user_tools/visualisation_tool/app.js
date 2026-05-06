@@ -5,10 +5,16 @@ let baselineModelData = null;
 let modelLabData = null;
 let clusteringData = null;
 let nzvData = null;
+let featureSelectionData = null;
+let featureSubsetData = null;
+let associationRulesData = null;
 let currentChart = null;
 let cleanChart = null;
 let clusterChart = null;
+let mlRocChart = null;
+let labRocChart = null;
 let selectedLabAlgorithm = null;
+let selectedClusterMethod = 'kmeans';
 let currentFeatureData = null;
 let lastFilter = { name: null, label: null };
 let icd9Mapping = {};
@@ -23,15 +29,21 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('baseline_model_report.json').then(r => r.json()),
         fetch('model_lab_report.json').then(r => r.json()),
         fetch('clustering_report.json').then(r => r.json()),
+        fetch('feature_selection_report.json').then(r => r.json()),
+        fetch('feature_subset_report.json').then(r => r.json()),
+        fetch('association_rules_report.json').then(r => r.json()),
         fetch('icd9_mapping.json').then(r => r.json()).catch(() => ({})),
         fetch('nzv_report.json').then(r => r.json()).catch(() => ({}))
-    ]).then(([data, cleaning, modelReady, baselineModel, modelLab, clustering, mapping, nzv]) => {
+    ]).then(([data, cleaning, modelReady, baselineModel, modelLab, clustering, featureSelection, featureSubset, associationRules, mapping, nzv]) => {
         academicData = data;
         cleaningData = cleaning;
         modelReadyData = modelReady;
         baselineModelData = baselineModel;
         modelLabData = modelLab;
         clusteringData = clustering;
+        featureSelectionData = featureSelection;
+        featureSubsetData = featureSubset;
+        associationRulesData = associationRules;
         icd9Mapping = mapping;
         nzvData = nzv;
         initRawPage();
@@ -40,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initBaselineMLPage();
         initModelLabPage();
         initClusteringPage();
+        initAprioriPage();
         // NZV panel is rendered on demand when modal opens
     }).catch(err => {
         console.error(err);
@@ -63,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (activeRow) activeRow.click();
     });
     document.getElementById('ready-limit').addEventListener('change', () => renderModelReadyPreview());
+    document.getElementById('cluster-method-select').addEventListener('change', () => renderClusteringPage());
     document.getElementById('cluster-k-select').addEventListener('change', () => renderClusteringPage());
     document.getElementById('cluster-color-mode').addEventListener('change', () => renderClusteringPage());
 });
@@ -75,12 +89,14 @@ function switchPage(page) {
     document.getElementById('page-ml').style.display    = page === 'ml'    ? '' : 'none';
     document.getElementById('page-lab').style.display   = page === 'lab'   ? '' : 'none';
     document.getElementById('page-cluster').style.display = page === 'cluster' ? '' : 'none';
+    document.getElementById('page-apriori').style.display = page === 'apriori' ? '' : 'none';
     document.getElementById('tab-raw').classList.toggle('active',   page === 'raw');
     document.getElementById('tab-clean').classList.toggle('active', page === 'clean');
     document.getElementById('tab-ready').classList.toggle('active', page === 'ready');
     document.getElementById('tab-ml').classList.toggle('active',    page === 'ml');
     document.getElementById('tab-lab').classList.toggle('active',   page === 'lab');
     document.getElementById('tab-cluster').classList.toggle('active', page === 'cluster');
+    document.getElementById('tab-apriori').classList.toggle('active', page === 'apriori');
     if (page === 'cluster' && clusterChart) {
         setTimeout(() => clusterChart.resize(), 50);
     }
@@ -528,6 +544,10 @@ function initBaselineMLPage() {
     renderCoefficientTable('ml-negative-features', baselineModelData.top_negative_features);
     renderImportanceTable('ml-rf-features', findModel('Random Forest')?.top_features);
     renderImportanceTable('ml-xgb-features', findModel('XGBoost')?.top_features);
+    renderFeatureSelectionSummary();
+    renderFeatureSubsetComparison();
+    renderMlRocChart();
+    renderSignificanceSummary();
 }
 
 function renderCoefficientTable(targetId, rows) {
@@ -560,6 +580,111 @@ function renderImportanceTable(targetId, rows) {
     document.getElementById(targetId).innerHTML = (rows || []).map(row => (
         `<tr><th>${row.feature}</th><td>${row.importance.toFixed(4)}</td></tr>`
     )).join('') || '<tr><td>Model not available or no importances were produced.</td></tr>';
+}
+
+function renderFeatureSelectionSummary() {
+    const tbody = document.getElementById('feature-selection-summary');
+    if (!tbody || !featureSelectionData?.methods) return;
+    const rows = Object.entries(featureSelectionData.methods).map(([method, payload]) => {
+        const top = payload.top_features?.[0];
+        const topFive = (payload.top_features || []).slice(0, 5).map(item => item.feature).join(', ');
+        return `<tr>
+            <td><strong>${method.replace(/_/g, ' ')}</strong></td>
+            <td>${top ? top.feature : 'n/a'}</td>
+            <td>${top ? Number(top.score).toFixed(4) : 'n/a'}</td>
+            <td>${topFive || 'n/a'}</td>
+        </tr>`;
+    }).join('');
+    tbody.innerHTML = rows || '<tr><td colspan="4">No feature selection report available.</td></tr>';
+}
+
+function renderFeatureSubsetComparison() {
+    const tbody = document.getElementById('feature-subset-comparison');
+    if (!tbody || !featureSubsetData?.experiments?.length) return;
+    tbody.innerHTML = featureSubsetData.experiments.map(exp => {
+        const m = exp.metrics;
+        return `<tr>
+            <td><strong>${exp.feature_set_name}</strong></td>
+            <td>${exp.model_name}</td>
+            <td>${exp.feature_count}</td>
+            <td>${m.roc_auc.toFixed(4)}</td>
+            <td>${m.accuracy.toFixed(4)}</td>
+            <td>${m.recall.toFixed(4)}</td>
+            <td>${m.f1.toFixed(4)}</td>
+        </tr>`;
+    }).join('');
+}
+
+function renderSignificanceSummary() {
+    const tbody = document.getElementById('ml-significance-tbody');
+    if (!tbody || !baselineModelData?.significance_analysis) return;
+    const s = baselineModelData.significance_analysis;
+    tbody.innerHTML = [
+        ['Best model', baselineModelData.best_model?.model_name || baselineModelData.model_name || 'n/a'],
+        ['Closest competitor', baselineModelData.closest_competitor?.model_name || 'n/a'],
+        ['Best only correct', s.best_only_correct],
+        ['Competitor only correct', s.competitor_only_correct],
+        ['Discordant pairs', s.discordant_pairs],
+        ['Exact p-value', Number(s.exact_p_value).toFixed(6)],
+        ['Significant at 0.05?', s['significant_at_0.05'] ? 'Yes' : 'No'],
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+}
+
+function renderMlRocChart() {
+    const canvas = document.getElementById('ml-roc-chart');
+    if (!canvas || !baselineModelData?.roc_curves) return;
+    const datasets = Object.entries(baselineModelData.roc_curves).map(([name, curve], idx) => ({
+        label: name,
+        data: (curve.fpr || []).map((x, i) => ({ x, y: curve.tpr?.[i] ?? 0 })),
+        borderColor: ['#0f4c81', '#b91c1c', '#15803d', '#b45309', '#6d28d9'][idx % 5],
+        backgroundColor: 'transparent',
+        pointRadius: 0,
+        borderWidth: 2,
+        tension: 0.1,
+    }));
+    if (mlRocChart) mlRocChart.destroy();
+    mlRocChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: { datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'False Positive Rate' } },
+                y: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'True Positive Rate' } },
+            },
+        }
+    });
+}
+
+function renderLabRocChart(run) {
+    const canvas = document.getElementById('lab-roc-chart');
+    if (!canvas || !run?.roc_curve) return;
+    if (labRocChart) labRocChart.destroy();
+    labRocChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: `${run.model_name} ROC`,
+                data: (run.roc_curve.fpr || []).map((x, i) => ({ x, y: run.roc_curve.tpr?.[i] ?? 0 })),
+                borderColor: '#0f4c81',
+                backgroundColor: 'transparent',
+                pointRadius: 0,
+                borderWidth: 2,
+                tension: 0.1,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: true, position: 'bottom' } },
+            scales: {
+                x: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'False Positive Rate' } },
+                y: { type: 'linear', min: 0, max: 1, title: { display: true, text: 'True Positive Rate' } },
+            },
+        }
+    });
 }
 
 // ==================== PAGE 5: LIVE MODEL LAB ====================
@@ -677,6 +802,7 @@ function renderSelectedLabRun() {
     document.getElementById('lab-feature-note').textContent =
         featureRows.length ? 'Tree-based models expose impurity feature importances for the current run.' : 'This model type does not expose a direct feature-importance table in the current lab configuration.';
     renderImportanceTable('lab-feature-table', featureRows);
+    renderLabRocChart(run);
 }
 
 function renderLabComparison() {
@@ -709,29 +835,92 @@ function formatParams(params) {
 // ==================== PAGE 6: CLUSTERING LAB ====================
 function initClusteringPage() {
     if (!clusteringData?.points?.length) return;
-    const select = document.getElementById('cluster-k-select');
-    select.innerHTML = Object.keys(clusteringData.clusterings || {})
-        .map(k => `<option value="${k}">${k}</option>`).join('');
-    select.value = '4';
+    const methodSelect = document.getElementById('cluster-method-select');
+    methodSelect.innerHTML = Object.keys(clusteringData.methods || {})
+        .map(key => `<option value="${key}">${clusteringData.methods[key].label}</option>`).join('');
+    methodSelect.value = 'kmeans';
+    selectedClusterMethod = 'kmeans';
+    populateClusterParamSelect();
+    renderClusterMethodComparison();
     renderClusteringPage();
+}
+
+function populateClusterParamSelect() {
+    const method = clusteringData.methods?.[selectedClusterMethod];
+    const select = document.getElementById('cluster-k-select');
+    const label = document.getElementById('cluster-param-label');
+    if (!method || !select || !label) return;
+
+    label.textContent = method.parameter_name === 'eps/min_samples' ? 'DBSCAN config' : 'Number of clusters';
+    const options = selectedClusterMethod === 'dbscan'
+        ? (method.runs || []).map(run => `${run.eps}/${run.min_samples}`)
+        : (method.parameter_values || Object.keys(method.runs || {}));
+    select.innerHTML = options.map(value => `<option value="${value}">${value}</option>`).join('');
+
+    const bestValue = method.best?.eps !== undefined
+        ? `${method.best.eps}/${method.best.min_samples}`
+        : (Object.keys(method.runs || {}).find(k => method.runs[k]?.silhouette === method.best?.silhouette) || options[Math.min(2, options.length - 1)]);
+    if (bestValue && Array.from(select.options).some(opt => opt.value === String(bestValue))) {
+        select.value = String(bestValue);
+    } else if (options.includes('4')) {
+        select.value = '4';
+    } else if (options.length) {
+        select.value = options[0];
+    }
+}
+
+function getSelectedClusterRun() {
+    const method = clusteringData.methods?.[selectedClusterMethod];
+    if (!method) return null;
+    const param = document.getElementById('cluster-k-select').value;
+    if (selectedClusterMethod === 'dbscan') {
+        const run = (method.runs || []).find(r => `${r.eps}/${r.min_samples}` === String(param));
+        return { method, param, run: run || method.best };
+    }
+    return { method, param, run: method.runs?.[String(param)] || method.best };
 }
 
 function renderClusteringPage() {
     if (!clusteringData?.points?.length) return;
-    const k = document.getElementById('cluster-k-select').value || '4';
-    const clustering = clusteringData.clusterings[k];
-    if (!clustering) return;
+    const methodKey = document.getElementById('cluster-method-select').value || 'kmeans';
+    if (methodKey !== selectedClusterMethod) {
+        selectedClusterMethod = methodKey;
+        populateClusterParamSelect();
+    }
+    const selection = getSelectedClusterRun();
+    if (!selection?.run) return;
+    const clustering = selection.run;
 
     document.getElementById('cluster-sample-rows').textContent = clusteringData.method.sample_rows.toLocaleString();
     document.getElementById('cluster-variance').textContent = `${(clusteringData.method.total_explained_variance * 100).toFixed(1)}%`;
-    document.getElementById('cluster-k-value').textContent = k;
-    document.getElementById('cluster-silhouette').textContent = clustering.silhouette.toFixed(3);
+    document.getElementById('cluster-k-value').textContent = selectedClusterMethod === 'dbscan' ? selection.param : selection.param;
+    document.getElementById('cluster-silhouette').textContent = clustering.silhouette !== null && clustering.silhouette !== undefined ? clustering.silhouette.toFixed(3) : 'n/a';
 
-    renderClusterSummary(k, clustering);
-    renderClusterChart(k, clustering);
+    renderClusterSummary(clustering);
+    renderClusterChart(selection);
+    renderClusterMethodComparison();
 }
 
-function renderClusterSummary(k, clustering) {
+function renderClusterMethodComparison() {
+    const tbody = document.getElementById('cluster-method-comparison');
+    if (!tbody || !clusteringData?.methods) return;
+    const rows = Object.entries(clusteringData.methods).map(([key, method]) => {
+        const best = method.best;
+        const bestLabel = key === 'dbscan' && best
+            ? `eps=${best.eps}, min_samples=${best.min_samples}`
+            : `k=${Object.keys(method.runs || {}).find(k => method.runs[k] === best) || 'n/a'}`;
+        return `<tr>
+            <th>${method.label}</th>
+            <td>${bestLabel}</td>
+            <td>${best?.silhouette !== null && best?.silhouette !== undefined ? Number(best.silhouette).toFixed(3) : 'n/a'}</td>
+            <td>${best?.cluster_count ?? 'n/a'}</td>
+            <td>${best?.noise_count ?? 0}</td>
+        </tr>`;
+    }).join('');
+    tbody.innerHTML = rows;
+}
+
+function renderClusterSummary(clustering) {
     document.getElementById('cluster-summary-tbody').innerHTML = Object.keys(clustering.sizes).map(label => {
         const size = clustering.sizes[label];
         const rate = (clustering.readmission_rates[label] * 100).toFixed(2);
@@ -739,7 +928,8 @@ function renderClusterSummary(k, clustering) {
     }).join('');
 }
 
-function renderClusterChart(k, clustering) {
+function renderClusterChart(selection) {
+    const clustering = selection.run;
     const mode = document.getElementById('cluster-color-mode').value;
     const groups = {};
     clusteringData.points.forEach((point, idx) => {
@@ -800,6 +990,31 @@ function renderClusterChart(k, clustering) {
             }
         }
     });
+}
+
+function initAprioriPage() {
+    if (!associationRulesData) return;
+    document.getElementById('apriori-transactions').textContent = associationRulesData.total_transactions.toLocaleString();
+    document.getElementById('apriori-itemsets').textContent = (associationRulesData.frequent_itemsets || []).length.toLocaleString();
+    document.getElementById('apriori-rules').textContent = (associationRulesData.rules || []).length.toLocaleString();
+    document.getElementById('apriori-support').textContent = Number(associationRulesData.min_support).toFixed(2);
+    document.getElementById('apriori-note').textContent =
+        `Transactions are built from ${associationRulesData.columns_used?.length || 0} interpretable clinical fields and mined with a compact Apriori-style search (support >= ${Number(associationRulesData.min_support).toFixed(2)}, confidence >= ${Number(associationRulesData.min_confidence).toFixed(2)}).`;
+
+    document.getElementById('apriori-method-tbody').innerHTML = [
+        ['Columns used', (associationRulesData.columns_used || []).join(', ')],
+        ['Sample rows', associationRulesData.sample_rows.toLocaleString()],
+        ['Max itemset length', associationRulesData.max_length],
+        ['Min confidence', Number(associationRulesData.min_confidence).toFixed(2)],
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+
+    document.getElementById('apriori-itemsets-tbody').innerHTML = (associationRulesData.frequent_itemsets || []).slice(0, 12).map(item => (
+        `<tr><td>${item.items.join(' + ')}</td><td>${Number(item.support).toFixed(4)}</td><td>${item.count.toLocaleString()}</td></tr>`
+    )).join('');
+
+    document.getElementById('apriori-rules-tbody').innerHTML = (associationRulesData.rules || []).slice(0, 12).map(rule => (
+        `<tr><td>${rule.antecedent.join(' + ')}</td><td>${rule.consequent.join(' + ')}</td><td>${Number(rule.support).toFixed(4)}</td><td>${Number(rule.confidence).toFixed(4)}</td><td>${rule.lift !== null ? Number(rule.lift).toFixed(4) : 'n/a'}</td></tr>`
+    )).join('');
 }
 
 // initNZVPanel removed — code generation moved into openNZVModal()

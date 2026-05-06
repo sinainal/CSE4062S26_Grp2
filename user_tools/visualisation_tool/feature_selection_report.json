@@ -1,0 +1,430 @@
+{
+  "methods": {
+    "mutual_information": {
+      "top_features": [
+        {
+          "feature": "rosiglitazone_No",
+          "score": 0.016603
+        },
+        {
+          "feature": "glimepiride_No",
+          "score": 0.015495
+        },
+        {
+          "feature": "max_glu_serum_None",
+          "score": 0.015255
+        },
+        {
+          "feature": "metformin_No",
+          "score": 0.012922
+        },
+        {
+          "feature": "diabetesMed_Yes",
+          "score": 0.012853
+        },
+        {
+          "feature": "glyburide_No",
+          "score": 0.011604
+        },
+        {
+          "feature": "race_Caucasian",
+          "score": 0.011135
+        },
+        {
+          "feature": "A1Cresult_None",
+          "score": 0.011123
+        },
+        {
+          "feature": "insulin_No",
+          "score": 0.010963
+        },
+        {
+          "feature": "gender_Female",
+          "score": 0.010466
+        },
+        {
+          "feature": "change_No",
+          "score": 0.010306
+        },
+        {
+          "feature": "discharge_disposition_id",
+          "score": 0.009162
+        },
+        {
+          "feature": "pioglitazone_No",
+          "score": 0.009041
+        },
+        {
+          "feature": "glipizide_No",
+          "score": 0.008742
+        },
+        {
+          "feature": "gender_Male",
+          "score": 0.008565
+        },
+        {
+          "feature": "medical_specialty_Missing",
+          "score": 0.008364
+        },
+        {
+          "feature": "num_medications_changed",
+          "score": 0.007949
+        },
+        {
+          "feature": "change_Ch",
+          "score": 0.007875
+        },
+        {
+          "feature": "number_inpatient",
+          "score": 0.006378
+        },
+        {
+          "feature": "diag_3_Other",
+          "score": 0.004877
+        }
+      ]
+    },
+    "chi_square": {
+      "top_features": [
+        {
+          "feature": "discharge_disposition_id",
+          "score": 136.266769
+        },
+        {
+          "feature": "number_inpatient",
+          "score": 120.865107
+        },
+        {
+          "feature": "time_in_hospital",
+          "score": 44.484137
+        },
+        {
+          "feature": "diabetesMed_No",
+          "score": 41.333224
+        },
+        {
+          "feature": "diag_1_Respiratory",
+          "score": 33.042353
+        },
+        {
+          "feature": "diag_2_Neoplasms",
+          "score": 29.966799
+        },
+        {
+          "feature": "insulin_Down",
+          "score": 22.211137
+        },
+        {
+          "feature": "medical_specialty_Oncology",
+          "score": 20.686848
+        },
+        {
+          "feature": "medical_specialty_ObstetricsandGynecology",
+          "score": 20.099142
+        },
+        {
+          "feature": "insulin_No",
+          "score": 19.912388
+        },
+        {
+          "feature": "diag_1_Injury",
+          "score": 18.892515
+        },
+        {
+          "feature": "medical_specialty_Hematology/Oncology",
+          "score": 16.780744
+        },
+        {
+          "feature": "medical_specialty_Cardiology",
+          "score": 16.516888
+        },
+        {
+          "feature": "diag_3_Neoplasms",
+          "score": 14.865424
+        },
+        {
+          "feature": "medical_specialty_Pediatrics-Endocrinology",
+          "score": 14.486977
+        },
+        {
+          "feature": "diabetesMed_Yes",
+          "score": 12.936459
+        },
+        {
+          "feature": "diag_1_Circulatory",
+          "score": 12.668646
+        },
+        {
+          "feature": "change_Ch",
+          "score": 8.303753
+        },
+        {
+          "feature": "medical_specialty_InternalMedicine",
+          "score": 8.196976
+        },
+        {
+          "feature": "diag_3_Respiratory",
+          "score": 7.922562
+        }
+      ]
+    },
+    "random_forest_importance": {
+      "top_features": [
+        {
+          "feature": "discharge_disposition_id",
+          "score": 0.147074
+        },
+        {
+          "feature": "number_inpatient",
+          "score": 0.095984
+        },
+        {
+          "feature": "num_lab_procedures",
+          "score": 0.0668
+        },
+        {
+          "feature": "time_in_hospital",
+          "score": 0.064916
+        },
+        {
+          "feature": "num_medications",
+          "score": 0.060327
+        },
+        {
+          "feature": "age",
+          "score": 0.051516
+        },
+        {
+          "feature": "number_diagnoses",
+          "score": 0.043331
+        },
+        {
+          "feature": "num_procedures",
+          "score": 0.026652
+        },
+        {
+          "feature": "admission_type_id",
+          "score": 0.020291
+        },
+        {
+          "feature": "admission_source_id",
+          "score": 0.01831
+        },
+        {
+          "feature": "number_emergency",
+          "score": 0.014614
+        },
+        {
+          "feature": "diag_1_Respiratory",
+          "score": 0.01211
+        },
+        {
+          "feature": "number_outpatient",
+          "score": 0.011889
+        },
+        {
+          "feature": "medical_specialty_Missing",
+          "score": 0.010646
+        },
+        {
+          "feature": "diabetesMed_No",
+          "score": 0.010522
+        },
+        {
+          "feature": "diabetesMed_Yes",
+          "score": 0.010249
+        },
+        {
+          "feature": "diag_1_Circulatory",
+          "score": 0.010185
+        },
+        {
+          "feature": "gender_Male",
+          "score": 0.009697
+        },
+        {
+          "feature": "gender_Female",
+          "score": 0.009551
+        },
+        {
+          "feature": "num_medications_changed",
+          "score": 0.00923
+        }
+      ]
+    },
+    "logistic_abs_coefficient": {
+      "top_features": [
+        {
+          "feature": "medical_specialty_Pediatrics-Endocrinology",
+          "score": 2.359837
+        },
+        {
+          "feature": "medical_specialty_Gynecology",
+          "score": 1.870495
+        },
+        {
+          "feature": "medical_specialty_SurgicalSpecialty",
+          "score": 1.386722
+        },
+        {
+          "feature": "medical_specialty_AllergyandImmunology",
+          "score": 1.253692
+        },
+        {
+          "feature": "medical_specialty_Hematology/Oncology",
+          "score": 1.173624
+        },
+        {
+          "feature": "medical_specialty_Surgery-Plastic",
+          "score": 1.059767
+        },
+        {
+          "feature": "medical_specialty_Pediatrics-Hematology-Oncology",
+          "score": 1.030202
+        },
+        {
+          "feature": "medical_specialty_Cardiology-Pediatric",
+          "score": 1.00667
+        },
+        {
+          "feature": "medical_specialty_Surgery-Colon&Rectal",
+          "score": 1.00575
+        },
+        {
+          "feature": "medical_specialty_Oncology",
+          "score": 0.982644
+        },
+        {
+          "feature": "medical_specialty_Otolaryngology",
+          "score": 0.960656
+        },
+        {
+          "feature": "medical_specialty_Psychiatry-Child/Adolescent",
+          "score": 0.924675
+        },
+        {
+          "feature": "medical_specialty_Surgery-Maxillofacial",
+          "score": 0.915074
+        },
+        {
+          "feature": "medical_specialty_PhysicianNotFound",
+          "score": 0.909629
+        },
+        {
+          "feature": "medical_specialty_Pathology",
+          "score": 0.900266
+        },
+        {
+          "feature": "medical_specialty_Anesthesiology",
+          "score": 0.861257
+        },
+        {
+          "feature": "medical_specialty_Pediatrics-CriticalCare",
+          "score": 0.814755
+        },
+        {
+          "feature": "medical_specialty_Endocrinology-Metabolism",
+          "score": 0.808313
+        },
+        {
+          "feature": "medical_specialty_Pediatrics-Neurology",
+          "score": 0.759908
+        },
+        {
+          "feature": "medical_specialty_Psychiatry",
+          "score": 0.689909
+        }
+      ]
+    }
+  },
+  "selected_feature_sets": {
+    "mutual_information_top20": [
+      "rosiglitazone_No",
+      "glimepiride_No",
+      "max_glu_serum_None",
+      "metformin_No",
+      "diabetesMed_Yes",
+      "glyburide_No",
+      "race_Caucasian",
+      "A1Cresult_None",
+      "insulin_No",
+      "gender_Female",
+      "change_No",
+      "discharge_disposition_id",
+      "pioglitazone_No",
+      "glipizide_No",
+      "gender_Male",
+      "medical_specialty_Missing",
+      "num_medications_changed",
+      "change_Ch",
+      "number_inpatient",
+      "diag_3_Other"
+    ],
+    "chi_square_top20": [
+      "discharge_disposition_id",
+      "number_inpatient",
+      "time_in_hospital",
+      "diabetesMed_No",
+      "diag_1_Respiratory",
+      "diag_2_Neoplasms",
+      "insulin_Down",
+      "medical_specialty_Oncology",
+      "medical_specialty_ObstetricsandGynecology",
+      "insulin_No",
+      "diag_1_Injury",
+      "medical_specialty_Hematology/Oncology",
+      "medical_specialty_Cardiology",
+      "diag_3_Neoplasms",
+      "medical_specialty_Pediatrics-Endocrinology",
+      "diabetesMed_Yes",
+      "diag_1_Circulatory",
+      "change_Ch",
+      "medical_specialty_InternalMedicine",
+      "diag_3_Respiratory"
+    ],
+    "random_forest_top20": [
+      "discharge_disposition_id",
+      "number_inpatient",
+      "num_lab_procedures",
+      "time_in_hospital",
+      "num_medications",
+      "age",
+      "number_diagnoses",
+      "num_procedures",
+      "admission_type_id",
+      "admission_source_id",
+      "number_emergency",
+      "diag_1_Respiratory",
+      "number_outpatient",
+      "medical_specialty_Missing",
+      "diabetesMed_No",
+      "diabetesMed_Yes",
+      "diag_1_Circulatory",
+      "gender_Male",
+      "gender_Female",
+      "num_medications_changed"
+    ],
+    "logistic_top20": [
+      "medical_specialty_Pediatrics-Endocrinology",
+      "medical_specialty_Gynecology",
+      "medical_specialty_SurgicalSpecialty",
+      "medical_specialty_AllergyandImmunology",
+      "medical_specialty_Hematology/Oncology",
+      "medical_specialty_Surgery-Plastic",
+      "medical_specialty_Pediatrics-Hematology-Oncology",
+      "medical_specialty_Cardiology-Pediatric",
+      "medical_specialty_Surgery-Colon&Rectal",
+      "medical_specialty_Oncology",
+      "medical_specialty_Otolaryngology",
+      "medical_specialty_Psychiatry-Child/Adolescent",
+      "medical_specialty_Surgery-Maxillofacial",
+      "medical_specialty_PhysicianNotFound",
+      "medical_specialty_Pathology",
+      "medical_specialty_Anesthesiology",
+      "medical_specialty_Pediatrics-CriticalCare",
+      "medical_specialty_Endocrinology-Metabolism",
+      "medical_specialty_Pediatrics-Neurology",
+      "medical_specialty_Psychiatry"
+    ]
+  }
+}

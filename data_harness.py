@@ -20,13 +20,16 @@ import pandas as pd
 import numpy as np
 import json
 from pathlib import Path
+from itertools import combinations
+from collections import Counter
 
 from sklearn.compose import ColumnTransformer
-from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering, DBSCAN, KMeans
 from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
+from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.metrics import silhouette_score
 from sklearn.model_selection import ParameterGrid
 from sklearn.naive_bayes import GaussianNB
@@ -41,10 +44,14 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     roc_auc_score,
+    roc_curve,
 )
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+
+from scipy.stats import binomtest
 
 try:
     from xgboost import XGBClassifier
@@ -177,6 +184,241 @@ def add_medication_change_count(df):
         lambda row: int(row.isin(['Up', 'Down']).sum()), axis=1
     )
     return df
+
+
+def to_jsonable(value):
+    if isinstance(value, (np.bool_, bool)):
+        return bool(value)
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, (np.floating, float)):
+        value = float(value)
+        if np.isnan(value) or np.isinf(value):
+            return None
+        return value
+    if isinstance(value, np.ndarray):
+        return [to_jsonable(v) for v in value.tolist()]
+    if isinstance(value, (list, tuple)):
+        return [to_jsonable(v) for v in value]
+    if isinstance(value, dict):
+        return {str(k): to_jsonable(v) for k, v in value.items()}
+    return value
+
+
+def build_roc_payload(y_true, y_score):
+    fpr, tpr, thresholds = roc_curve(y_true, y_score)
+    return {
+        'fpr': [round(float(v), 6) for v in fpr],
+        'tpr': [round(float(v), 6) for v in tpr],
+        'thresholds': [round(float(v), 6) for v in thresholds],
+    }
+
+
+def mcnemar_exact(best_pred, competitor_pred, y_true):
+    best_pred = np.asarray(best_pred)
+    competitor_pred = np.asarray(competitor_pred)
+    y_true = np.asarray(y_true)
+    best_correct = best_pred == y_true
+    comp_correct = competitor_pred == y_true
+    b = int(np.sum(best_correct & ~comp_correct))
+    c = int(np.sum(~best_correct & comp_correct))
+    n = b + c
+    p_value = float(binomtest(min(b, c), n=n, p=0.5, alternative='two-sided').pvalue) if n else 1.0
+    return {
+        'best_only_correct': b,
+        'competitor_only_correct': c,
+        'discordant_pairs': n,
+        'exact_p_value': round(p_value, 6),
+        'significant_at_0.05': p_value < 0.05,
+    }
+
+
+def apriori_from_transactions(transactions, min_support=0.08, min_confidence=0.6, max_length=3):
+    total = len(transactions)
+    if total == 0:
+        return {'min_support': min_support, 'min_confidence': min_confidence, 'frequent_itemsets': [], 'rules': []}
+
+    item_counts = Counter()
+    for items in transactions:
+        item_counts.update(set(items))
+
+    frequent = {}
+    for item, count in item_counts.items():
+        support = count / total
+        if support >= min_support:
+            frequent[frozenset([item])] = count
+
+    all_frequent = dict(frequent)
+    k = 2
+    current_level = list(frequent.keys())
+    while current_level and k <= max_length:
+        candidates = set()
+        for a, b in combinations(current_level, 2):
+            union = a | b
+            if len(union) == k:
+                candidates.add(union)
+        next_level = {}
+        for candidate in candidates:
+            count = sum(1 for items in transactions if candidate.issubset(items))
+            if count / total >= min_support:
+                next_level[candidate] = count
+        all_frequent.update(next_level)
+        current_level = list(next_level.keys())
+        k += 1
+
+    frequent_itemsets = [
+        {
+            'items': sorted(list(itemset)),
+            'support': round(count / total, 6),
+            'count': int(count),
+        }
+        for itemset, count in sorted(all_frequent.items(), key=lambda x: (-len(x[0]), -(x[1] / total), sorted(x[0])))
+    ]
+
+    rules = []
+    for itemset, count in all_frequent.items():
+        if len(itemset) < 2:
+            continue
+        itemset_support = count / total
+        items = list(itemset)
+        for r in range(1, len(items)):
+            for antecedent in combinations(items, r):
+                antecedent = frozenset(antecedent)
+                consequent = itemset - antecedent
+                antecedent_count = all_frequent.get(antecedent)
+                consequent_count = all_frequent.get(consequent)
+                if not antecedent_count or not consequent_count:
+                    continue
+                confidence = count / antecedent_count
+                if confidence < min_confidence:
+                    continue
+                support_consequent = consequent_count / total
+                lift = confidence / support_consequent if support_consequent else None
+                rules.append({
+                    'antecedent': sorted(list(antecedent)),
+                    'consequent': sorted(list(consequent)),
+                    'support': round(itemset_support, 6),
+                    'confidence': round(float(confidence), 6),
+                    'lift': round(float(lift), 6) if lift is not None else None,
+                    'count': int(count),
+                })
+
+    rules = sorted(rules, key=lambda r: (-r['lift'], -r['confidence'], -r['support']))[:25]
+    return {
+        'min_support': min_support,
+        'min_confidence': min_confidence,
+        'max_length': max_length,
+        'total_transactions': total,
+        'frequent_itemsets': frequent_itemsets[:50],
+        'rules': rules,
+    }
+
+
+def generate_feature_selection_report(model_ready_df, verbose=True):
+    X = model_ready_df.drop(columns=['readmitted'])
+    y = model_ready_df['readmitted'].astype(int)
+
+    mi_selector = SelectKBest(score_func=mutual_info_classif, k='all')
+    mi_selector.fit(X, y)
+    mi_scores = pd.Series(mi_selector.scores_, index=X.columns).fillna(0.0).sort_values(ascending=False)
+
+    scaled_X = MinMaxScaler().fit_transform(X)
+    chi_selector = SelectKBest(score_func=chi2, k='all')
+    chi_selector.fit(scaled_X, y)
+    chi_scores = pd.Series(chi_selector.scores_, index=X.columns).fillna(0.0).sort_values(ascending=False)
+
+    rf = RandomForestClassifier(
+        n_estimators=200,
+        max_depth=12,
+        min_samples_leaf=20,
+        class_weight='balanced_subsample',
+        random_state=42,
+        n_jobs=-1,
+    )
+    rf.fit(X, y)
+    rf_scores = pd.Series(rf.feature_importances_, index=X.columns).sort_values(ascending=False)
+
+    lr = LogisticRegression(max_iter=1000, class_weight='balanced', solver='liblinear')
+    lr.fit(X, y)
+    lr_scores = pd.Series(np.abs(lr.coef_[0]), index=X.columns).sort_values(ascending=False)
+
+    methods = {
+        'mutual_information': mi_scores,
+        'chi_square': chi_scores,
+        'random_forest_importance': rf_scores,
+        'logistic_abs_coefficient': lr_scores,
+    }
+
+    report = {
+        'methods': {
+            name: {
+                'top_features': [
+                    {'feature': feat, 'score': round(float(score), 6)}
+                    for feat, score in series.head(20).items()
+                ],
+            }
+            for name, series in methods.items()
+        },
+        'selected_feature_sets': {
+            'mutual_information_top20': mi_scores.head(20).index.tolist(),
+            'chi_square_top20': chi_scores.head(20).index.tolist(),
+            'random_forest_top20': rf_scores.head(20).index.tolist(),
+            'logistic_top20': lr_scores.head(20).index.tolist(),
+        },
+    }
+
+    if verbose:
+        print("  Feature selection report prepared:")
+        for name, payload in report['methods'].items():
+            print(f"    {name}: {payload['top_features'][0]['feature']} ({payload['top_features'][0]['score']})")
+
+    return report
+
+
+def generate_feature_subset_experiments(model_ready_df, feature_sets, verbose=True):
+    X = model_ready_df.drop(columns=['readmitted'])
+    y = model_ready_df['readmitted'].astype(int)
+    X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    experiments = []
+    for set_name, cols in feature_sets.items():
+        cols = [c for c in cols if c in X.columns]
+        if not cols:
+            continue
+        X_train = X_train_full[cols]
+        X_test = X_test_full[cols]
+        candidates = [
+            (
+                'Logistic Regression',
+                LogisticRegression(max_iter=1000, class_weight='balanced', solver='liblinear'),
+            ),
+            (
+                'Random Forest',
+                RandomForestClassifier(
+                    n_estimators=160,
+                    max_depth=12,
+                    min_samples_leaf=25,
+                    class_weight='balanced_subsample',
+                    random_state=42,
+                    n_jobs=-1,
+                ),
+            ),
+        ]
+        for model_name, clf in candidates:
+            result = _evaluate_classifier(model_name, clf, X_train, X_test, y_train_full, y_test_full, cols, f'{set_name} subset')
+            result['feature_set_name'] = set_name
+            result['feature_count'] = len(cols)
+            experiments.append(result)
+
+    experiments = sorted(experiments, key=lambda r: (r['feature_set_name'], r['model_name']))
+    if verbose:
+        print(f"  Feature subset experiments prepared: {len(experiments)} runs")
+    return {
+        'feature_sets': {name: cols for name, cols in feature_sets.items()},
+        'experiments': experiments,
+    }
 
 
 def load_and_clean_data(file_path, verbose=True):
@@ -399,6 +641,8 @@ def _evaluate_classifier(name, clf, X_train, X_test, y_train, y_test, feature_na
             'labels': ['Not <30', '<30'],
             'matrix': confusion_matrix(y_test, y_pred).tolist(),
         },
+        'predictions': [int(v) for v in y_pred.tolist()],
+        'roc_curve': build_roc_payload(y_test, y_score),
     }
 
     if hasattr(clf, 'coef_'):
@@ -452,6 +696,16 @@ def run_baseline_model(model_ready_df, verbose=True):
             ),
             'standardized numeric + one-hot categorical',
         ),
+        (
+            'Gradient Boosting',
+            GradientBoostingClassifier(
+                n_estimators=150,
+                learning_rate=0.08,
+                max_depth=3,
+                random_state=42,
+            ),
+            'standardized numeric + one-hot categorical',
+        ),
     ]
 
     if XGBClassifier is not None:
@@ -479,6 +733,16 @@ def run_baseline_model(model_ready_df, verbose=True):
     ]
     best_model = max(model_results, key=lambda r: r['metrics']['roc_auc'])
     logistic_result = next(r for r in model_results if r['model_name'] == 'Logistic Regression')
+    closest_competitor = sorted(
+        [r for r in model_results if r['model_name'] != best_model['model_name']],
+        key=lambda r: abs(r['metrics']['roc_auc'] - best_model['metrics']['roc_auc'])
+    )[0]
+
+    significance = mcnemar_exact(
+        best_model['predictions'],
+        closest_competitor['predictions'],
+        y_test,
+    )
 
     report = {
         'model_name': best_model['model_name'],
@@ -491,13 +755,20 @@ def run_baseline_model(model_ready_df, verbose=True):
         },
         'models': model_results,
         'best_model': best_model,
+        'closest_competitor': closest_competitor,
+        'significance_analysis': significance,
         'metrics': best_model['metrics'],
         'confusion_matrix': best_model['confusion_matrix'],
         'top_positive_features': logistic_result.get('top_positive_features', []),
         'top_negative_features': logistic_result.get('top_negative_features', []),
+        'roc_curves': {
+            result['model_name']: result['roc_curve']
+            for result in model_results
+        },
         'notes': [
             'Random Forest uses class_weight=balanced_subsample to reduce majority-class dominance.',
             'XGBoost uses scale_pos_weight = negative_train_count / positive_train_count when xgboost is installed.',
+            'Gradient Boosting provides a non-linear baseline without external dependencies.',
             'All models are evaluated on the same stratified 80/20 split.',
         ],
     }
@@ -664,7 +935,7 @@ def run_model_lab(model_ready_df, verbose=True):
 
 
 def generate_clustering_report(model_ready_df, cleaned_df, verbose=True):
-    """Create PCA coordinates and KMeans labels for the clustering page."""
+    """Create PCA coordinates and clustering labels for the clustering page."""
     X = model_ready_df.drop(columns=['readmitted'])
     y = model_ready_df['readmitted'].astype(int)
     X_sample, y_sample = stratified_sample(X, y, n_samples=1800, random_state=101)
@@ -673,21 +944,66 @@ def generate_clustering_report(model_ready_df, cleaned_df, verbose=True):
     pca = PCA(n_components=2, random_state=42)
     coords = pca.fit_transform(X_sample)
 
-    clusterings = {}
-    for k in range(2, 9):
-        km = KMeans(n_clusters=k, n_init=10, random_state=42)
-        labels = km.fit_predict(coords)
+    def summarize_labels(labels, y_values):
+        labels = np.asarray(labels)
         sizes = pd.Series(labels).value_counts().sort_index().to_dict()
         readmit_rates = {}
         for label in sorted(set(labels)):
             mask = labels == label
-            readmit_rates[str(int(label))] = round(float(y_sample.iloc[mask].mean()), 6)
-        clusterings[str(k)] = {
+            readmit_rates[str(int(label))] = round(float(y_values.iloc[mask].mean()), 6) if mask.any() else 0.0
+        if len(set(labels)) > 1:
+            try:
+                silhouette = round(float(silhouette_score(coords[labels != -1], labels[labels != -1])) if -1 in labels and np.sum(labels != -1) > len(set(labels[labels != -1])) else silhouette_score(coords, labels), 6)
+            except Exception:
+                silhouette = None
+        else:
+            silhouette = None
+        return {
             'labels': [int(v) for v in labels],
             'sizes': {str(int(key)): int(val) for key, val in sizes.items()},
             'readmission_rates': readmit_rates,
-            'silhouette': round(float(silhouette_score(coords, labels)), 6),
+            'silhouette': silhouette,
+            'cluster_count': int(len([k for k in set(labels) if k != -1])),
+            'noise_count': int(np.sum(labels == -1)),
         }
+
+    kmeans_runs = {}
+    hierarchical_runs = {}
+    for k in range(2, 9):
+        km = KMeans(n_clusters=k, n_init=10, random_state=42)
+        kmeans_runs[str(k)] = summarize_labels(km.fit_predict(coords), y_sample)
+
+        hc = AgglomerativeClustering(n_clusters=k, linkage='ward')
+        hierarchical_runs[str(k)] = summarize_labels(hc.fit_predict(coords), y_sample)
+
+    dbscan_runs = []
+    for eps in [0.35, 0.45, 0.55, 0.65]:
+        for min_samples in [10, 15, 20]:
+            db = DBSCAN(eps=eps, min_samples=min_samples)
+            labels = db.fit_predict(coords)
+            clusters = len({int(v) for v in labels if v != -1})
+            if clusters < 2:
+                continue
+            summary = summarize_labels(labels, y_sample)
+            summary['eps'] = eps
+            summary['min_samples'] = min_samples
+            dbscan_runs.append(summary)
+
+    best_dbscan = max(
+        dbscan_runs,
+        key=lambda r: (-1 if r.get('silhouette') is None else r['silhouette'], -r['cluster_count'], -r['noise_count'])
+    ) if dbscan_runs else None
+
+    best_kmeans = max(
+        (v for v in kmeans_runs.values() if v.get('silhouette') is not None),
+        key=lambda r: r['silhouette'],
+        default=None,
+    )
+    best_hierarchical = max(
+        (v for v in hierarchical_runs.values() if v.get('silhouette') is not None),
+        key=lambda r: r['silhouette'],
+        default=None,
+    )
 
     points = []
     for pos, idx in enumerate(X_sample.index):
@@ -706,17 +1022,102 @@ def generate_clustering_report(model_ready_df, cleaned_df, verbose=True):
         print(f"  Clustering sample: {len(points)} rows, PCA variance={pca.explained_variance_ratio_.sum():.4f}")
 
     return {
-        'title': 'PCA + KMeans Clustering Lab',
+        'title': 'PCA + Clustering Comparison Lab',
         'method': {
             'projection': 'PCA(n_components=2) on the model-ready encoded feature matrix',
-            'clustering': 'KMeans evaluated for k=2..8 on the PCA coordinates',
+            'clustering': 'KMeans and hierarchical clustering evaluated for k=2..8; DBSCAN evaluated over several eps/min_samples configurations on the PCA coordinates',
             'sample_rows': len(points),
             'explained_variance_ratio': [round(float(v), 6) for v in pca.explained_variance_ratio_],
             'total_explained_variance': round(float(pca.explained_variance_ratio_.sum()), 6),
         },
         'points': points,
-        'clusterings': clusterings,
+        'methods': {
+            'kmeans': {
+                'label': 'KMeans',
+                'parameter_name': 'k',
+                'parameter_values': [str(k) for k in range(2, 9)],
+                'runs': kmeans_runs,
+                'best': best_kmeans,
+            },
+            'hierarchical': {
+                'label': 'Hierarchical',
+                'parameter_name': 'k',
+                'parameter_values': [str(k) for k in range(2, 9)],
+                'runs': hierarchical_runs,
+                'best': best_hierarchical,
+            },
+            'dbscan': {
+                'label': 'DBSCAN',
+                'parameter_name': 'eps/min_samples',
+                'runs': dbscan_runs,
+                'best': best_dbscan,
+            },
+        },
     }
+
+
+def generate_association_rules_report(cleaned_df, verbose=True):
+    """Mine simple Apriori-style rules from a human-readable transaction table."""
+    sample = cleaned_df.copy()
+    if len(sample) > 5000:
+        sample = sample.sample(n=5000, random_state=42)
+
+    def bucket_time(value):
+        try:
+            v = float(value)
+        except Exception:
+            return 'unknown'
+        if v <= 3:
+            return '1-3'
+        if v <= 6:
+            return '4-6'
+        return '7+'
+
+    def bucket_visits(value):
+        try:
+            v = float(value)
+        except Exception:
+            return 'unknown'
+        if v <= 0:
+            return '0'
+        if v == 1:
+            return '1'
+        return '2+'
+
+    selected_cols = [
+        'age', 'race', 'gender', 'A1Cresult', 'max_glu_serum', 'change', 'diabetesMed',
+        'diag_1', 'diag_2', 'diag_3', 'admission_type_id', 'admission_source_id',
+        'discharge_disposition_id', 'time_in_hospital', 'number_inpatient', 'number_emergency'
+    ]
+
+    transactions = []
+    for _, row in sample.iterrows():
+        items = []
+        for col in selected_cols:
+            if col not in row or pd.isna(row[col]):
+                continue
+            value = row[col]
+            if col == 'time_in_hospital':
+                value = bucket_time(value)
+            elif col in {'number_inpatient', 'number_emergency'}:
+                value = bucket_visits(value)
+            items.append(f'{col}={value}')
+        transactions.append(items)
+
+    rules = apriori_from_transactions(
+        transactions,
+        min_support=0.08,
+        min_confidence=0.6,
+        max_length=3,
+    )
+
+    rules['columns_used'] = selected_cols
+    rules['sample_rows'] = len(sample)
+
+    if verbose:
+        print(f"  Apriori report prepared: {len(rules['rules'])} rules from {len(sample)} rows")
+
+    return rules
 
 
 if __name__ == "__main__":
@@ -728,6 +1129,9 @@ if __name__ == "__main__":
     BASELINE_JSON = BASE / 'user_tools/visualisation_tool/baseline_model_report.json'
     MODEL_LAB_JSON = BASE / 'user_tools/visualisation_tool/model_lab_report.json'
     CLUSTERING_JSON = BASE / 'user_tools/visualisation_tool/clustering_report.json'
+    FEATURE_SELECTION_JSON = BASE / 'user_tools/visualisation_tool/feature_selection_report.json'
+    FEATURE_SUBSETS_JSON = BASE / 'user_tools/visualisation_tool/feature_subset_report.json'
+    APRIORI_JSON = BASE / 'user_tools/visualisation_tool/association_rules_report.json'
 
     cleaned_df, nzv_report = load_and_clean_data(INPUT)
     cleaned_df.to_csv(OUTPUT, index=False)
@@ -741,30 +1145,43 @@ if __name__ == "__main__":
         json.dump(model_ready_report, f, indent=2)
     print(f"Model-ready report saved to {MODEL_READY_JSON}")
 
+    feature_selection_report = generate_feature_selection_report(model_ready_df)
+    with open(FEATURE_SELECTION_JSON, 'w') as f:
+        json.dump(to_jsonable(feature_selection_report), f, indent=2)
+    print(f"Feature selection report saved to {FEATURE_SELECTION_JSON}")
+
+    feature_subset_report = generate_feature_subset_experiments(
+        model_ready_df,
+        feature_selection_report['selected_feature_sets'],
+    )
+    with open(FEATURE_SUBSETS_JSON, 'w') as f:
+        json.dump(to_jsonable(feature_subset_report), f, indent=2)
+    print(f"Feature subset report saved to {FEATURE_SUBSETS_JSON}")
+
     baseline_report = run_baseline_model(model_ready_df)
     with open(BASELINE_JSON, 'w') as f:
-        json.dump(baseline_report, f, indent=2)
+        json.dump(to_jsonable(baseline_report), f, indent=2)
     print(f"Baseline model report saved to {BASELINE_JSON}")
 
     model_lab_report = run_model_lab(model_ready_df)
     with open(MODEL_LAB_JSON, 'w') as f:
-        json.dump(model_lab_report, f, indent=2)
+        json.dump(to_jsonable(model_lab_report), f, indent=2)
     print(f"Interactive model lab report saved to {MODEL_LAB_JSON}")
 
     clustering_report = generate_clustering_report(model_ready_df, cleaned_df)
     with open(CLUSTERING_JSON, 'w') as f:
-        json.dump(clustering_report, f, indent=2)
+        json.dump(to_jsonable(clustering_report), f, indent=2)
     print(f"Clustering report saved to {CLUSTERING_JSON}")
+
+    apriori_report = generate_association_rules_report(cleaned_df)
+    with open(APRIORI_JSON, 'w') as f:
+        json.dump(to_jsonable(apriori_report), f, indent=2)
+    print(f"Association rules report saved to {APRIORI_JSON}")
 
     # Save NZV report as JSON for the frontend
     NZV_JSON = BASE / 'user_tools/visualisation_tool/nzv_report.json'
     # Convert numpy bools/floats to native Python types for JSON
-    nzv_report_serializable = {
-        col: {k: (bool(v) if isinstance(v, (bool, np.bool_)) else
-                  float(v) if isinstance(v, (float, np.floating)) else v)
-              for k, v in metrics.items()}
-        for col, metrics in nzv_report.items()
-    }
+    nzv_report_serializable = to_jsonable(nzv_report)
     with open(NZV_JSON, 'w') as f:
         json.dump(nzv_report_serializable, f, indent=2)
     print(f"NZV report saved to {NZV_JSON}")

@@ -1,0 +1,802 @@
+{
+  "min_support": 0.08,
+  "min_confidence": 0.6,
+  "max_length": 3,
+  "total_transactions": 5000,
+  "frequent_itemsets": [
+    {
+      "items": [
+        "max_glu_serum=None",
+        "number_emergency=0",
+        "number_inpatient=0"
+      ],
+      "support": 0.795,
+      "count": 3975
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "max_glu_serum=None",
+        "number_emergency=0"
+      ],
+      "support": 0.7094,
+      "count": 3547
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "max_glu_serum=None",
+        "number_emergency=0"
+      ],
+      "support": 0.682,
+      "count": 3410
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "max_glu_serum=None",
+        "number_inpatient=0"
+      ],
+      "support": 0.6686,
+      "count": 3343
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "number_emergency=0",
+        "number_inpatient=0"
+      ],
+      "support": 0.6684,
+      "count": 3342
+    },
+    {
+      "items": [
+        "max_glu_serum=None",
+        "number_emergency=0",
+        "race=Caucasian"
+      ],
+      "support": 0.6668,
+      "count": 3334
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "max_glu_serum=None",
+        "number_inpatient=0"
+      ],
+      "support": 0.6454,
+      "count": 3227
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "number_emergency=0",
+        "number_inpatient=0"
+      ],
+      "support": 0.6364,
+      "count": 3182
+    },
+    {
+      "items": [
+        "max_glu_serum=None",
+        "number_inpatient=0",
+        "race=Caucasian"
+      ],
+      "support": 0.6296,
+      "count": 3148
+    },
+    {
+      "items": [
+        "number_emergency=0",
+        "number_inpatient=0",
+        "race=Caucasian"
+      ],
+      "support": 0.628,
+      "count": 3140
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "max_glu_serum=None",
+        "race=Caucasian"
+      ],
+      "support": 0.586,
+      "count": 2930
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "number_emergency=0",
+        "race=Caucasian"
+      ],
+      "support": 0.5806,
+      "count": 2903
+    },
+    {
+      "items": [
+        "discharge_disposition_id=1",
+        "max_glu_serum=None",
+        "number_emergency=0"
+      ],
+      "support": 0.5804,
+      "count": 2902
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "diabetesMed=Yes",
+        "max_glu_serum=None"
+      ],
+      "support": 0.5796,
+      "count": 2898
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "diabetesMed=Yes",
+        "number_emergency=0"
+      ],
+      "support": 0.5668,
+      "count": 2834
+    },
+    {
+      "items": [
+        "discharge_disposition_id=1",
+        "max_glu_serum=None",
+        "number_inpatient=0"
+      ],
+      "support": 0.5528,
+      "count": 2764
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "max_glu_serum=None",
+        "race=Caucasian"
+      ],
+      "support": 0.549,
+      "count": 2745
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "number_inpatient=0",
+        "race=Caucasian"
+      ],
+      "support": 0.5482,
+      "count": 2741
+    },
+    {
+      "items": [
+        "discharge_disposition_id=1",
+        "number_emergency=0",
+        "number_inpatient=0"
+      ],
+      "support": 0.5408,
+      "count": 2704
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "number_emergency=0",
+        "race=Caucasian"
+      ],
+      "support": 0.5378,
+      "count": 2689
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "diabetesMed=Yes",
+        "number_inpatient=0"
+      ],
+      "support": 0.5354,
+      "count": 2677
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "number_inpatient=0",
+        "race=Caucasian"
+      ],
+      "support": 0.5084,
+      "count": 2542
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "discharge_disposition_id=1",
+        "max_glu_serum=None"
+      ],
+      "support": 0.4974,
+      "count": 2487
+    },
+    {
+      "items": [
+        "change=No",
+        "max_glu_serum=None",
+        "number_emergency=0"
+      ],
+      "support": 0.4934,
+      "count": 2467
+    },
+    {
+      "items": [
+        "admission_source_id=7",
+        "max_glu_serum=None",
+        "number_emergency=0"
+      ],
+      "support": 0.487,
+      "count": 2435
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "discharge_disposition_id=1",
+        "max_glu_serum=None"
+      ],
+      "support": 0.4848,
+      "count": 2424
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "discharge_disposition_id=1",
+        "number_emergency=0"
+      ],
+      "support": 0.481,
+      "count": 2405
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "diabetesMed=Yes",
+        "race=Caucasian"
+      ],
+      "support": 0.4746,
+      "count": 2373
+    },
+    {
+      "items": [
+        "admission_type_id=1",
+        "max_glu_serum=None",
+        "number_emergency=0"
+      ],
+      "support": 0.4736,
+      "count": 2368
+    },
+    {
+      "items": [
+        "admission_source_id=7",
+        "max_glu_serum=None",
+        "number_inpatient=0"
+      ],
+      "support": 0.4712,
+      "count": 2356
+    },
+    {
+      "items": [
+        "change=No",
+        "number_emergency=0",
+        "number_inpatient=0"
+      ],
+      "support": 0.4688,
+      "count": 2344
+    },
+    {
+      "items": [
+        "change=No",
+        "max_glu_serum=None",
+        "number_inpatient=0"
+      ],
+      "support": 0.4664,
+      "count": 2332
+    },
+    {
+      "items": [
+        "gender=Female",
+        "max_glu_serum=None",
+        "number_emergency=0"
+      ],
+      "support": 0.4622,
+      "count": 2311
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "discharge_disposition_id=1",
+        "number_emergency=0"
+      ],
+      "support": 0.462,
+      "count": 2310
+    },
+    {
+      "items": [
+        "admission_source_id=7",
+        "admission_type_id=1",
+        "max_glu_serum=None"
+      ],
+      "support": 0.4606,
+      "count": 2303
+    },
+    {
+      "items": [
+        "discharge_disposition_id=1",
+        "max_glu_serum=None",
+        "race=Caucasian"
+      ],
+      "support": 0.4578,
+      "count": 2289
+    },
+    {
+      "items": [
+        "max_glu_serum=None",
+        "number_emergency=0",
+        "time_in_hospital=1-3"
+      ],
+      "support": 0.4562,
+      "count": 2281
+    },
+    {
+      "items": [
+        "admission_type_id=1",
+        "max_glu_serum=None",
+        "number_inpatient=0"
+      ],
+      "support": 0.4558,
+      "count": 2279
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "discharge_disposition_id=1",
+        "number_inpatient=0"
+      ],
+      "support": 0.4552,
+      "count": 2276
+    },
+    {
+      "items": [
+        "admission_source_id=7",
+        "number_emergency=0",
+        "number_inpatient=0"
+      ],
+      "support": 0.4456,
+      "count": 2228
+    },
+    {
+      "items": [
+        "gender=Female",
+        "max_glu_serum=None",
+        "number_inpatient=0"
+      ],
+      "support": 0.4426,
+      "count": 2213
+    },
+    {
+      "items": [
+        "discharge_disposition_id=1",
+        "number_emergency=0",
+        "race=Caucasian"
+      ],
+      "support": 0.4424,
+      "count": 2212
+    },
+    {
+      "items": [
+        "diabetesMed=Yes",
+        "discharge_disposition_id=1",
+        "number_inpatient=0"
+      ],
+      "support": 0.4408,
+      "count": 2204
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "change=No",
+        "max_glu_serum=None"
+      ],
+      "support": 0.4384,
+      "count": 2192
+    },
+    {
+      "items": [
+        "gender=Female",
+        "number_emergency=0",
+        "number_inpatient=0"
+      ],
+      "support": 0.4362,
+      "count": 2181
+    },
+    {
+      "items": [
+        "A1Cresult=None",
+        "change=No",
+        "number_emergency=0"
+      ],
+      "support": 0.4358,
+      "count": 2179
+    },
+    {
+      "items": [
+        "max_glu_serum=None",
+        "number_inpatient=0",
+        "time_in_hospital=1-3"
+      ],
+      "support": 0.4344,
+      "count": 2172
+    },
+    {
+      "items": [
+        "admission_type_id=1",
+        "number_emergency=0",
+        "number_inpatient=0"
+      ],
+      "support": 0.4336,
+      "count": 2168
+    },
+    {
+      "items": [
+        "number_emergency=0",
+        "number_inpatient=0",
+        "time_in_hospital=1-3"
+      ],
+      "support": 0.4302,
+      "count": 2151
+    },
+    {
+      "items": [
+        "change=Ch",
+        "diabetesMed=Yes",
+        "max_glu_serum=None"
+      ],
+      "support": 0.4258,
+      "count": 2129
+    }
+  ],
+  "rules": [
+    {
+      "antecedent": [
+        "admission_type_id=3"
+      ],
+      "consequent": [
+        "A1Cresult=None",
+        "admission_source_id=1"
+      ],
+      "support": 0.1504,
+      "confidence": 0.802561,
+      "lift": 3.096302,
+      "count": 752
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "time_in_hospital=1-3"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.0938,
+      "confidence": 0.908915,
+      "lift": 3.01965,
+      "count": 469
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3"
+      ],
+      "consequent": [
+        "admission_source_id=1",
+        "race=Caucasian"
+      ],
+      "support": 0.1322,
+      "confidence": 0.705443,
+      "lift": 3.012139,
+      "count": 661
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "discharge_disposition_id=1"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.1102,
+      "confidence": 0.894481,
+      "lift": 2.971696,
+      "count": 551
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "gender=Female"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.0846,
+      "confidence": 0.894292,
+      "lift": 2.971069,
+      "count": 423
+    },
+    {
+      "antecedent": [
+        "A1Cresult=None",
+        "admission_type_id=3"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.1504,
+      "confidence": 0.885748,
+      "lift": 2.942684,
+      "count": 752
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3"
+      ],
+      "consequent": [
+        "admission_source_id=1",
+        "max_glu_serum=None"
+      ],
+      "support": 0.1642,
+      "confidence": 0.876201,
+      "lift": 2.932398,
+      "count": 821
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "change=No"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.09,
+      "confidence": 0.882353,
+      "lift": 2.931405,
+      "count": 450
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "number_emergency=0"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.156,
+      "confidence": 0.880361,
+      "lift": 2.924788,
+      "count": 780
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3"
+      ],
+      "consequent": [
+        "admission_source_id=1",
+        "number_emergency=0"
+      ],
+      "support": 0.156,
+      "confidence": 0.832444,
+      "lift": 2.922907,
+      "count": 780
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "number_inpatient=0"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.1484,
+      "confidence": 0.878107,
+      "lift": 2.917297,
+      "count": 742
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "race=Caucasian"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.1322,
+      "confidence": 0.877822,
+      "lift": 2.916352,
+      "count": 661
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.1642,
+      "confidence": 0.876201,
+      "lift": 2.910966,
+      "count": 821
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "max_glu_serum=None"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.1642,
+      "confidence": 0.876201,
+      "lift": 2.910966,
+      "count": 821
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3",
+        "diabetesMed=Yes"
+      ],
+      "consequent": [
+        "admission_source_id=1"
+      ],
+      "support": 0.1234,
+      "confidence": 0.875177,
+      "lift": 2.907566,
+      "count": 617
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3"
+      ],
+      "consequent": [
+        "admission_source_id=1",
+        "number_inpatient=0"
+      ],
+      "support": 0.1484,
+      "confidence": 0.791889,
+      "lift": 2.907082,
+      "count": 742
+    },
+    {
+      "antecedent": [
+        "admission_type_id=3"
+      ],
+      "consequent": [
+        "admission_source_id=1",
+        "diabetesMed=Yes"
+      ],
+      "support": 0.1234,
+      "confidence": 0.658485,
+      "lift": 2.855527,
+      "count": 617
+    },
+    {
+      "antecedent": [
+        "diabetesMed=No"
+      ],
+      "consequent": [
+        "change=No",
+        "number_inpatient=0"
+      ],
+      "support": 0.2072,
+      "confidence": 0.90718,
+      "lift": 1.846114,
+      "count": 1036
+    },
+    {
+      "antecedent": [
+        "diabetesMed=No"
+      ],
+      "consequent": [
+        "A1Cresult=None",
+        "change=No"
+      ],
+      "support": 0.1948,
+      "confidence": 0.85289,
+      "lift": 1.834961,
+      "count": 974
+    },
+    {
+      "antecedent": [
+        "diabetesMed=No"
+      ],
+      "consequent": [
+        "change=No",
+        "number_emergency=0"
+      ],
+      "support": 0.2162,
+      "confidence": 0.946585,
+      "lift": 1.822458,
+      "count": 1081
+    },
+    {
+      "antecedent": [
+        "diabetesMed=No"
+      ],
+      "consequent": [
+        "change=No"
+      ],
+      "support": 0.2284,
+      "confidence": 1.0,
+      "lift": 1.812251,
+      "count": 1142
+    },
+    {
+      "antecedent": [
+        "diabetesMed=No",
+        "number_emergency=0"
+      ],
+      "consequent": [
+        "change=No"
+      ],
+      "support": 0.2162,
+      "confidence": 1.0,
+      "lift": 1.812251,
+      "count": 1081
+    },
+    {
+      "antecedent": [
+        "diabetesMed=No",
+        "max_glu_serum=None"
+      ],
+      "consequent": [
+        "change=No"
+      ],
+      "support": 0.2142,
+      "confidence": 1.0,
+      "lift": 1.812251,
+      "count": 1071
+    },
+    {
+      "antecedent": [
+        "diabetesMed=No",
+        "number_inpatient=0"
+      ],
+      "consequent": [
+        "change=No"
+      ],
+      "support": 0.2072,
+      "confidence": 1.0,
+      "lift": 1.812251,
+      "count": 1036
+    },
+    {
+      "antecedent": [
+        "A1Cresult=None",
+        "diabetesMed=No"
+      ],
+      "consequent": [
+        "change=No"
+      ],
+      "support": 0.1948,
+      "confidence": 1.0,
+      "lift": 1.812251,
+      "count": 974
+    }
+  ],
+  "columns_used": [
+    "age",
+    "race",
+    "gender",
+    "A1Cresult",
+    "max_glu_serum",
+    "change",
+    "diabetesMed",
+    "diag_1",
+    "diag_2",
+    "diag_3",
+    "admission_type_id",
+    "admission_source_id",
+    "discharge_disposition_id",
+    "time_in_hospital",
+    "number_inpatient",
+    "number_emergency"
+  ],
+  "sample_rows": 5000
+}
