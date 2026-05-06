@@ -64,7 +64,8 @@ def load_ids_mapping(mapping_path):
                 parts = line.split(',', 1)
                 if len(parts) == 2:
                     try:
-                        key = str(int(float(parts[0]))) # Store as string integer for JS
+                        # Extract integer explicitly
+                        key = str(int(float(parts[0]))) 
                         val = parts[1].strip('"').strip()
                         mapping[current_map][key] = val
                     except ValueError:
@@ -73,10 +74,14 @@ def load_ids_mapping(mapping_path):
 
 def generate_academic_report(csv_path, mapping_path, output_path):
     print("Loading data...")
-    df = pd.read_csv(csv_path)
-    df.replace('?', np.nan, inplace=True)
+    # Load EXACTLY as strings first to prevent Pandas from converting integers to floats if NaNs are present.
+    # This prevents '1' becoming '1.0' on the X-axis.
+    df_raw = pd.read_csv(csv_path, dtype=str)
+    df_raw.replace('?', np.nan, inplace=True)
     
-    # Load mappings but DO NOT alter df
+    # We also need a typed version for statistics (mean, std, etc)
+    df_typed = pd.read_csv(csv_path, na_values=['?'])
+    
     mappings = load_ids_mapping(mapping_path)
     
     report = {
@@ -85,23 +90,23 @@ def generate_academic_report(csv_path, mapping_path, output_path):
         "features": {}
     }
     
-    report["dataset_overview"]["total_rows"] = len(df)
-    report["dataset_overview"]["total_cols"] = len(df.columns)
-    report["dataset_overview"]["total_missing_cells"] = int(df.isna().sum().sum())
-    report["dataset_overview"]["duplicate_rows"] = int(df.duplicated().sum())
+    report["dataset_overview"]["total_rows"] = len(df_typed)
+    report["dataset_overview"]["total_cols"] = len(df_typed.columns)
+    report["dataset_overview"]["total_missing_cells"] = int(df_typed.isna().sum().sum())
+    report["dataset_overview"]["duplicate_rows"] = int(df_typed.duplicated().sum())
     
-    sample_df = df.head(100).replace({np.nan: None})
+    sample_df = df_typed.head(100).replace({np.nan: None})
     report["raw_sample"] = sample_df.to_dict(orient='records')
     
-    for col in df.columns:
-        col_data = df[col]
-        is_numeric = pd.api.types.is_numeric_dtype(col_data)
+    for col in df_typed.columns:
+        typed_col = df_typed[col]
+        raw_col = df_raw[col].dropna() # EXACT string values from CSV
         
-        missing_count = int(col_data.isna().sum())
-        missing_pct = round((missing_count / len(df)) * 100, 2)
-        unique_count = int(col_data.nunique(dropna=True))
+        is_numeric = pd.api.types.is_numeric_dtype(typed_col)
         
-        is_discrete = is_numeric and unique_count <= 30
+        missing_count = int(typed_col.isna().sum())
+        missing_pct = round((missing_count / len(df_typed)) * 100, 2)
+        unique_count = int(raw_col.nunique())
         
         feature_info = {
             "name": col,
@@ -112,12 +117,11 @@ def generate_academic_report(csv_path, mapping_path, output_path):
             "unique_count": unique_count,
             "stats": {},
             "distribution": {},
-            "value_mapping": mappings.get(col, {}), # PASS MAPPING TO UI
+            "value_mapping": mappings.get(col, {}),
             "cleaning_method": "Keep",
             "cleaning_explanation": ""
         }
         
-        # Determine Cleaning Method
         if col in ['encounter_id', 'patient_nbr']:
             feature_info["cleaning_method"] = "Drop"
             feature_info["cleaning_explanation"] = "Unique identifier. Keeping it would cause data leakage or overfitting."
@@ -150,33 +154,51 @@ def generate_academic_report(csv_path, mapping_path, output_path):
             feature_info["cleaning_method"] = "Binarize (Target)"
             feature_info["cleaning_explanation"] = "Target variable. Convert to binary ('<30' vs 'NO' or '>30') for classification."
 
-        clean_data = col_data.dropna()
+        clean_typed = typed_col.dropna()
         if is_numeric:
-            feature_info["stats"]["mean"] = round(float(clean_data.mean()), 4) if not clean_data.empty else None
-            feature_info["stats"]["std"] = round(float(clean_data.std()), 4) if not clean_data.empty else None
-            feature_info["stats"]["min"] = float(clean_data.min()) if not clean_data.empty else None
-            feature_info["stats"]["q25"] = float(clean_data.quantile(0.25)) if not clean_data.empty else None
-            feature_info["stats"]["median"] = float(clean_data.median()) if not clean_data.empty else None
-            feature_info["stats"]["q75"] = float(clean_data.quantile(0.75)) if not clean_data.empty else None
-            feature_info["stats"]["max"] = float(clean_data.max()) if not clean_data.empty else None
+            feature_info["stats"]["mean"] = round(float(clean_typed.mean()), 4) if not clean_typed.empty else None
+            feature_info["stats"]["std"] = round(float(clean_typed.std()), 4) if not clean_typed.empty else None
+            feature_info["stats"]["min"] = float(clean_typed.min()) if not clean_typed.empty else None
+            feature_info["stats"]["q25"] = float(clean_typed.quantile(0.25)) if not clean_typed.empty else None
+            feature_info["stats"]["median"] = float(clean_typed.median()) if not clean_typed.empty else None
+            feature_info["stats"]["q75"] = float(clean_typed.quantile(0.75)) if not clean_typed.empty else None
+            feature_info["stats"]["max"] = float(clean_typed.max()) if not clean_typed.empty else None
             
-        if not clean_data.empty:
-            if is_numeric and not is_discrete:
-                hist, bin_edges = np.histogram(clean_data, bins=20)
-                feature_info["distribution"]["labels"] = [f"{bin_edges[i]:.1f}" for i in range(len(hist))]
-                feature_info["distribution"]["values"] = hist.tolist()
-            else:
-                val_counts = clean_data.value_counts()
-                try:
-                    val_counts = val_counts.sort_index()
-                except Exception:
-                    pass
+        # --- ZERO ASSUMPTION DISTRIBUTION GENERATION ---
+        # 1. Get raw exact value counts as strings to preserve format. No np.histogram.
+        if not raw_col.empty:
+            val_counts = raw_col.value_counts()
+            
+            # 2. To sort correctly, check if the raw strings can be parsed to floats.
+            if is_numeric:
+                # Create a temporary numeric series to sort by the true numerical value
+                temp_numeric_index = pd.to_numeric(val_counts.index, errors='coerce')
+                # Sort using the numeric index
+                sorted_indices = np.argsort(temp_numeric_index.values)
+                sorted_labels = val_counts.index.values[sorted_indices]
+                sorted_values = val_counts.values[sorted_indices]
                 
-                if len(val_counts) > 30:
-                    val_counts = clean_data.value_counts().head(30)
-                    
-                feature_info["distribution"]["labels"] = [str(idx) for idx in val_counts.index.tolist()]
-                feature_info["distribution"]["values"] = val_counts.values.tolist()
+                # Take top 100 maximum to prevent browser crash, but it will be EXACT values.
+                if len(sorted_labels) > 150:
+                    feature_info["distribution"]["labels"] = sorted_labels[:150].tolist()
+                    feature_info["distribution"]["values"] = sorted_values[:150].tolist()
+                else:
+                    feature_info["distribution"]["labels"] = sorted_labels.tolist()
+                    feature_info["distribution"]["values"] = sorted_values.tolist()
+            else:
+                # For categoricals, sort by the exact string label alphabetically.
+                sorted_indices = np.argsort(val_counts.index.values)
+                sorted_labels = val_counts.index.values[sorted_indices]
+                sorted_values = val_counts.values[sorted_indices]
+                
+                if len(sorted_labels) > 150:
+                    # If too many categories (like diag_1), fallback to frequency sort so top 50 are shown
+                    val_counts = raw_col.value_counts().head(50)
+                    feature_info["distribution"]["labels"] = val_counts.index.tolist()
+                    feature_info["distribution"]["values"] = val_counts.values.tolist()
+                else:
+                    feature_info["distribution"]["labels"] = sorted_labels.tolist()
+                    feature_info["distribution"]["values"] = sorted_values.tolist()
             
         report["features"][col] = feature_info
         
