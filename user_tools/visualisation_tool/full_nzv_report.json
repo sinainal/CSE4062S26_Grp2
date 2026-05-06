@@ -1,0 +1,462 @@
+{
+  "race": {
+    "fr": 3.96,
+    "up": 0.005,
+    "variance": 0.179845,
+    "dominant_p": 0.764868,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "gender": {
+    "fr": 1.16,
+    "up": 0.0029,
+    "variance": 0.248587,
+    "dominant_p": 0.537586,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "age": {
+    "fr": 1.16,
+    "up": 0.0098,
+    "variance": 0.19054,
+    "dominant_p": 0.256156,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "admission_type_id": {
+    "fr": 2.86,
+    "up": 0.0079,
+    "variance": 0.249068,
+    "dominant_p": 0.530531,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "discharge_disposition_id": {
+    "fr": 4.32,
+    "up": 0.0255,
+    "variance": 0.241557,
+    "dominant_p": 0.591887,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "admission_source_id": {
+    "fr": 1.94,
+    "up": 0.0167,
+    "variance": 0.24578,
+    "dominant_p": 0.564963,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "time_in_hospital": {
+    "fr": 1.03,
+    "up": 0.0138,
+    "variance": 0.144036,
+    "dominant_p": 0.174479,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "medical_specialty": {
+    "fr": 1.93,
+    "up": 0.139,
+    "variance": 0.202666,
+    "dominant_p": 0.282436,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "num_lab_procedures": {
+    "fr": 1.14,
+    "up": 0.116,
+    "variance": 0.03053,
+    "dominant_p": 0.031523,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "num_procedures": {
+    "fr": 2.25,
+    "up": 0.0069,
+    "variance": 0.248271,
+    "dominant_p": 0.458424,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "num_medications": {
+    "fr": 1.01,
+    "up": 0.0737,
+    "variance": 0.056227,
+    "dominant_p": 0.059804,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "number_outpatient": {
+    "fr": 9.95,
+    "up": 0.0383,
+    "variance": 0.13743,
+    "dominant_p": 0.835515,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "number_emergency": {
+    "fr": 11.77,
+    "up": 0.0324,
+    "variance": 0.099343,
+    "dominant_p": 0.888145,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "number_inpatient": {
+    "fr": 3.46,
+    "up": 0.0206,
+    "variance": 0.222919,
+    "dominant_p": 0.664564,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "diag_1": {
+    "fr": 1.04,
+    "up": 0.7037,
+    "variance": 0.062895,
+    "dominant_p": 0.067443,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "diag_2": {
+    "fr": 1.01,
+    "up": 0.7376,
+    "variance": 0.062149,
+    "dominant_p": 0.066583,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "diag_3": {
+    "fr": 1.39,
+    "up": 0.7863,
+    "variance": 0.101894,
+    "dominant_p": 0.115155,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "number_diagnoses": {
+    "fr": 4.34,
+    "up": 0.0157,
+    "variance": 0.249808,
+    "dominant_p": 0.486155,
+    "is_numeric": true,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "max_glu_serum": {
+    "fr": 1.75,
+    "up": 0.0561,
+    "variance": 0.249798,
+    "dominant_p": 0.485784,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "A1Cresult": {
+    "fr": 1.65,
+    "up": 0.0176,
+    "variance": 0.249704,
+    "dominant_p": 0.482783,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "metformin": {
+    "fr": 4.46,
+    "up": 0.0039,
+    "variance": 0.157834,
+    "dominant_p": 0.803589,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "repaglinide": {
+    "fr": 72.42,
+    "up": 0.0039,
+    "variance": 0.014894,
+    "dominant_p": 0.984877,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "nateglinide": {
+    "fr": 151.29,
+    "up": 0.0039,
+    "variance": 0.00686,
+    "dominant_p": 0.993092,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "chlorpropamide": {
+    "fr": 1287.09,
+    "up": 0.0039,
+    "variance": 0.000844,
+    "dominant_p": 0.999155,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "glimepiride": {
+    "fr": 20.68,
+    "up": 0.0039,
+    "variance": 0.048407,
+    "dominant_p": 0.948991,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": false,
+    "drop": true
+  },
+  "acetohexamide": {
+    "fr": 101765.0,
+    "up": 0.002,
+    "variance": 1e-05,
+    "dominant_p": 0.99999,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "glipizide": {
+    "fr": 7.84,
+    "up": 0.0039,
+    "variance": 0.109119,
+    "dominant_p": 0.875341,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "glyburide": {
+    "fr": 9.82,
+    "up": 0.0039,
+    "variance": 0.0937,
+    "dominant_p": 0.895348,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "tolbutamide": {
+    "fr": 4423.61,
+    "up": 0.002,
+    "variance": 0.000226,
+    "dominant_p": 0.999774,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "pioglitazone": {
+    "fr": 13.54,
+    "up": 0.0039,
+    "variance": 0.066823,
+    "dominant_p": 0.927992,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "rosiglitazone": {
+    "fr": 15.64,
+    "up": 0.0039,
+    "variance": 0.058634,
+    "dominant_p": 0.937455,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "acarbose": {
+    "fr": 343.93,
+    "up": 0.0039,
+    "variance": 0.003017,
+    "dominant_p": 0.996973,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "miglitol": {
+    "fr": 3281.55,
+    "up": 0.0039,
+    "variance": 0.000373,
+    "dominant_p": 0.999627,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "troglitazone": {
+    "fr": 33921.0,
+    "up": 0.002,
+    "variance": 2.9e-05,
+    "dominant_p": 0.999971,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "tolazamide": {
+    "fr": 2677.03,
+    "up": 0.0029,
+    "variance": 0.000383,
+    "dominant_p": 0.999617,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "examide": {
+    "fr": 10000000000.0,
+    "up": 0.001,
+    "variance": 0.0,
+    "dominant_p": 1.0,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "citoglipton": {
+    "fr": 10000000000.0,
+    "up": 0.001,
+    "variance": 0.0,
+    "dominant_p": 1.0,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "insulin": {
+    "fr": 1.54,
+    "up": 0.0039,
+    "variance": 0.248817,
+    "dominant_p": 0.465607,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "glyburide-metformin": {
+    "fr": 146.04,
+    "up": 0.0039,
+    "variance": 0.006889,
+    "dominant_p": 0.993063,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "glipizide-metformin": {
+    "fr": 7827.15,
+    "up": 0.002,
+    "variance": 0.000128,
+    "dominant_p": 0.999872,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "glimepiride-pioglitazone": {
+    "fr": 101765.0,
+    "up": 0.002,
+    "variance": 1e-05,
+    "dominant_p": 0.99999,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "metformin-rosiglitazone": {
+    "fr": 50882.0,
+    "up": 0.002,
+    "variance": 2e-05,
+    "dominant_p": 0.99998,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "metformin-pioglitazone": {
+    "fr": 101765.0,
+    "up": 0.002,
+    "variance": 1e-05,
+    "dominant_p": 0.99999,
+    "is_numeric": false,
+    "is_nzv": true,
+    "below_var_thresh": true,
+    "drop": true
+  },
+  "change": {
+    "fr": 1.16,
+    "up": 0.002,
+    "variance": 0.248552,
+    "dominant_p": 0.538048,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "diabetesMed": {
+    "fr": 3.35,
+    "up": 0.002,
+    "variance": 0.177083,
+    "dominant_p": 0.770031,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  },
+  "readmitted": {
+    "fr": 1.54,
+    "up": 0.0029,
+    "variance": 0.24847,
+    "dominant_p": 0.539119,
+    "is_numeric": false,
+    "is_nzv": false,
+    "below_var_thresh": false,
+    "drop": false
+  }
+}

@@ -482,3 +482,68 @@ function copyCode() {
         setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
     });
 }
+
+// ==================== NZV MODAL ====================
+let fullNZVData = null;
+let currentNZVFilter = 'all';
+
+// Load full_nzv_report.json alongside other data
+fetch('full_nzv_report.json').then(r => r.json()).then(data => {
+    fullNZVData = data;
+}).catch(() => {});
+
+function openNZVModal() {
+    document.getElementById('nzv-modal').classList.add('open');
+    if (fullNZVData) renderFullNZVTable('all');
+}
+
+function closeNZVModal(event) {
+    if (!event || event.target === document.getElementById('nzv-modal') || event.currentTarget.classList.contains('modal-close-btn')) {
+        document.getElementById('nzv-modal').classList.remove('open');
+    }
+}
+
+function filterNZVModal(filter, btn) {
+    currentNZVFilter = filter;
+    document.querySelectorAll('.modal-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderFullNZVTable(filter);
+}
+
+function renderFullNZVTable(filter) {
+    if (!fullNZVData) return;
+    const tbody = document.getElementById('full-nzv-tbody');
+    tbody.innerHTML = '';
+    let count = 0;
+
+    Object.entries(fullNZVData).forEach(([col, m]) => {
+        if (filter === 'drop' && !m.drop) return;
+        if (filter === 'keep' && m.drop) return;
+
+        const tr = document.createElement('tr');
+        if (m.drop) tr.className = 'feat-dropped';
+
+        const frStr = m.fr >= 1e9 ? '∞' : m.fr.toFixed(1);
+        const typeStr = m.is_numeric ? 'Numeric' : 'Categorical';
+        const nzvBadge = m.is_nzv ? '<span class="badge-nzv-yes">Yes</span>' : '<span class="badge-nzv-no">No</span>';
+        const varBadge = m.below_var_thresh ? '<span class="badge-nzv-yes">Yes</span>' : '<span class="badge-nzv-no">No</span>';
+        const decBadge = m.drop ? '<span class="badge-drop">DROP</span>' : '<span class="badge-keep">KEEP</span>';
+
+        tr.innerHTML = `
+            <td><strong>${col}</strong></td>
+            <td>${typeStr}</td>
+            <td>${frStr}</td>
+            <td>${m.up.toFixed(4)}</td>
+            <td>${m.variance.toFixed(6)}</td>
+            <td>${nzvBadge}</td>
+            <td>${varBadge}</td>
+            <td>${decBadge}</td>`;
+        tbody.appendChild(tr);
+        count++;
+    });
+
+    const dropped = Object.values(fullNZVData).filter(m => m.drop).length;
+    const kept    = Object.values(fullNZVData).length - dropped;
+    document.getElementById('modal-count').textContent =
+        `Showing ${count} columns | ${dropped} DROP / ${kept} KEEP`;
+}
