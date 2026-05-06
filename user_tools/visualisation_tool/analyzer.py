@@ -11,9 +11,9 @@ FEATURE_DESCRIPTIONS = {
     "gender": "Values: male, female, and unknown/invalid.",
     "age": "Grouped in 10-year intervals: [0, 10), [10, 20), ..., [90, 100).",
     "weight": "Weight in pounds.",
-    "admission_type_id": "Integer identifier corresponding to 9 distinct values, for example, emergency, urgent, elective, newborn, and not available.",
-    "discharge_disposition_id": "Integer identifier corresponding to 29 distinct values, for example, discharged to home, expired, and not available.",
-    "admission_source_id": "Integer identifier corresponding to 21 distinct values, for example, physician referral, emergency room, and transfer from a hospital.",
+    "admission_type_id": "Mapped from IDS_mapping.csv (e.g., Emergency, Urgent, Elective).",
+    "discharge_disposition_id": "Mapped from IDS_mapping.csv (e.g., Discharged to home, Expired).",
+    "admission_source_id": "Mapped from IDS_mapping.csv (e.g., Physician Referral, Emergency Room).",
     "time_in_hospital": "Integer number of days between admission and discharge.",
     "payer_code": "Integer identifier corresponding to 23 distinct values, for example, Blue Cross/Blue Shield, Medicare, and self-pay.",
     "medical_specialty": "Integer identifier of a specialty of the admitting physician, corresponding to 84 distinct values.",
@@ -34,16 +34,54 @@ FEATURE_DESCRIPTIONS = {
     "readmitted": "Target Variable: Days to inpatient readmission. Values: '<30' if the patient was readmitted in less than 30 days, '>30' if the patient was readmitted in more than 30 days, and 'No' for no record of readmission."
 }
 
-# The 24 medication features have the same description pattern
 medications = ['metformin', 'repaglinide', 'nateglinide', 'chlorpropamide', 'glimepiride', 'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide', 'pioglitazone', 'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone', 'tolazamide', 'examide', 'citoglipton', 'insulin', 'glyburide-metformin', 'glipizide-metformin', 'glimepiride-pioglitazone', 'metformin-rosiglitazone', 'metformin-pioglitazone']
 for med in medications:
     FEATURE_DESCRIPTIONS[med] = f"Indicates whether the drug {med} was prescribed or there was a change in the dosage. Values: 'up', 'down', 'steady', and 'no'."
 
-def generate_academic_report(csv_path, output_path):
+def load_ids_mapping(mapping_path):
+    mapping = {}
+    if not os.path.exists(mapping_path): return mapping
+    
+    with open(mapping_path, 'r') as f:
+        current_map = None
+        for line in f:
+            line = line.strip()
+            if not line or line == ',': continue
+            if 'admission_type_id' in line:
+                current_map = 'admission_type_id'
+                mapping[current_map] = {}
+                continue
+            if 'discharge_disposition_id' in line:
+                current_map = 'discharge_disposition_id'
+                mapping[current_map] = {}
+                continue
+            if 'admission_source_id' in line:
+                current_map = 'admission_source_id'
+                mapping[current_map] = {}
+                continue
+                
+            if current_map:
+                parts = line.split(',', 1)
+                if len(parts) == 2:
+                    try:
+                        key = float(parts[0])
+                        val = parts[1].strip('"').strip()
+                        mapping[current_map][key] = val
+                    except ValueError:
+                        pass
+    return mapping
+
+def generate_academic_report(csv_path, mapping_path, output_path):
     print("Loading data...")
     df = pd.read_csv(csv_path)
-    
     df.replace('?', np.nan, inplace=True)
+    
+    # Apply IDS Mapping
+    mappings = load_ids_mapping(mapping_path)
+    for col in mappings:
+        if col in df.columns:
+            # Map the float/int values to their string descriptions
+            df[col] = df[col].astype(float).map(mappings[col]).fillna(df[col])
     
     report = {
         "dataset_overview": {},
@@ -67,9 +105,12 @@ def generate_academic_report(csv_path, output_path):
         missing_pct = round((missing_count / len(df)) * 100, 2)
         unique_count = int(col_data.nunique(dropna=True))
         
+        # If numeric but very few unique values, treat its DISTRIBUTION like categorical (discrete)
+        is_discrete = is_numeric and unique_count <= 30
+        
         feature_info = {
             "name": col,
-            "description": FEATURE_DESCRIPTIONS.get(col, "No detailed description available for this feature."),
+            "description": FEATURE_DESCRIPTIONS.get(col, "No detailed description available."),
             "type": "Numeric" if is_numeric else "Categorical",
             "missing_count": missing_count,
             "missing_pct": missing_pct,
@@ -80,42 +121,42 @@ def generate_academic_report(csv_path, output_path):
             "cleaning_explanation": ""
         }
         
-        # Determine Cleaning Method and Explanation
+        # Determine Cleaning Method
         if col in ['encounter_id', 'patient_nbr']:
             feature_info["cleaning_method"] = "Drop"
-            feature_info["cleaning_explanation"] = "This is a unique identifier. Keeping it would cause data leakage or overfitting as it has no predictive clinical value."
+            feature_info["cleaning_explanation"] = "Unique identifier. Keeping it would cause data leakage or overfitting."
         elif missing_pct > 40:
             feature_info["cleaning_method"] = "Drop"
-            feature_info["cleaning_explanation"] = f"Feature has {missing_pct}% missing values. Imputation is statistically unreliable at this threshold. Safe to drop."
+            feature_info["cleaning_explanation"] = f"Feature has {missing_pct}% missing values. Imputation is statistically unreliable at this threshold."
         elif unique_count == 1:
             feature_info["cleaning_method"] = "Drop"
-            feature_info["cleaning_explanation"] = "Zero variance. Every row has the exact same value, offering zero discriminatory power for the model."
+            feature_info["cleaning_explanation"] = "Zero variance. Every row has the exact same value, offering zero predictive power."
         elif col in ['diag_1', 'diag_2', 'diag_3']:
             feature_info["cleaning_method"] = "Group & Encode"
-            feature_info["cleaning_explanation"] = "High cardinality ICD-9 codes. Recommended to group them into ~9 broader clinical categories (e.g., Circulatory, Respiratory) as per Strack et al. before encoding."
+            feature_info["cleaning_explanation"] = "High cardinality ICD-9 codes. Group into ~9 broader clinical categories (e.g., Circulatory, Respiratory)."
         elif is_numeric and missing_pct > 0:
             feature_info["cleaning_method"] = "Median Impute"
-            feature_info["cleaning_explanation"] = "Numeric feature with missing values. Median imputation is robust to outliers compared to mean imputation."
+            feature_info["cleaning_explanation"] = "Numeric feature with missing values. Median imputation is robust to outliers."
         elif not is_numeric and missing_pct > 0:
             feature_info["cleaning_method"] = "Mode Impute / 'Missing' Category"
-            feature_info["cleaning_explanation"] = "Categorical feature with missing values. Best to fill with the mode, or create a distinct 'Unknown' class if missingness itself is predictive."
+            feature_info["cleaning_explanation"] = "Categorical feature with missing values. Fill with mode or create a distinct 'Unknown' class."
         elif not is_numeric and unique_count > 10:
             feature_info["cleaning_method"] = "Target / Frequency Encode"
-            feature_info["cleaning_explanation"] = "High cardinality categorical variable. One-hot encoding will explode dimensionality. Use Target Encoding or group rare categories."
+            feature_info["cleaning_explanation"] = "High cardinality categorical variable. One-hot encoding will explode dimensionality. Use Target Encoding."
         elif not is_numeric:
             feature_info["cleaning_method"] = "One-Hot Encode"
-            feature_info["cleaning_explanation"] = "Low cardinality categorical variable. One-Hot Encoding is standard and prevents the model from assuming ordinality."
+            feature_info["cleaning_explanation"] = "Low cardinality categorical variable. One-Hot Encoding is standard."
         else:
             feature_info["cleaning_method"] = "Scale / Standardize"
-            feature_info["cleaning_explanation"] = "Standard numeric feature. Ready for modeling after applying StandardScaler or MinMaxScaler to ensure distance-based models perform well."
+            feature_info["cleaning_explanation"] = "Standard numeric feature. Ready for modeling after scaling."
 
         if col == "readmitted":
             feature_info["cleaning_method"] = "Binarize (Target)"
-            feature_info["cleaning_explanation"] = "This is the target variable. Depending on the goal, convert to binary (e.g., '<30' vs 'NO' or '>30') for binary classification."
+            feature_info["cleaning_explanation"] = "Target variable. Convert to binary ('<30' vs 'NO' or '>30') for classification."
 
         # Statistics
+        clean_data = col_data.dropna()
         if is_numeric:
-            clean_data = col_data.dropna()
             feature_info["stats"]["mean"] = round(float(clean_data.mean()), 4) if not clean_data.empty else None
             feature_info["stats"]["std"] = round(float(clean_data.std()), 4) if not clean_data.empty else None
             feature_info["stats"]["min"] = float(clean_data.min()) if not clean_data.empty else None
@@ -124,15 +165,29 @@ def generate_academic_report(csv_path, output_path):
             feature_info["stats"]["q75"] = float(clean_data.quantile(0.75)) if not clean_data.empty else None
             feature_info["stats"]["max"] = float(clean_data.max()) if not clean_data.empty else None
             
-            if not clean_data.empty:
+        if not clean_data.empty:
+            if is_numeric and not is_discrete:
+                # Continuous numeric -> standard histogram
                 hist, bin_edges = np.histogram(clean_data, bins=20)
                 feature_info["distribution"]["labels"] = [f"{bin_edges[i]:.1f}" for i in range(len(hist))]
                 feature_info["distribution"]["values"] = hist.tolist()
-        else:
-            clean_data = col_data.dropna()
-            top_counts = clean_data.value_counts().head(20)
-            feature_info["distribution"]["labels"] = [str(idx) for idx in top_counts.index.tolist()]
-            feature_info["distribution"]["values"] = top_counts.values.tolist()
+            else:
+                # Categorical OR Discrete Numeric -> exact value counts
+                val_counts = clean_data.value_counts()
+                
+                # Sort the index to maintain natural order (e.g. 0,1,2,3... or [0-10), [10-20)...)
+                # Instead of sorting by frequency, we sort by the labels themselves
+                try:
+                    val_counts = val_counts.sort_index()
+                except Exception:
+                    pass # If mixed types, fallback
+                
+                # Limit to top 30 to prevent massive charts
+                if len(val_counts) > 30:
+                    val_counts = clean_data.value_counts().head(30) # fallback to frequency if too many
+                    
+                feature_info["distribution"]["labels"] = [str(idx) for idx in val_counts.index.tolist()]
+                feature_info["distribution"]["values"] = val_counts.values.tolist()
             
         report["features"][col] = feature_info
         
@@ -143,6 +198,8 @@ def generate_academic_report(csv_path, output_path):
 if __name__ == "__main__":
     base_path = "/home/sina/Downloads/data/CSE4062S26_Grp2"
     csv_file = os.path.join(base_path, "data/diabetes+130-us+hospitals+for+years+1999-2008/diabetic_data.csv")
+    mapping_file = os.path.join(base_path, "data/diabetes+130-us+hospitals+for+years+1999-2008/IDS_mapping.csv")
     output_json = os.path.join(base_path, "user_tools/visualisation_tool/academic_data.json")
-    generate_academic_report(csv_file, output_json)
+    
+    generate_academic_report(csv_file, mapping_file, output_json)
     print("Done.")
