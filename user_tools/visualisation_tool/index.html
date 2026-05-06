@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Data Insights | Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <span class="pulse"></span>
+                <h1>Diabetes Data <span>Insights</span></h1>
+            </div>
+            <div class="meta-info">
+                <div class="info-pill" id="total-rows">Rows: --</div>
+                <div class="info-pill" id="total-cols">Cols: --</div>
+                <div class="status-pill">Ready for Analysis</div>
+            </div>
+        </header>
+
+        <main>
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Features</h2>
+                    <input type="text" id="search-features" placeholder="Search features...">
+                </div>
+                <ul id="feature-list" class="feature-nav">
+                    <!-- Features will be injected here -->
+                </ul>
+            </aside>
+
+            <section class="content">
+                <div id="welcome-screen" class="welcome-card">
+                    <div class="icon">🔍</div>
+                    <h2>Welcome to the Data Explorer</h2>
+                    <p>Select a feature from the left sidebar to analyze its distribution, missing values, and statistical properties.</p>
+                </div>
+
+                <div id="analysis-view" class="analysis-grid" style="display: none;">
+                    <div class="card header-card">
+                        <div class="title-group">
+                            <h2 id="current-feature-name">Feature Name</h2>
+                            <span id="feature-type-tag" class="tag">Type</span>
+                        </div>
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <span class="label">Missing</span>
+                                <span class="value" id="stat-missing">--%</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Unique</span>
+                                <span class="value" id="stat-unique">--</span>
+                            </div>
+                            <div class="stat-item numerical-only">
+                                <span class="label">Mean</span>
+                                <span class="value" id="stat-mean">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card chart-card">
+                        <div class="chart-header">
+                            <h3>Distribution Analysis</h3>
+                            <div class="chart-controls">
+                                <button class="btn btn-small active" onclick="changeChartType('bar')">Bar</button>
+                                <button class="btn btn-small" onclick="changeChartType('pie')">Pie</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="mainChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card insight-card">
+                        <h3>Preprocessing Insight</h3>
+                        <p id="preprocessing-insight">Select a feature to see potential preprocessing steps.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1227 @@
+{
+    "total_rows": 101766,
+    "total_columns": 50,
+    "columns": {
+        "encounter_id": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 101766,
+            "type": "numerical",
+            "min": 12522.0,
+            "max": 443867222.0,
+            "mean": 165201645.6229782,
+            "distribution": {
+                "labels": [
+                    "12522.0-44397992.0",
+                    "44397992.0-88783462.0",
+                    "88783462.0-133168932.0",
+                    "133168932.0-177554402.0",
+                    "177554402.0-221939872.0",
+                    "221939872.0-266325342.0",
+                    "266325342.0-310710812.0",
+                    "310710812.0-355096282.0",
+                    "355096282.0-399481752.0",
+                    "399481752.0-443867222.0"
+                ],
+                "values": [
+                    10493,
+                    16574,
+                    16064,
+                    20683,
+                    10720,
+                    9958,
+                    7039,
+                    3438,
+                    3346,
+                    3451
+                ]
+            }
+        },
+        "patient_nbr": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 71518,
+            "type": "numerical",
+            "min": 135.0,
+            "max": 189502619.0,
+            "mean": 54330400.694947235,
+            "distribution": {
+                "labels": [
+                    "135.0-18950383.4",
+                    "18950383.4-37900631.8",
+                    "37900631.8-56850880.2",
+                    "56850880.2-75801128.6",
+                    "75801128.6-94751377.0",
+                    "94751377.0-113701625.4",
+                    "113701625.4-132651873.8",
+                    "132651873.8-151602122.2",
+                    "151602122.2-170552370.6",
+                    "170552370.6-189502619.0"
+                ],
+                "values": [
+                    20481,
+                    19240,
+                    16184,
+                    11037,
+                    17908,
+                    12886,
+                    1594,
+                    1161,
+                    429,
+                    846
+                ]
+            }
+        },
+        "race": {
+            "dtype": "str",
+            "missing_pct": 2.23,
+            "unique_count": 5,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "Caucasian",
+                    "AfricanAmerican",
+                    "Hispanic",
+                    "Other",
+                    "Asian"
+                ],
+                "values": [
+                    76099,
+                    19210,
+                    2037,
+                    1506,
+                    641
+                ]
+            }
+        },
+        "gender": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 3,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "Female",
+                    "Male",
+                    "Unknown/Invalid"
+                ],
+                "values": [
+                    54708,
+                    47055,
+                    3
+                ]
+            }
+        },
+        "age": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 10,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "[70-80)",
+                    "[60-70)",
+                    "[50-60)",
+                    "[80-90)",
+                    "[40-50)",
+                    "[30-40)",
+                    "[90-100)",
+                    "[20-30)",
+                    "[10-20)",
+                    "[0-10)"
+                ],
+                "values": [
+                    26068,
+                    22483,
+                    17256,
+                    17197,
+                    9685,
+                    3775,
+                    2793,
+                    1657,
+                    691,
+                    161
+                ]
+            }
+        },
+        "weight": {
+            "dtype": "str",
+            "missing_pct": 96.86,
+            "unique_count": 9,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "[75-100)",
+                    "[50-75)",
+                    "[100-125)",
+                    "[125-150)",
+                    "[25-50)",
+                    "[0-25)",
+                    "[150-175)",
+                    "[175-200)",
+                    ">200"
+                ],
+                "values": [
+                    1336,
+                    897,
+                    625,
+                    145,
+                    97,
+                    48,
+                    35,
+                    11,
+                    3
+                ]
+            }
+        },
+        "admission_type_id": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 8,
+            "type": "numerical",
+            "min": 1.0,
+            "max": 8.0,
+            "mean": 2.024006053102215,
+            "distribution": {
+                "labels": [
+                    "1.0-1.7",
+                    "1.7-2.4",
+                    "2.4-3.1",
+                    "3.1-3.8",
+                    "3.8-4.5",
+                    "4.5-5.2",
+                    "5.2-5.9",
+                    "5.9-6.6",
+                    "6.6-7.3",
+                    "7.3-8.0"
+                ],
+                "values": [
+                    53990,
+                    18480,
+                    18869,
+                    0,
+                    10,
+                    4785,
+                    0,
+                    5291,
+                    21,
+                    320
+                ]
+            }
+        },
+        "discharge_disposition_id": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 26,
+            "type": "numerical",
+            "min": 1.0,
+            "max": 28.0,
+            "mean": 3.7156417664052825,
+            "distribution": {
+                "labels": [
+                    "1.0-3.7",
+                    "3.7-6.4",
+                    "6.4-9.1",
+                    "9.1-11.8",
+                    "11.8-14.5",
+                    "14.5-17.2",
+                    "17.2-19.9",
+                    "19.9-22.6",
+                    "22.6-25.3",
+                    "25.3-28.0"
+                ],
+                "values": [
+                    76316,
+                    14901,
+                    752,
+                    1648,
+                    774,
+                    88,
+                    3699,
+                    1995,
+                    1449,
+                    144
+                ]
+            }
+        },
+        "admission_source_id": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 17,
+            "type": "numerical",
+            "min": 1.0,
+            "max": 25.0,
+            "mean": 5.754436648782501,
+            "distribution": {
+                "labels": [
+                    "1.0-3.4",
+                    "3.4-5.8",
+                    "5.8-8.2",
+                    "8.2-10.6",
+                    "10.6-13.0",
+                    "13.0-15.4",
+                    "15.4-17.8",
+                    "17.8-20.2",
+                    "20.2-22.6",
+                    "22.6-25.0"
+                ],
+                "values": [
+                    30856,
+                    4042,
+                    59774,
+                    133,
+                    2,
+                    3,
+                    6781,
+                    161,
+                    12,
+                    2
+                ]
+            }
+        },
+        "time_in_hospital": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 14,
+            "type": "numerical",
+            "min": 1.0,
+            "max": 14.0,
+            "mean": 4.395986871843248,
+            "distribution": {
+                "labels": [
+                    "1.0-2.3",
+                    "2.3-3.6",
+                    "3.6-4.9",
+                    "4.9-6.2",
+                    "6.2-7.5",
+                    "7.5-8.8",
+                    "8.8-10.1",
+                    "10.1-11.4",
+                    "11.4-12.7",
+                    "12.7-14.0"
+                ],
+                "values": [
+                    31432,
+                    17756,
+                    13924,
+                    17505,
+                    5859,
+                    4391,
+                    5344,
+                    1855,
+                    1448,
+                    2252
+                ]
+            }
+        },
+        "payer_code": {
+            "dtype": "str",
+            "missing_pct": 39.56,
+            "unique_count": 17,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "MC",
+                    "HM",
+                    "SP",
+                    "BC",
+                    "MD",
+                    "CP",
+                    "UN",
+                    "CM",
+                    "OG",
+                    "PO"
+                ],
+                "values": [
+                    32439,
+                    6274,
+                    5007,
+                    4655,
+                    3532,
+                    2533,
+                    2448,
+                    1937,
+                    1033,
+                    592
+                ]
+            }
+        },
+        "medical_specialty": {
+            "dtype": "str",
+            "missing_pct": 49.08,
+            "unique_count": 72,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "InternalMedicine",
+                    "Emergency/Trauma",
+                    "Family/GeneralPractice",
+                    "Cardiology",
+                    "Surgery-General",
+                    "Nephrology",
+                    "Orthopedics",
+                    "Orthopedics-Reconstructive",
+                    "Radiologist",
+                    "Pulmonology"
+                ],
+                "values": [
+                    14635,
+                    7565,
+                    7440,
+                    5352,
+                    3099,
+                    1613,
+                    1400,
+                    1233,
+                    1140,
+                    871
+                ]
+            }
+        },
+        "num_lab_procedures": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 118,
+            "type": "numerical",
+            "min": 1.0,
+            "max": 132.0,
+            "mean": 43.09564098028811,
+            "distribution": {
+                "labels": [
+                    "1.0-14.1",
+                    "14.1-27.2",
+                    "27.2-40.3",
+                    "40.3-53.4",
+                    "53.4-66.5",
+                    "66.5-79.6",
+                    "79.6-92.7",
+                    "92.7-105.8",
+                    "105.8-118.9",
+                    "118.9-132.0"
+                ],
+                "values": [
+                    10318,
+                    10141,
+                    21826,
+                    27814,
+                    20558,
+                    8876,
+                    1915,
+                    290,
+                    23,
+                    5
+                ]
+            }
+        },
+        "num_procedures": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 7,
+            "type": "numerical",
+            "min": 0.0,
+            "max": 6.0,
+            "mean": 1.339730361810428,
+            "distribution": {
+                "labels": [
+                    "0.0-0.6",
+                    "0.6-1.2",
+                    "1.2-1.8",
+                    "1.8-2.4",
+                    "2.4-3.0",
+                    "3.0-3.6",
+                    "3.6-4.2",
+                    "4.2-4.8",
+                    "4.8-5.4",
+                    "5.4-6.0"
+                ],
+                "values": [
+                    46652,
+                    20742,
+                    0,
+                    12717,
+                    0,
+                    9443,
+                    4180,
+                    0,
+                    3078,
+                    4954
+                ]
+            }
+        },
+        "num_medications": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 75,
+            "type": "numerical",
+            "min": 1.0,
+            "max": 81.0,
+            "mean": 16.021844230882614,
+            "distribution": {
+                "labels": [
+                    "1.0-9.0",
+                    "9.0-17.0",
+                    "17.0-25.0",
+                    "25.0-33.0",
+                    "33.0-41.0",
+                    "41.0-49.0",
+                    "49.0-57.0",
+                    "57.0-65.0",
+                    "65.0-73.0",
+                    "73.0-81.0"
+                ],
+                "values": [
+                    15602,
+                    45073,
+                    27844,
+                    9345,
+                    2541,
+                    815,
+                    355,
+                    145,
+                    41,
+                    5
+                ]
+            }
+        },
+        "number_outpatient": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 39,
+            "type": "numerical",
+            "min": 0.0,
+            "max": 42.0,
+            "mean": 0.36935715268360747,
+            "distribution": {
+                "labels": [
+                    "0.0-4.2",
+                    "4.2-8.4",
+                    "8.4-12.6",
+                    "12.6-16.8",
+                    "16.8-21.0",
+                    "21.0-25.2",
+                    "25.2-29.4",
+                    "29.4-33.6",
+                    "33.6-37.8",
+                    "37.8-42.0"
+                ],
+                "values": [
+                    100309,
+                    1089,
+                    212,
+                    94,
+                    23,
+                    19,
+                    8,
+                    2,
+                    6,
+                    4
+                ]
+            }
+        },
+        "number_emergency": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 33,
+            "type": "numerical",
+            "min": 0.0,
+            "max": 76.0,
+            "mean": 0.19783621248747127,
+            "distribution": {
+                "labels": [
+                    "0.0-7.6",
+                    "7.6-15.2",
+                    "15.2-22.8",
+                    "22.8-30.4",
+                    "30.4-38.0",
+                    "38.0-45.6",
+                    "45.6-53.2",
+                    "53.2-60.8",
+                    "60.8-68.4",
+                    "68.4-76.0"
+                ],
+                "values": [
+                    101560,
+                    168,
+                    26,
+                    5,
+                    1,
+                    1,
+                    1,
+                    1,
+                    2,
+                    1
+                ]
+            }
+        },
+        "number_inpatient": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 21,
+            "type": "numerical",
+            "min": 0.0,
+            "max": 21.0,
+            "mean": 0.635565906098304,
+            "distribution": {
+                "labels": [
+                    "0.0-2.1",
+                    "2.1-4.2",
+                    "4.2-6.3",
+                    "6.3-8.4",
+                    "8.4-10.5",
+                    "10.5-12.6",
+                    "12.6-14.7",
+                    "14.7-16.8",
+                    "16.8-18.9",
+                    "18.9-21.0"
+                ],
+                "values": [
+                    94717,
+                    5033,
+                    1292,
+                    419,
+                    172,
+                    83,
+                    30,
+                    15,
+                    2,
+                    3
+                ]
+            }
+        },
+        "diag_1": {
+            "dtype": "str",
+            "missing_pct": 0.02,
+            "unique_count": 716,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "428",
+                    "414",
+                    "786",
+                    "410",
+                    "486",
+                    "427",
+                    "491",
+                    "715",
+                    "682",
+                    "434"
+                ],
+                "values": [
+                    6862,
+                    6581,
+                    4016,
+                    3614,
+                    3508,
+                    2766,
+                    2275,
+                    2151,
+                    2042,
+                    2028
+                ]
+            }
+        },
+        "diag_2": {
+            "dtype": "str",
+            "missing_pct": 0.35,
+            "unique_count": 748,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "276",
+                    "428",
+                    "250",
+                    "427",
+                    "401",
+                    "496",
+                    "599",
+                    "403",
+                    "414",
+                    "411"
+                ],
+                "values": [
+                    6752,
+                    6662,
+                    6071,
+                    5036,
+                    3736,
+                    3305,
+                    3288,
+                    2823,
+                    2650,
+                    2566
+                ]
+            }
+        },
+        "diag_3": {
+            "dtype": "str",
+            "missing_pct": 1.4,
+            "unique_count": 789,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "250",
+                    "401",
+                    "276",
+                    "428",
+                    "427",
+                    "414",
+                    "496",
+                    "403",
+                    "585",
+                    "272"
+                ],
+                "values": [
+                    11555,
+                    8289,
+                    5175,
+                    4577,
+                    3955,
+                    3664,
+                    2605,
+                    2357,
+                    1992,
+                    1969
+                ]
+            }
+        },
+        "number_diagnoses": {
+            "dtype": "int64",
+            "missing_pct": 0.0,
+            "unique_count": 16,
+            "type": "numerical",
+            "min": 1.0,
+            "max": 16.0,
+            "mean": 7.422606764538254,
+            "distribution": {
+                "labels": [
+                    "1.0-2.5",
+                    "2.5-4.0",
+                    "4.0-5.5",
+                    "5.5-7.0",
+                    "7.0-8.5",
+                    "8.5-10.0",
+                    "10.0-11.5",
+                    "11.5-13.0",
+                    "13.0-14.5",
+                    "14.5-16.0"
+                ],
+                "values": [
+                    1242,
+                    2835,
+                    16930,
+                    10161,
+                    21009,
+                    49474,
+                    28,
+                    9,
+                    23,
+                    55
+                ]
+            }
+        },
+        "max_glu_serum": {
+            "dtype": "str",
+            "missing_pct": 94.75,
+            "unique_count": 3,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "Norm",
+                    ">200",
+                    ">300"
+                ],
+                "values": [
+                    2597,
+                    1485,
+                    1264
+                ]
+            }
+        },
+        "A1Cresult": {
+            "dtype": "str",
+            "missing_pct": 83.28,
+            "unique_count": 3,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    ">8",
+                    "Norm",
+                    ">7"
+                ],
+                "values": [
+                    8216,
+                    4990,
+                    3812
+                ]
+            }
+        },
+        "metformin": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    81778,
+                    18346,
+                    1067,
+                    575
+                ]
+            }
+        },
+        "repaglinide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    100227,
+                    1384,
+                    110,
+                    45
+                ]
+            }
+        },
+        "nateglinide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    101063,
+                    668,
+                    24,
+                    11
+                ]
+            }
+        },
+        "chlorpropamide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    101680,
+                    79,
+                    6,
+                    1
+                ]
+            }
+        },
+        "glimepiride": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    96575,
+                    4670,
+                    327,
+                    194
+                ]
+            }
+        },
+        "acetohexamide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady"
+                ],
+                "values": [
+                    101765,
+                    1
+                ]
+            }
+        },
+        "glipizide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    89080,
+                    11356,
+                    770,
+                    560
+                ]
+            }
+        },
+        "glyburide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    91116,
+                    9274,
+                    812,
+                    564
+                ]
+            }
+        },
+        "tolbutamide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady"
+                ],
+                "values": [
+                    101743,
+                    23
+                ]
+            }
+        },
+        "pioglitazone": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    94438,
+                    6976,
+                    234,
+                    118
+                ]
+            }
+        },
+        "rosiglitazone": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    95401,
+                    6100,
+                    178,
+                    87
+                ]
+            }
+        },
+        "acarbose": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    101458,
+                    295,
+                    10,
+                    3
+                ]
+            }
+        },
+        "miglitol": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Down",
+                    "Up"
+                ],
+                "values": [
+                    101728,
+                    31,
+                    5,
+                    2
+                ]
+            }
+        },
+        "troglitazone": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady"
+                ],
+                "values": [
+                    101763,
+                    3
+                ]
+            }
+        },
+        "tolazamide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 3,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up"
+                ],
+                "values": [
+                    101727,
+                    38,
+                    1
+                ]
+            }
+        },
+        "examide": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 1,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No"
+                ],
+                "values": [
+                    101766
+                ]
+            }
+        },
+        "citoglipton": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 1,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No"
+                ],
+                "values": [
+                    101766
+                ]
+            }
+        },
+        "insulin": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Down",
+                    "Up"
+                ],
+                "values": [
+                    47383,
+                    30849,
+                    12218,
+                    11316
+                ]
+            }
+        },
+        "glyburide-metformin": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 4,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady",
+                    "Up",
+                    "Down"
+                ],
+                "values": [
+                    101060,
+                    692,
+                    8,
+                    6
+                ]
+            }
+        },
+        "glipizide-metformin": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady"
+                ],
+                "values": [
+                    101753,
+                    13
+                ]
+            }
+        },
+        "glimepiride-pioglitazone": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady"
+                ],
+                "values": [
+                    101765,
+                    1
+                ]
+            }
+        },
+        "metformin-rosiglitazone": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady"
+                ],
+                "values": [
+                    101764,
+                    2
+                ]
+            }
+        },
+        "metformin-pioglitazone": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Steady"
+                ],
+                "values": [
+                    101765,
+                    1
+                ]
+            }
+        },
+        "change": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "No",
+                    "Ch"
+                ],
+                "values": [
+                    54755,
+                    47011
+                ]
+            }
+        },
+        "diabetesMed": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 2,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "Yes",
+                    "No"
+                ],
+                "values": [
+                    78363,
+                    23403
+                ]
+            }
+        },
+        "readmitted": {
+            "dtype": "str",
+            "missing_pct": 0.0,
+            "unique_count": 3,
+            "type": "categorical",
+            "distribution": {
+                "labels": [
+                    "NO",
+                    ">30",
+                    "<30"
+                ],
+                "values": [
+                    54864,
+                    35545,
+                    11357
+                ]
+            }
+        }
+    }
+}
