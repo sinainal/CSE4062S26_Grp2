@@ -99,7 +99,7 @@ def generate_cleaning_report(csv_path, mapping_path, output_path):
         mask = df[col].isna() & df['_deletion_reason'].isna()
         df.loc[mask, '_modified'] = True
 
-    # Build a clean summary
+    # Split into deleted and kept
     deleted_rows = df[df['_deletion_reason'].notna()]
     kept_rows = df[df['_deletion_reason'].isna()].copy()
 
@@ -115,28 +115,24 @@ def generate_cleaning_report(csv_path, mapping_path, output_path):
         'deletion_reasons': deleted_rows['_deletion_reason'].value_counts().head(20).to_dict()
     }
 
-    # Build sample (first 2000 with status tags for browser performance)
+    # Raw sample with status tags (for audit view)
     sample_size = 2000
-    # Get mix: some deleted, some kept
     sample_deleted = deleted_rows.head(sample_size // 2)
     sample_kept = kept_rows.head(sample_size - len(sample_deleted))
     sample = pd.concat([sample_deleted, sample_kept]).replace({np.nan: None})
-
     display_cols = [c for c in df.columns if c not in DROPPED_COLS and not c.startswith('_')]
     records = []
     for _, row in sample.iterrows():
         rec = {col: row[col] for col in display_cols if col in row}
         rec['__status'] = 'deleted' if row['_deletion_reason'] else ('modified' if row['_modified'] else 'kept')
         rec['__reason'] = row['_deletion_reason'] if row['_deletion_reason'] else (
-            'Missing values replaced' if row['_modified'] else ''
-        )
+            'Missing values replaced' if row['_modified'] else '')
         records.append(rec)
 
     # Feature-level cleaning actions
     feature_status = {}
     for col in df.columns:
-        if col.startswith('_'):
-            continue
+        if col.startswith('_'): continue
         if col in DROPPED_COLS:
             feature_status[col] = {'action': 'DROP', 'reason': 'Dropped entirely (high missing or ID leakage)'}
         elif col in ['diag_1', 'diag_2', 'diag_3']:
@@ -150,15 +146,99 @@ def generate_cleaning_report(csv_path, mapping_path, output_path):
         else:
             feature_status[col] = {'action': 'KEEP', 'reason': 'No changes required'}
 
+    # ---- Apply actual cleaning transformations to kept_rows ----
+    cleaned = kept_rows.copy()
+
+    # Drop high-missing and ID cols
+    cleaned = cleaned.drop(columns=[c for c in DROPPED_COLS if c in cleaned.columns], errors='ignore')
+
+    # Age: '[40-50)' -> 45
+    age_map = {'[0-10)':5,'[10-20)':15,'[20-30)':25,'[30-40)':35,'[40-50)':45,
+               '[50-60)':55,'[60-70)':65,'[70-80)':75,'[80-90)':85,'[90-100)':95}
+    if 'age' in cleaned.columns:
+        cleaned['age'] = cleaned['age'].map(age_map)
+
+    # Fill ? in medical_specialty and race
+    if 'medical_specialty' in cleaned.columns:
+        cleaned['medical_specialty'] = cleaned['medical_specialty'].fillna('Missing')
+    if 'race' in cleaned.columns:
+        cleaned['race'] = cleaned['race'].fillna('Unknown')
+
+    # ICD-9 grouping
+    def map_icd9(val):
+        if val is None or (isinstance(val, float) and np.isnan(val)): return 'Other'
+        s = str(val)
+        if s.startswith('V') or s.startswith('E'): return 'Other'
+        try:
+            n = float(s)
+            if 390 <= n <= 459 or n == 785: return 'Circulatory'
+            if 460 <= n <= 519 or n == 786: return 'Respiratory'
+            if 520 <= n <= 579 or n == 787: return 'Digestive'
+            if np.floor(n) == 250:          return 'Diabetes'
+            if 800 <= n <= 999:             return 'Injury'
+            if 710 <= n <= 739:             return 'Musculoskeletal'
+            if 580 <= n <= 629 or n == 788: return 'Genitourinary'
+            if 140 <= n <= 239:             return 'Neoplasms'
+            return 'Other'
+        except ValueError:
+            return 'Other'
+
+    for diag_col in ['diag_1', 'diag_2', 'diag_3']:
+        if diag_col in cleaned.columns:
+            cleaned[diag_col] = cleaned[diag_col].apply(map_icd9)
+
+    # Binarize readmitted
+    if 'readmitted' in cleaned.columns:
+        cleaned['readmitted'] = (cleaned['readmitted'] == '<30').astype(int)
+
+    # Medication: create num_medications_changed, keep individual meds
+    med_cols = [c for c in ['metformin','repaglinide','nateglinide','chlorpropamide','glimepiride',
+        'acetohexamide','glipizide','glyburide','tolbutamide','pioglitazone','rosiglitazone',
+        'acarbose','miglitol','troglitazone','tolazamide','examide','citoglipton','insulin',
+        'glyburide-metformin','glipizide-metformin','glimepiride-pioglitazone',
+        'metformin-rosiglitazone','metformin-pioglitazone'] if c in cleaned.columns]
+    cleaned['num_medications_changed'] = cleaned[med_cols].apply(
+        lambda row: sum(row.isin(['Up','Down'])), axis=1)
+
+    # Build cleaned_sample for browser (2000 rows)
+    cs = cleaned.head(2000).replace({np.nan: None})
+    display_clean_cols = [c for c in cs.columns if not c.startswith('_')]
+    cleaned_records = []
+    for _, row in cs.iterrows():
+        rec = {col: row[col] for col in display_clean_cols if col in row}
+        cleaned_records.append(rec)
+
+    # Build cleaned feature distributions
+    cleaned_distributions = {}
+    for col in cleaned.columns:
+        if col.startswith('_'): continue
+        series = cleaned[col].dropna()
+        if series.empty: continue
+        vc = series.value_counts()
+        is_num = pd.api.types.is_numeric_dtype(cleaned[col])
+        if is_num:
+            idx = pd.to_numeric(vc.index, errors='coerce')
+            order = np.argsort(idx.values)
+            labels = [str(v) for v in vc.index.values[order]]
+            values = vc.values[order].tolist()
+        else:
+            order = np.argsort(vc.index.values)
+            labels = vc.index.values[order].tolist()
+            values = vc.values[order].tolist()
+        cleaned_distributions[col] = {'labels': labels, 'values': values}
+
     cleaning_report = {
         'stats': stats,
         'feature_status': feature_status,
-        'sample': records
+        'sample': records,             # raw sample with __status tags (for audit view)
+        'cleaned_sample': cleaned_records,
+        'cleaned_distributions': cleaned_distributions
     }
 
     with open(output_path, 'w') as f:
         json.dump(cleaning_report, f)
     print(f"Cleaning report saved to {output_path}")
+
 
 def generate_academic_report(csv_path, mapping_path, output_path):
     print("Loading data...")

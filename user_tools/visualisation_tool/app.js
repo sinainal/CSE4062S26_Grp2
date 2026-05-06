@@ -36,7 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCleanFeatureList(e.target.value);
     });
     document.getElementById('clean-toggle-log').addEventListener('change', () => {
-        if (cleanChart) cleanChart.update();
+        // Re-render with the currently selected column
+        const activeRow = document.querySelector('#clean-feature-tbody tr.active-row');
+        if (activeRow) activeRow.click();
     });
 });
 
@@ -268,39 +270,34 @@ function showCleanFeatureDetail(col, info) {
         beforeAfterEl.innerHTML = `<h4>Cleaning Decision</h4><p>This column requires <strong>no modification</strong> and is passed to the model as-is (possibly after scaling).</p>`;
     }
 
-    // Render chart from raw distribution
-    if (rawFeat?.distribution?.labels) {
+    // Draw chart from CLEANED distribution (not raw)
+    const cleanedDist = cleaningData.cleaned_distributions?.[col];
+    if (cleanedDist?.labels) {
         const ctx = document.getElementById('clean-distribution-chart').getContext('2d');
         if (cleanChart) cleanChart.destroy();
         const useLog = document.getElementById('clean-toggle-log').checked;
 
-        const colors = rawFeat.distribution.labels.map(label => {
-            if (col === 'discharge_disposition_id') {
-                const id = parseInt(label);
-                if ([11,13,14,19,20,21].includes(id)) return 'rgba(185,28,28,0.7)';
-            }
-            return info.action === 'DROP' ? 'rgba(185,28,28,0.5)' : info.action === 'MODIFY' ? 'rgba(180,130,0,0.6)' : '#0f4c81';
-        });
+        const color = info.action === 'DROP' ? 'rgba(185,28,28,0.55)'
+                    : info.action === 'MODIFY' ? 'rgba(180,130,0,0.65)'
+                    : '#0f4c81';
 
         cleanChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: rawFeat.distribution.labels,
-                datasets: [{ data: rawFeat.distribution.values, backgroundColor: colors, barPercentage: rawFeat.type === 'Numeric' ? 1.0 : 0.8 }]
+                labels: cleanedDist.labels,
+                datasets: [{ data: cleanedDist.values, backgroundColor: color,
+                    barPercentage: /^\d/.test(String(cleanedDist.labels[0])) ? 1.0 : 0.8 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 onClick: (e, elements) => {
-                    if (elements.length > 0) {
-                        const label = rawFeat.distribution.labels[elements[0].index];
-                        filterCleanBrowserByValue(col, label);
-                    }
+                    if (elements.length > 0) filterCleanBrowserByValue(col, cleanedDist.labels[elements[0].index]);
                 },
                 plugins: {
                     legend: { display: false },
                     tooltip: { callbacks: { title: (ctx) => {
                         const label = ctx[0].label;
-                        const vm = rawFeat.value_mapping;
+                        const vm = academicData.features[col]?.value_mapping;
                         if (vm?.[label]) return `ID ${label}: ${vm[label]}`;
                         return label;
                     }}}
@@ -330,20 +327,39 @@ function renderCleanBrowser(filterCol = null, filterVal = null) {
     const thead = document.getElementById('clean-browse-thead');
     const tbody = document.getElementById('clean-browse-tbody');
 
-    if (!filterCol) document.getElementById('clean-browse-title').textContent = 'Data Audit Browser';
+    if (!filterCol && !filterVal)
+        document.getElementById('clean-browse-title').textContent = 'Data Audit Browser — Cleaned Dataset';
 
-    const displayCols = Object.keys(cleaningData.sample[0]).filter(c => !c.startsWith('__') && !MEDICATION_LIST.includes(c));
+    // Use cleaned_sample (post-transformation rows only) unless filtering
+    // If show-deleted is on, mix in a peek at raw deleted rows too
+    const cleanedSample = cleaningData.cleaned_sample || [];
+    const rawSample = cleaningData.sample || [];
+
+    let rows = [];
+    if (showDeleted) {
+        // Show deleted rows from raw sample first, then cleaned rows
+        const deletedRows = rawSample.filter(r => r.__status === 'deleted');
+        rows = [...deletedRows, ...cleanedSample.map(r => ({...r, __status: 'kept', __reason: ''})) ];
+    } else {
+        rows = cleanedSample.map(r => ({...r, __status: 'kept', __reason: ''}));
+    }
+
+    if (filterCol && filterVal) {
+        rows = rows.filter(r => String(r[filterCol]) === String(filterVal));
+    }
+
+    const displayCols = Object.keys(rows[0] || {}).filter(c => !c.startsWith('__') && !MEDICATION_LIST.includes(c));
+    if (displayCols.length === 0) { tbody.innerHTML = ''; return; }
+
     thead.innerHTML = `<tr><th>Status</th><th>Reason</th>${displayCols.map(c => `<th>${c.replace(/_/g,' ')}</th>`).join('')}</tr>`;
     tbody.innerHTML = '';
 
     let rendered = 0;
-    for (const row of cleaningData.sample) {
-        if (!showDeleted && row.__status === 'deleted') continue;
-        if (filterCol && filterVal && String(row[filterCol]) !== String(filterVal)) continue;
+    for (const row of rows) {
         if (rendered >= limit) break;
 
         const tr = document.createElement('tr');
-        if (row.__status === 'deleted')  tr.className = 'row-deleted';
+        if (row.__status === 'deleted') tr.className = 'row-deleted';
         else if (row.__status === 'modified') tr.className = 'row-modified';
 
         const statusLabels = { deleted: 'Deleted', modified: 'Modified', kept: 'Retained' };
@@ -359,7 +375,7 @@ function renderCleanBrowser(filterCol = null, filterVal = null) {
 
         displayCols.forEach(col => {
             const td = document.createElement('td');
-            td.textContent = row[col] === null ? 'NaN' : row[col];
+            td.textContent = row[col] === null || row[col] === undefined ? 'NaN' : row[col];
             tr.appendChild(td);
         });
 
