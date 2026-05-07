@@ -7,6 +7,8 @@ VENV_DIR="${SCRIPT_DIR}/.venv"
 REQ_FILE="${SCRIPT_DIR}/requirements.txt"
 REQ_STAMP="${VENV_DIR}/.requirements.sha256"
 PYTHON_BIN=""
+DEFAULT_PORT="${PORT:-8081}"
+PORT=""
 
 DATA_SCRIPT="${SCRIPT_DIR}/data_harness.py"
 TOOL_DIR="${SCRIPT_DIR}/user_tools/visualisation_tool"
@@ -14,6 +16,23 @@ PORT="${PORT:-8081}"
 REFRESH_DATA="${REFRESH_DATA:-0}"
 APP_URL="http://127.0.0.1:${PORT}"
 OPEN_BROWSER="${OPEN_BROWSER:-1}"
+
+port_in_use() {
+  local port="$1"
+  (exec 3<>"/dev/tcp/127.0.0.1/${port}") >/dev/null 2>&1
+}
+
+choose_port() {
+  local start_port="$1"
+  local candidate
+  for candidate in $(seq "${start_port}" $((start_port + 24))); do
+    if ! port_in_use "${candidate}"; then
+      echo "${candidate}"
+      return 0
+    fi
+  done
+  echo "${start_port}"
+}
 
 ensure_system_python() {
   if ! command -v "${SYSTEM_PYTHON}" >/dev/null 2>&1; then
@@ -106,6 +125,13 @@ trap cleanup EXIT
 
 ensure_system_python
 bootstrap_venv
+
+PORT="${DEFAULT_PORT}"
+if port_in_use "${PORT}"; then
+  echo "Port ${PORT} is busy. Searching for a free port..."
+  PORT="$(choose_port "${PORT}")"
+fi
+APP_URL="http://127.0.0.1:${PORT}"
 
 REPORTS=(
   "${SCRIPT_DIR}/data/cleaned_diabetic_data.csv"
