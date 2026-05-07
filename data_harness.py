@@ -72,6 +72,33 @@ try:
 except ImportError:
     XGBRegressor = None
 
+LAB_DATASET_MODES = {
+    'auto': {
+        'label': 'Auto safe',
+        'train_cap': 20000,
+        'test_cap': 5000,
+        'description': 'Uses the largest safe stratified split for live classroom runs.',
+    },
+    'fast': {
+        'label': 'Fast sample',
+        'train_cap': 6000,
+        'test_cap': 2500,
+        'description': 'Matches the quick reference dashboard runs.',
+    },
+    'medium': {
+        'label': 'Medium sample',
+        'train_cap': 20000,
+        'test_cap': 5000,
+        'description': 'A larger repeatable run that should still finish quickly on most laptops.',
+    },
+    'full': {
+        'label': 'Full split',
+        'train_cap': None,
+        'test_cap': None,
+        'description': 'Uses the full 80/20 train/test split. Some algorithms can take several minutes.',
+    },
+}
+
 # ============================================================
 # NEAR-ZERO VARIANCE (NZV) DETECTOR
 # Reference: Kuhn & Johnson (2013), Applied Predictive Modeling
@@ -351,6 +378,37 @@ def _build_consensus_ranking(rankings):
     return consensus['consensus_score'].sort_values(ascending=False)
 
 
+def sample_or_full_split(X_train_full, X_test_full, y_train_full, y_test_full, mode='auto'):
+    mode = mode if mode in LAB_DATASET_MODES else 'auto'
+    spec = LAB_DATASET_MODES[mode]
+    train_cap = spec['train_cap']
+    test_cap = spec['test_cap']
+
+    if train_cap is None:
+        X_train, y_train = X_train_full, y_train_full
+    else:
+        X_train, y_train = stratified_sample(X_train_full, y_train_full, n_samples=train_cap, random_state=42)
+
+    if test_cap is None:
+        X_test, y_test = X_test_full, y_test_full
+    else:
+        X_test, y_test = stratified_sample(X_test_full, y_test_full, n_samples=test_cap, random_state=43)
+
+    return X_train, X_test, y_train, y_test, {
+        'mode': mode,
+        'label': spec['label'],
+        'description': spec['description'],
+        'train_rows': int(len(X_train)),
+        'test_rows': int(len(X_test)),
+        'positive_rate_train': round(float(y_train.mean()), 6),
+        'positive_rate_test': round(float(y_test.mean()), 6),
+        'full_train_rows': int(len(X_train_full)),
+        'full_test_rows': int(len(X_test_full)),
+        'uses_full_train': int(len(X_train)) == int(len(X_train_full)),
+        'uses_full_test': int(len(X_test)) == int(len(X_test_full)),
+    }
+
+
 def generate_feature_selection_report(model_ready_df, verbose=True):
     X = model_ready_df.drop(columns=['readmitted'])
     y = model_ready_df['readmitted'].astype(int)
@@ -358,7 +416,7 @@ def generate_feature_selection_report(model_ready_df, verbose=True):
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    train_sample_X, train_sample_y = stratified_sample(X_train, y_train, n_samples=12000, random_state=42)
+    train_sample_X, train_sample_y = X_train.copy(), y_train.copy()
     train_sample_X = train_sample_X.copy()
     train_sample_y = train_sample_y.copy()
 
@@ -430,7 +488,7 @@ def generate_feature_selection_report(model_ready_df, verbose=True):
             'consensus_top20': consensus_scores.head(20).index.tolist(),
         },
         'notes': [
-            'Feature rankings are estimated on a stratified training sample to reduce leakage.',
+            'Feature rankings are estimated on the full stratified training split to match the final dataset.',
             'RFE uses logistic regression as the recursive selector and consensus ranking aggregates all available methods.',
         ],
     }
@@ -695,22 +753,46 @@ def _evaluate_classifier(name, clf, X_train, X_test, y_train, y_test, feature_na
     else:
         y_score = clf.decision_function(X_test_values)
 
+    matrix = confusion_matrix(y_test, y_pred, labels=[0, 1])
+    tn, fp, fn, tp = [int(v) for v in matrix.ravel()]
+    diagnostics = []
+    recall = float(recall_score(y_test, y_pred, zero_division=0))
+    precision = float(precision_score(y_test, y_pred, zero_division=0))
+    auc = float(roc_auc_score(y_test, y_score))
+    positive_rate = float(y_test.mean())
+    if recall < 0.25:
+        diagnostics.append('Low recall: many readmitted patients are missed as false negatives.')
+    if precision < 0.20 and tp > 0:
+        diagnostics.append('Low precision: many predicted readmissions are false positives.')
+    if auc < 0.60:
+        diagnostics.append('Weak separation: ROC-AUC is close to random ranking.')
+    if positive_rate < 0.12:
+        diagnostics.append('Class imbalance is strong; accuracy can look high while minority recall remains weak.')
+
     result = {
         'model_name': name,
         'feature_mode': feature_mode,
         'metrics': {
             'accuracy': round(float(accuracy_score(y_test, y_pred)), 6),
-            'precision': round(float(precision_score(y_test, y_pred, zero_division=0)), 6),
-            'recall': round(float(recall_score(y_test, y_pred, zero_division=0)), 6),
+            'precision': round(precision, 6),
+            'recall': round(recall, 6),
             'f1': round(float(f1_score(y_test, y_pred, zero_division=0)), 6),
-            'roc_auc': round(float(roc_auc_score(y_test, y_score)), 6),
+            'roc_auc': round(auc, 6),
         },
         'confusion_matrix': {
             'labels': ['Not <30', '<30'],
-            'matrix': confusion_matrix(y_test, y_pred).tolist(),
+            'matrix': matrix.tolist(),
+            'counts': {'TN': tn, 'FP': fp, 'FN': fn, 'TP': tp},
+            'legend': {
+                'TN': 'Actual not readmitted <30 and predicted not readmitted <30',
+                'FP': 'Actual not readmitted <30 but predicted readmitted <30',
+                'FN': 'Actual readmitted <30 but predicted not readmitted <30',
+                'TP': 'Actual readmitted <30 and predicted readmitted <30',
+            },
         },
         'predictions': [int(v) for v in y_pred.tolist()],
         'roc_curve': build_roc_payload(y_test, y_score),
+        'diagnostics': diagnostics,
     }
 
     if hasattr(clf, 'coef_'):
@@ -994,7 +1076,7 @@ def normalize_lab_params(algorithm_name, raw_params):
     return parsed
 
 
-def run_single_model_lab_experiment(model_ready_df, algorithm_name, raw_params, verbose=True):
+def run_single_model_lab_experiment(model_ready_df, algorithm_name, raw_params, dataset_mode='auto', verbose=True):
     """Train a single live experiment for the selected model-lab configuration."""
     X = model_ready_df.drop(columns=['readmitted'])
     y = model_ready_df['readmitted'].astype(int)
@@ -1002,8 +1084,9 @@ def run_single_model_lab_experiment(model_ready_df, algorithm_name, raw_params, 
     X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
-    X_train, y_train = stratified_sample(X_train_full, y_train_full, n_samples=6000, random_state=42)
-    X_test, y_test = stratified_sample(X_test_full, y_test_full, n_samples=2500, random_state=43)
+    X_train, X_test, y_train, y_test, sample_payload = sample_or_full_split(
+        X_train_full, X_test_full, y_train_full, y_test_full, mode=dataset_mode
+    )
 
     pos_count = int(y_train.sum())
     neg_count = int(len(y_train) - pos_count)
@@ -1018,18 +1101,15 @@ def run_single_model_lab_experiment(model_ready_df, algorithm_name, raw_params, 
     clf = spec['factory'](params)
     result = _evaluate_classifier(
         algorithm_name, clf, X_train, X_test, y_train, y_test, X.columns,
-        feature_mode='sampled model-ready encoded features',
+        feature_mode=f"{sample_payload['label']} model-ready encoded features",
     )
     result['params'] = spec.get('display_params', lambda p: p)(params)
     result['source'] = 'live'
-    result['sample'] = {
-        'train_rows': int(len(X_train)),
-        'test_rows': int(len(X_test)),
-        'positive_rate_train': round(float(y_train.mean()), 6),
-        'positive_rate_test': round(float(y_test.mean()), 6),
-        'full_train_rows': int(len(X_train_full)),
-        'full_test_rows': int(len(X_test_full)),
-    }
+    result['sample'] = sample_payload
+    if dataset_mode in {'auto', 'medium'}:
+        result.setdefault('diagnostics', []).append('This live run uses a large safe subset; choose Full split to rerun on all rows.')
+    if dataset_mode == 'full' and algorithm_name in {'SVM (RBF)', 'k-NN', 'MLP'}:
+        result.setdefault('diagnostics', []).append('Full split can be slow for this algorithm because prediction/training cost scales strongly with row count.')
     if verbose:
         metrics = result['metrics']
         print(f"    Live {algorithm_name}: AUC={metrics['roc_auc']} F1={metrics['f1']} Recall={metrics['recall']}")
@@ -1044,8 +1124,9 @@ def run_model_lab(model_ready_df, verbose=True):
     X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
-    X_train, y_train = stratified_sample(X_train_full, y_train_full, n_samples=6000, random_state=42)
-    X_test, y_test = stratified_sample(X_test_full, y_test_full, n_samples=2500, random_state=43)
+    X_train, X_test, y_train, y_test, sample_payload = sample_or_full_split(
+        X_train_full, X_test_full, y_train_full, y_test_full, mode='medium'
+    )
 
     pos_count = int(y_train.sum())
     neg_count = int(len(y_train) - pos_count)
@@ -1061,7 +1142,7 @@ def run_model_lab(model_ready_df, verbose=True):
                 clf = spec['factory'](raw_params)
                 result = _evaluate_classifier(
                     name, clf, X_train, X_test, y_train, y_test, X.columns,
-                    feature_mode='sampled model-ready encoded features',
+                    feature_mode=f"{sample_payload['label']} model-ready encoded features",
                 )
                 display_params = spec.get('display_params', lambda p: p)(raw_params)
                 result['params'] = display_params
@@ -1083,15 +1164,9 @@ def run_model_lab(model_ready_df, verbose=True):
 
     return {
         'title': 'Interactive Algorithm Test Lab',
-        'sample_policy': 'Precomputed hyperparameter grid on a stratified sample for responsive dashboard tuning.',
-        'sample': {
-            'train_rows': int(len(X_train)),
-            'test_rows': int(len(X_test)),
-            'positive_rate_train': round(float(y_train.mean()), 6),
-            'positive_rate_test': round(float(y_test.mean()), 6),
-            'full_train_rows': int(len(X_train_full)),
-            'full_test_rows': int(len(X_test_full)),
-        },
+        'sample_policy': 'Precomputed hyperparameter grid uses the Medium sample so the dashboard remains responsive; live runs can be repeated on Fast, Medium, Auto, or Full split.',
+        'dataset_modes': LAB_DATASET_MODES,
+        'sample': sample_payload,
         'algorithms': algorithms,
         'best_overall': best_overall,
     }
@@ -1190,6 +1265,8 @@ def generate_clustering_report(model_ready_df, cleaned_df, verbose=True):
             'projection': 'PCA(n_components=2) on the model-ready encoded feature matrix',
             'clustering': 'KMeans and hierarchical clustering evaluated for k=2..8; DBSCAN evaluated over several eps/min_samples configurations on the PCA coordinates',
             'sample_rows': len(points),
+            'full_rows': int(len(model_ready_df)),
+            'warning': 'Clustering is intentionally sampled because hierarchical clustering and browser scatter rendering are not practical on all 69,970 rows during a live presentation.',
             'explained_variance_ratio': [round(float(v), 6) for v in pca.explained_variance_ratio_],
             'total_explained_variance': round(float(pca.explained_variance_ratio_.sum()), 6),
         },
@@ -1276,6 +1353,8 @@ def generate_association_rules_report(cleaned_df, verbose=True):
 
     rules['columns_used'] = selected_cols
     rules['sample_rows'] = len(sample)
+    rules['full_rows'] = int(len(cleaned_df))
+    rules['warning'] = 'Association mining uses a capped transaction sample because Apriori candidate growth becomes expensive on the full clinical table.'
 
     if verbose:
         print(f"  Apriori report prepared: {len(rules['rules'])} rules from {len(sample)} rows")
@@ -1344,9 +1423,6 @@ def run_regression_model(model_ready_df, cleaned_df, verbose=True):
     """Predict hospital stay length using the model-ready matrix without the target leakage column."""
     X = model_ready_df.drop(columns=['readmitted', 'time_in_hospital'], errors='ignore')
     y = cleaned_df.loc[model_ready_df.index, 'time_in_hospital'].astype(float)
-
-    if len(X) > 25000:
-        X, y = random_sample(X, y, n_samples=25000, random_state=42)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
@@ -1431,7 +1507,8 @@ def run_regression_model(model_ready_df, cleaned_df, verbose=True):
             'train_rows': int(len(X_train)),
             'test_rows': int(len(X_test)),
             'random_state': 42,
-            'sampling_cap': 25000 if len(model_ready_df) > 25000 else len(model_ready_df),
+            'sampling_cap': None,
+            'uses_full_dataset': True,
         },
         'models': model_results,
         'best_model': best_model,
@@ -1455,7 +1532,7 @@ def run_regression_model(model_ready_df, cleaned_df, verbose=True):
         },
         'notes': [
             'The target is the raw time_in_hospital value in days, not the scaled model-ready column.',
-            'Rows are sampled only when necessary to keep the regression benchmark responsive.',
+            'Regression is trained on the full cleaned/model-ready dataset.',
         ],
     }
 

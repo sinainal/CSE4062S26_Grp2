@@ -18,6 +18,7 @@ let regressionResidualChart = null;
 let labRocChart = null;
 let labSurfaceChart = null;
 let selectedLabAlgorithm = null;
+let selectedLabDatasetMode = 'auto';
 let liveLabRuns = {};
 let labRunInFlight = false;
 let selectedClusterMethod = 'kmeans';
@@ -90,6 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cluster-k-select').addEventListener('change', () => renderClusteringPage());
     document.getElementById('cluster-color-mode').addEventListener('change', () => renderClusteringPage());
     document.getElementById('lab-surface-sort').addEventListener('change', () => renderSelectedLabRun());
+    document.getElementById('lab-dataset-mode').addEventListener('change', (event) => {
+        selectedLabDatasetMode = event.target.value || 'auto';
+        renderLabSampleNote();
+        setLabRunStatus(`Data size set to ${event.target.options[event.target.selectedIndex].text}. Press Run to execute this configuration.`);
+    });
     document.getElementById('lab-run-btn').addEventListener('click', () => runSelectedLabExperiment());
 });
 
@@ -527,6 +533,30 @@ function formatCell(value) {
     return value;
 }
 
+function formatDiagnostics(diagnostics) {
+    const items = (diagnostics || []).filter(Boolean);
+    return items.length ? items.join(' | ') : 'No automatic warning for this run.';
+}
+
+function renderConfusionTable(targetId, confusionMatrix) {
+    if (!confusionMatrix) return;
+    const labels = confusionMatrix.labels || ['Not <30', '<30'];
+    const matrix = confusionMatrix.matrix || [[0, 0], [0, 0]];
+    const counts = confusionMatrix.counts || {
+        TN: matrix[0]?.[0] || 0,
+        FP: matrix[0]?.[1] || 0,
+        FN: matrix[1]?.[0] || 0,
+        TP: matrix[1]?.[1] || 0,
+    };
+    document.getElementById(targetId).innerHTML = `
+        <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th><th>Meaning</th></tr></thead>
+        <tbody>
+            <tr><th>${labels[0]}</th><td>${Number(counts.TN || 0).toLocaleString()} <strong>TN</strong></td><td>${Number(counts.FP || 0).toLocaleString()} <strong>FP</strong></td><td>TN: correctly not readmitted; FP: false alarm</td></tr>
+            <tr><th>${labels[1]}</th><td>${Number(counts.FN || 0).toLocaleString()} <strong>FN</strong></td><td>${Number(counts.TP || 0).toLocaleString()} <strong>TP</strong></td><td>FN: missed readmission; TP: correctly detected readmission</td></tr>
+        </tbody>
+    `;
+}
+
 // ==================== PAGE 4: BASELINE ML TEST ====================
 function initBaselineMLPage() {
     if (!baselineModelData) return;
@@ -546,22 +576,15 @@ function initBaselineMLPage() {
         ['Recall', m.recall.toFixed(4)],
         ['F1', m.f1.toFixed(4)],
         ['ROC-AUC', m.roc_auc.toFixed(4)],
+        ['TN / FP / FN / TP', `${(best.confusion_matrix?.counts?.TN || 0).toLocaleString()} / ${(best.confusion_matrix?.counts?.FP || 0).toLocaleString()} / ${(best.confusion_matrix?.counts?.FN || 0).toLocaleString()} / ${(best.confusion_matrix?.counts?.TP || 0).toLocaleString()}`],
         ['Best model', best.model_name || baselineModelData.model_name],
         ['Feature matrix', best.feature_mode || 'model-ready encoded features'],
-        ['Test positive rate', `${(baselineModelData.class_balance.test_positive_rate * 100).toFixed(2)}%`]
+        ['Test positive rate', `${(baselineModelData.class_balance.test_positive_rate * 100).toFixed(2)}%`],
+        ['Result warnings', formatDiagnostics(best.diagnostics)]
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
     renderModelComparison();
-
-    const labels = best.confusion_matrix.labels;
-    const matrix = best.confusion_matrix.matrix;
-    document.getElementById('ml-confusion-table').innerHTML = `
-        <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th></tr></thead>
-        <tbody>
-            <tr><th>${labels[0]}</th><td>${matrix[0][0].toLocaleString()}</td><td>${matrix[0][1].toLocaleString()}</td></tr>
-            <tr><th>${labels[1]}</th><td>${matrix[1][0].toLocaleString()}</td><td>${matrix[1][1].toLocaleString()}</td></tr>
-        </tbody>
-    `;
+    renderConfusionTable('ml-confusion-table', best.confusion_matrix);
 
     renderCoefficientTable('ml-positive-features', baselineModelData.top_positive_features);
     renderCoefficientTable('ml-negative-features', baselineModelData.top_negative_features);
@@ -608,6 +631,11 @@ function renderImportanceTable(targetId, rows) {
 function renderFeatureSelectionSummary() {
     const tbody = document.getElementById('feature-selection-summary');
     if (!tbody || !featureSelectionData?.methods) return;
+    const split = featureSelectionData.split || {};
+    const note = document.getElementById('feature-selection-note');
+    if (note) {
+        note.textContent = `Feature rankings are produced on the full stratified training split: ${Number(split.analysis_rows || 0).toLocaleString()} analysis rows from ${Number(split.train_rows || 0).toLocaleString()} train rows; held-out test rows: ${Number(split.test_rows || 0).toLocaleString()}.`;
+    }
     const rows = Object.entries(featureSelectionData.methods).map(([method, payload]) => {
         const top = payload.top_features?.[0];
         const topFive = (payload.top_features || []).slice(0, 5).map(item => item.feature).join(', ');
@@ -888,7 +916,8 @@ function renderLabRocChart(run) {
 function getLabRunSignature(run) {
     if (!run) return '';
     const entries = Object.entries(run.params || {}).sort(([a], [b]) => a.localeCompare(b));
-    return `${run.model_name || ''}::${entries.map(([key, value]) => `${key}=${String(value)}`).join('|')}`;
+    const mode = run.sample?.mode || run.source || 'reference';
+    return `${run.model_name || ''}::${mode}::${entries.map(([key, value]) => `${key}=${String(value)}`).join('|')}`;
 }
 
 function getLabRuns(algorithm) {
@@ -936,6 +965,36 @@ function collectSelectedLabParams(algorithm) {
     return params;
 }
 
+function getSelectedDatasetMode() {
+    return document.getElementById('lab-dataset-mode')?.value || selectedLabDatasetMode || 'auto';
+}
+
+function renderLabDatasetModeOptions() {
+    const select = document.getElementById('lab-dataset-mode');
+    if (!select || !modelLabData?.dataset_modes) return;
+    const preferredOrder = ['auto', 'fast', 'medium', 'full'];
+    select.innerHTML = preferredOrder
+        .filter(key => modelLabData.dataset_modes[key])
+        .map(key => {
+            const mode = modelLabData.dataset_modes[key];
+            return `<option value="${key}">${mode.label}</option>`;
+        })
+        .join('');
+    select.value = selectedLabDatasetMode;
+}
+
+function renderLabSampleNote(sampleOverride = null) {
+    const selectedMode = getSelectedDatasetMode();
+    const mode = modelLabData?.dataset_modes?.[selectedMode];
+    const sample = sampleOverride || modelLabData?.sample || {};
+    const base = sampleOverride
+        ? `Last live run: ${sample.label || mode?.label || selectedMode}`
+        : `${modelLabData?.sample_policy || 'Choose a data size and run an experiment.'}`;
+    const rows = `Train ${(sample.train_rows || 0).toLocaleString()} / Test ${(sample.test_rows || 0).toLocaleString()}; full split ${(sample.full_train_rows || 0).toLocaleString()} / ${(sample.full_test_rows || 0).toLocaleString()}.`;
+    const modeText = mode ? ` Selected mode: ${mode.label} - ${mode.description}` : '';
+    document.getElementById('lab-sample-note').textContent = `${base} ${rows}${modeText}`;
+}
+
 async function runSelectedLabExperiment() {
     if (labRunInFlight) return;
     const algorithm = getLabAlgorithm(selectedLabAlgorithm);
@@ -945,14 +1004,15 @@ async function runSelectedLabExperiment() {
     }
 
     const params = collectSelectedLabParams(algorithm);
+    const datasetMode = getSelectedDatasetMode();
     setLabRunLoading(true);
-    setLabRunStatus(`Running ${algorithm.name} with ${formatParams(params)}...`);
+    setLabRunStatus(`Running ${algorithm.name} with ${formatParams(params)} on ${datasetMode} data...`);
 
     try {
         const response = await fetch('/api/run_experiment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ algorithm: algorithm.name, params }),
+            body: JSON.stringify({ algorithm: algorithm.name, params, dataset_mode: datasetMode }),
         });
         const payload = await response.json();
         if (!response.ok) {
@@ -965,11 +1025,8 @@ async function runSelectedLabExperiment() {
         } else {
             renderSelectedLabRun();
         }
-        if (payload.sample) {
-            document.getElementById('lab-sample-note').textContent =
-                `Live run sample: Train ${(payload.sample.train_rows || 0).toLocaleString()} / Test ${(payload.sample.test_rows || 0).toLocaleString()} from the sampled split.`;
-        }
-        setLabRunStatus(`Completed live run for ${algorithm.name}.`);
+        if (payload.sample) renderLabSampleNote(payload.sample);
+        setLabRunStatus(`Completed live run for ${algorithm.name}. ${formatDiagnostics(payload.run?.diagnostics)}`);
     } catch (error) {
         console.error(error);
         setLabRunStatus(`Run failed: ${error.message}`);
@@ -1074,6 +1131,7 @@ function renderLabRunInventory(algorithm, selectedRun) {
         const metrics = run.metrics || {};
         return `<tr${isSelected ? ' class="active-row"' : ''} style="cursor:pointer">
             <td>${formatRunLabel(run)}</td>
+            <td>${run.sample?.label || 'Reference'}</td>
             <td>${run.source === 'live' ? 'Live' : 'Reference'}</td>
             <td>${Number(metrics.roc_auc || 0).toFixed(4)}</td>
             <td>${Number(metrics.accuracy || 0).toFixed(4)}</td>
@@ -1092,9 +1150,8 @@ function initModelLabPage() {
     if (!modelLabData?.algorithms?.length) return;
     selectedLabAlgorithm = modelLabData.best_overall?.model_name || modelLabData.algorithms[0].name;
 
-    const sample = modelLabData.sample || {};
-    document.getElementById('lab-sample-note').textContent =
-        `${modelLabData.sample_policy} Train: ${(sample.train_rows || 0).toLocaleString()} / Test: ${(sample.test_rows || 0).toLocaleString()}; full split is ${(sample.full_train_rows || 0).toLocaleString()} / ${(sample.full_test_rows || 0).toLocaleString()}.`;
+    renderLabDatasetModeOptions();
+    renderLabSampleNote();
 
     renderLabAlgorithmButtons();
     renderLabComparison();
@@ -1194,24 +1251,19 @@ function renderSelectedLabRun() {
 
     document.getElementById('lab-metrics-tbody').innerHTML = [
         ['Settings', formatParams(run.params)],
+        ['Dataset', `${run.sample?.label || 'Reference'}: train ${(run.sample?.train_rows || modelLabData.sample?.train_rows || 0).toLocaleString()} / test ${(run.sample?.test_rows || modelLabData.sample?.test_rows || 0).toLocaleString()}`],
         ['Accuracy', metrics.accuracy.toFixed(4)],
         ['Precision', metrics.precision.toFixed(4)],
         ['Recall', metrics.recall.toFixed(4)],
         ['F1', metrics.f1.toFixed(4)],
         ['ROC-AUC', metrics.roc_auc.toFixed(4)],
+        ['TN / FP / FN / TP', `${(run.confusion_matrix?.counts?.TN || 0).toLocaleString()} / ${(run.confusion_matrix?.counts?.FP || 0).toLocaleString()} / ${(run.confusion_matrix?.counts?.FN || 0).toLocaleString()} / ${(run.confusion_matrix?.counts?.TP || 0).toLocaleString()}`],
         ['Execution', run.source === 'live' ? 'Live run' : 'Reference'],
-        ['Feature matrix', run.feature_mode || 'sampled model-ready encoded features']
+        ['Feature matrix', run.feature_mode || 'sampled model-ready encoded features'],
+        ['Result warnings', formatDiagnostics(run.diagnostics)]
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
-    const labels = run.confusion_matrix.labels;
-    const matrix = run.confusion_matrix.matrix;
-    document.getElementById('lab-confusion-table').innerHTML = `
-        <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th></tr></thead>
-        <tbody>
-            <tr><th>${labels[0]}</th><td>${matrix[0][0].toLocaleString()}</td><td>${matrix[0][1].toLocaleString()}</td></tr>
-            <tr><th>${labels[1]}</th><td>${matrix[1][0].toLocaleString()}</td><td>${matrix[1][1].toLocaleString()}</td></tr>
-        </tbody>
-    `;
+    renderConfusionTable('lab-confusion-table', run.confusion_matrix);
 
     const featureRows = run.top_features || [];
     document.getElementById('lab-feature-note').textContent =
@@ -1221,7 +1273,7 @@ function renderSelectedLabRun() {
     renderLabSurface(algorithm, run);
     renderLabRunInventory(algorithm, run);
     setLabRunStatus(run.source === 'live'
-        ? `Live run completed for ${run.model_name} with ${formatParams(run.params)}.`
+        ? `Live run completed for ${run.model_name} with ${formatParams(run.params)}. ${formatDiagnostics(run.diagnostics)}`
         : `Showing reference run for ${run.model_name}. Press Run to execute this configuration live.`);
 }
 
@@ -1311,7 +1363,7 @@ function renderClusteringPage() {
     if (!selection?.run) return;
     const clustering = selection.run;
 
-    document.getElementById('cluster-sample-rows').textContent = clusteringData.method.sample_rows.toLocaleString();
+    document.getElementById('cluster-sample-rows').textContent = `${clusteringData.method.sample_rows.toLocaleString()} / ${(clusteringData.method.full_rows || 0).toLocaleString()}`;
     document.getElementById('cluster-variance').textContent = `${(clusteringData.method.total_explained_variance * 100).toFixed(1)}%`;
     document.getElementById('cluster-k-value').textContent = selectedClusterMethod === 'dbscan' ? selection.param : selection.param;
     document.getElementById('cluster-silhouette').textContent = clustering.silhouette !== null && clustering.silhouette !== undefined ? clustering.silhouette.toFixed(3) : 'n/a';
@@ -1341,7 +1393,10 @@ function renderClusterMethodComparison() {
 }
 
 function renderClusterSummary(clustering) {
-    document.getElementById('cluster-summary-tbody').innerHTML = Object.keys(clustering.sizes).map(label => {
+    const warning = clusteringData.method?.warning
+        ? `<tr><th>Dataset warning</th><td>${clusteringData.method.warning}</td></tr>`
+        : '';
+    document.getElementById('cluster-summary-tbody').innerHTML = warning + Object.keys(clustering.sizes).map(label => {
         const size = clustering.sizes[label];
         const rate = (clustering.readmission_rates[label] * 100).toFixed(2);
         return `<tr><th>Cluster ${label}</th><td>${size.toLocaleString()} rows | ${rate}% &lt;30 readmission</td></tr>`;
@@ -1419,11 +1474,11 @@ function initAprioriPage() {
     document.getElementById('apriori-rules').textContent = (associationRulesData.rules || []).length.toLocaleString();
     document.getElementById('apriori-support').textContent = Number(associationRulesData.min_support).toFixed(2);
     document.getElementById('apriori-note').textContent =
-        `Transactions are built from ${associationRulesData.columns_used?.length || 0} interpretable clinical fields and mined with a compact Apriori-style search (support >= ${Number(associationRulesData.min_support).toFixed(2)}, confidence >= ${Number(associationRulesData.min_confidence).toFixed(2)}).`;
+        `Transactions are built from ${associationRulesData.columns_used?.length || 0} interpretable clinical fields and mined with a compact Apriori-style search (support >= ${Number(associationRulesData.min_support).toFixed(2)}, confidence >= ${Number(associationRulesData.min_confidence).toFixed(2)}). ${associationRulesData.warning || ''}`;
 
     document.getElementById('apriori-method-tbody').innerHTML = [
         ['Columns used', (associationRulesData.columns_used || []).join(', ')],
-        ['Sample rows', associationRulesData.sample_rows.toLocaleString()],
+        ['Sample rows', `${associationRulesData.sample_rows.toLocaleString()} / ${(associationRulesData.full_rows || 0).toLocaleString()} full cleaned rows`],
         ['Max itemset length', associationRulesData.max_length],
         ['Min confidence', Number(associationRulesData.min_confidence).toFixed(2)],
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');

@@ -1,7 +1,7 @@
 {
   "split": {
     "train_rows": 55976,
-    "analysis_rows": 12000,
+    "analysis_rows": 55976,
     "test_rows": 13994,
     "random_state": 42
   },
@@ -10,167 +10,167 @@
       "top_features": [
         {
           "feature": "rosiglitazone_No",
-          "score": 0.008083
-        },
-        {
-          "feature": "number_inpatient",
-          "score": 0.007597
-        },
-        {
-          "feature": "discharge_disposition_id",
-          "score": 0.007247
-        },
-        {
-          "feature": "medical_specialty_Rheumatology",
-          "score": 0.005791
-        },
-        {
-          "feature": "change_Ch",
-          "score": 0.004853
-        },
-        {
-          "feature": "glimepiride_Down",
-          "score": 0.004765
-        },
-        {
-          "feature": "diabetesMed_Yes",
-          "score": 0.004323
-        },
-        {
-          "feature": "medical_specialty_Pediatrics-Pulmonology",
-          "score": 0.004222
+          "score": 0.015342
         },
         {
           "feature": "glimepiride_No",
-          "score": 0.004191
+          "score": 0.014283
         },
         {
-          "feature": "medical_specialty_Surgery-Vascular",
-          "score": 0.00418
+          "feature": "max_glu_serum_None",
+          "score": 0.012776
         },
         {
-          "feature": "glyburide_Down",
-          "score": 0.003811
+          "feature": "metformin_No",
+          "score": 0.009983
         },
         {
           "feature": "glipizide_No",
-          "score": 0.003705
+          "score": 0.009126
         },
         {
-          "feature": "max_glu_serum_>300",
-          "score": 0.003342
+          "feature": "glyburide_No",
+          "score": 0.009044
         },
         {
-          "feature": "medical_specialty_Surgery-Thoracic",
-          "score": 0.003321
+          "feature": "A1Cresult_None",
+          "score": 0.009015
+        },
+        {
+          "feature": "diabetesMed_Yes",
+          "score": 0.00889
+        },
+        {
+          "feature": "gender_Female",
+          "score": 0.008587
+        },
+        {
+          "feature": "gender_Male",
+          "score": 0.008387
         },
         {
           "feature": "race_Caucasian",
-          "score": 0.003275
+          "score": 0.0082
         },
         {
-          "feature": "medical_specialty_Surgery-Neuro",
-          "score": 0.003262
+          "feature": "discharge_disposition_id",
+          "score": 0.007959
         },
         {
-          "feature": "medical_specialty_Otolaryngology",
-          "score": 0.003185
+          "feature": "change_No",
+          "score": 0.00786
         },
         {
-          "feature": "diag_3_Injury",
-          "score": 0.003175
+          "feature": "pioglitazone_No",
+          "score": 0.007645
         },
         {
-          "feature": "insulin_Down",
-          "score": 0.003147
+          "feature": "change_Ch",
+          "score": 0.007454
         },
         {
-          "feature": "medical_specialty_Podiatry",
-          "score": 0.003039
+          "feature": "medical_specialty_Missing",
+          "score": 0.006727
+        },
+        {
+          "feature": "insulin_No",
+          "score": 0.006542
+        },
+        {
+          "feature": "number_inpatient",
+          "score": 0.006363
+        },
+        {
+          "feature": "diag_1_Circulatory",
+          "score": 0.004608
+        },
+        {
+          "feature": "number_emergency",
+          "score": 0.004217
         }
       ]
     },
     "chi_square": {
       "top_features": [
         {
-          "feature": "number_inpatient",
-          "score": 28.788441
-        },
-        {
           "feature": "discharge_disposition_id",
-          "score": 18.419645
+          "score": 97.792183
         },
         {
-          "feature": "medical_specialty_Oncology",
-          "score": 13.816684
-        },
-        {
-          "feature": "diag_2_Neoplasms",
-          "score": 10.847416
-        },
-        {
-          "feature": "medical_specialty_OutreachServices",
-          "score": 10.142061
-        },
-        {
-          "feature": "diag_3_Neoplasms",
-          "score": 9.57533
+          "feature": "number_inpatient",
+          "score": 94.371393
         },
         {
           "feature": "time_in_hospital",
-          "score": 9.272877
-        },
-        {
-          "feature": "race_Other",
-          "score": 7.956412
-        },
-        {
-          "feature": "glipizide_Steady",
-          "score": 6.876237
-        },
-        {
-          "feature": "diag_1_Respiratory",
-          "score": 6.849441
-        },
-        {
-          "feature": "medical_specialty_Surgery-Vascular",
-          "score": 6.751901
-        },
-        {
-          "feature": "diag_3_Genitourinary",
-          "score": 6.737416
+          "score": 38.236769
         },
         {
           "feature": "diabetesMed_No",
-          "score": 6.520485
+          "score": 32.125584
         },
         {
-          "feature": "A1Cresult_>8",
-          "score": 6.291653
+          "feature": "diag_2_Neoplasms",
+          "score": 32.123969
         },
         {
-          "feature": "insulin_Down",
-          "score": 6.274629
-        },
-        {
-          "feature": "metformin_Steady",
-          "score": 6.229611
-        },
-        {
-          "feature": "diag_2_Respiratory",
-          "score": 5.831542
-        },
-        {
-          "feature": "pioglitazone_Down",
-          "score": 5.7469
+          "feature": "diag_1_Respiratory",
+          "score": 24.00876
         },
         {
           "feature": "medical_specialty_Cardiology",
-          "score": 5.27818
+          "score": 18.071409
+        },
+        {
+          "feature": "medical_specialty_Hematology/Oncology",
+          "score": 17.414042
+        },
+        {
+          "feature": "insulin_Down",
+          "score": 16.368596
+        },
+        {
+          "feature": "insulin_No",
+          "score": 15.737316
+        },
+        {
+          "feature": "medical_specialty_ObstetricsandGynecology",
+          "score": 14.53458
+        },
+        {
+          "feature": "diag_3_Neoplasms",
+          "score": 14.520159
+        },
+        {
+          "feature": "medical_specialty_Oncology",
+          "score": 14.099861
+        },
+        {
+          "feature": "diag_1_Circulatory",
+          "score": 13.432869
+        },
+        {
+          "feature": "medical_specialty_Pediatrics-Endocrinology",
+          "score": 11.4329
+        },
+        {
+          "feature": "diag_1_Injury",
+          "score": 11.076779
+        },
+        {
+          "feature": "diabetesMed_Yes",
+          "score": 10.042588
+        },
+        {
+          "feature": "glipizide_Down",
+          "score": 8.906067
+        },
+        {
+          "feature": "change_Ch",
+          "score": 8.888419
         },
         {
           "feature": "medical_specialty_Orthopedics-Reconstructive",
-          "score": 4.597072
+          "score": 8.453879
         }
       ]
     },
@@ -178,174 +178,178 @@
       "top_features": [
         {
           "feature": "discharge_disposition_id",
-          "score": 0.086304
-        },
-        {
-          "feature": "num_lab_procedures",
-          "score": 0.08256
-        },
-        {
-          "feature": "num_medications",
-          "score": 0.066947
-        },
-        {
-          "feature": "time_in_hospital",
-          "score": 0.063451
-        },
-        {
-          "feature": "number_diagnoses",
-          "score": 0.059877
+          "score": 0.137855
         },
         {
           "feature": "number_inpatient",
-          "score": 0.050371
+          "score": 0.087446
+        },
+        {
+          "feature": "num_lab_procedures",
+          "score": 0.06896
+        },
+        {
+          "feature": "time_in_hospital",
+          "score": 0.066905
+        },
+        {
+          "feature": "num_medications",
+          "score": 0.064501
         },
         {
           "feature": "age",
-          "score": 0.04953
+          "score": 0.050934
+        },
+        {
+          "feature": "number_diagnoses",
+          "score": 0.041772
         },
         {
           "feature": "num_procedures",
-          "score": 0.034721
+          "score": 0.026088
         },
         {
           "feature": "admission_type_id",
-          "score": 0.024669
+          "score": 0.020852
         },
         {
           "feature": "admission_source_id",
-          "score": 0.023138
-        },
-        {
-          "feature": "medical_specialty_Missing",
-          "score": 0.015528
-        },
-        {
-          "feature": "diag_3_Circulatory",
-          "score": 0.01317
-        },
-        {
-          "feature": "gender_Female",
-          "score": 0.012438
+          "score": 0.018985
         },
         {
           "feature": "number_emergency",
-          "score": 0.012253
-        },
-        {
-          "feature": "gender_Male",
-          "score": 0.011534
-        },
-        {
-          "feature": "number_outpatient",
-          "score": 0.011457
-        },
-        {
-          "feature": "diag_3_Other",
-          "score": 0.011439
-        },
-        {
-          "feature": "diag_1_Respiratory",
-          "score": 0.011426
-        },
-        {
-          "feature": "insulin_No",
-          "score": 0.011114
+          "score": 0.015589
         },
         {
           "feature": "diag_1_Circulatory",
-          "score": 0.010954
+          "score": 0.012422
+        },
+        {
+          "feature": "number_outpatient",
+          "score": 0.012304
+        },
+        {
+          "feature": "diag_1_Respiratory",
+          "score": 0.011681
+        },
+        {
+          "feature": "medical_specialty_Missing",
+          "score": 0.010839
+        },
+        {
+          "feature": "gender_Female",
+          "score": 0.010439
+        },
+        {
+          "feature": "diabetesMed_No",
+          "score": 0.009778
+        },
+        {
+          "feature": "gender_Male",
+          "score": 0.009645
+        },
+        {
+          "feature": "diabetesMed_Yes",
+          "score": 0.009517
+        },
+        {
+          "feature": "insulin_No",
+          "score": 0.009019
         }
       ]
     },
     "logistic_abs_coefficient": {
       "top_features": [
         {
-          "feature": "medical_specialty_OutreachServices",
-          "score": 1.768527
-        },
-        {
-          "feature": "medical_specialty_Oncology",
-          "score": 1.411961
-        },
-        {
-          "feature": "medical_specialty_Surgery-Plastic",
-          "score": 1.340103
-        },
-        {
-          "feature": "rosiglitazone_Down",
-          "score": 1.191671
-        },
-        {
           "feature": "medical_specialty_Pediatrics-Endocrinology",
-          "score": 1.169062
-        },
-        {
-          "feature": "medical_specialty_Surgery-Vascular",
-          "score": 1.109003
-        },
-        {
-          "feature": "medical_specialty_Psychology",
-          "score": 1.078095
+          "score": 2.155149
         },
         {
           "feature": "medical_specialty_Hematology",
-          "score": 1.001427
-        },
-        {
-          "feature": "medical_specialty_Surgery-Cardiovascular",
-          "score": 0.998138
-        },
-        {
-          "feature": "medical_specialty_Hematology/Oncology",
-          "score": 0.975047
-        },
-        {
-          "feature": "medical_specialty_AllergyandImmunology",
-          "score": 0.953444
-        },
-        {
-          "feature": "medical_specialty_Osteopath",
-          "score": 0.860794
-        },
-        {
-          "feature": "medical_specialty_Gastroenterology",
-          "score": 0.83918
-        },
-        {
-          "feature": "race_Other",
-          "score": 0.818446
-        },
-        {
-          "feature": "medical_specialty_Pediatrics-CriticalCare",
-          "score": 0.807018
-        },
-        {
-          "feature": "medical_specialty_Nephrology",
-          "score": 0.764797
-        },
-        {
-          "feature": "medical_specialty_Surgery-Neuro",
-          "score": 0.72641
-        },
-        {
-          "feature": "medical_specialty_Surgery-Cardiovascular/Thoracic",
-          "score": 0.72584
+          "score": 1.773545
         },
         {
           "feature": "medical_specialty_Gynecology",
-          "score": 0.713906
+          "score": 1.576281
         },
         {
-          "feature": "medical_specialty_Obsterics&Gynecology-GynecologicOnco",
-          "score": 0.709433
+          "feature": "medical_specialty_AllergyandImmunology",
+          "score": 1.381776
+        },
+        {
+          "feature": "medical_specialty_Hematology/Oncology",
+          "score": 1.299772
+        },
+        {
+          "feature": "medical_specialty_SurgicalSpecialty",
+          "score": 1.166529
+        },
+        {
+          "feature": "medical_specialty_Psychiatry-Child/Adolescent",
+          "score": 1.120552
+        },
+        {
+          "feature": "medical_specialty_Oncology",
+          "score": 0.930534
+        },
+        {
+          "feature": "medical_specialty_Anesthesiology",
+          "score": 0.893669
+        },
+        {
+          "feature": "medical_specialty_Pathology",
+          "score": 0.874772
+        },
+        {
+          "feature": "medical_specialty_Surgery-Maxillofacial",
+          "score": 0.817142
+        },
+        {
+          "feature": "medical_specialty_PhysicianNotFound",
+          "score": 0.808315
+        },
+        {
+          "feature": "medical_specialty_Surgery-Colon&Rectal",
+          "score": 0.808273
+        },
+        {
+          "feature": "medical_specialty_Anesthesiology-Pediatric",
+          "score": 0.796738
+        },
+        {
+          "feature": "medical_specialty_PhysicalMedicineandRehabilitation",
+          "score": 0.747696
+        },
+        {
+          "feature": "medical_specialty_Endocrinology-Metabolism",
+          "score": 0.747228
+        },
+        {
+          "feature": "medical_specialty_OutreachServices",
+          "score": 0.742141
+        },
+        {
+          "feature": "medical_specialty_Surgeon",
+          "score": 0.734922
+        },
+        {
+          "feature": "medical_specialty_Psychiatry",
+          "score": 0.730479
+        },
+        {
+          "feature": "medical_specialty_Otolaryngology",
+          "score": 0.71367
         }
       ]
     },
     "rfe_logistic": {
       "top_features": [
         {
-          "feature": "race_Other",
+          "feature": "medical_specialty_Cardiology-Pediatric",
+          "score": 1.0
+        },
+        {
+          "feature": "medical_specialty_Dentistry",
           "score": 1.0
         },
         {
@@ -353,23 +357,19 @@
           "score": 1.0
         },
         {
-          "feature": "medical_specialty_Surgery-Vascular",
+          "feature": "medical_specialty_DCPTEAM",
           "score": 1.0
         },
         {
-          "feature": "medical_specialty_Surgery-Cardiovascular",
-          "score": 1.0
-        },
-        {
-          "feature": "medical_specialty_Surgery-Plastic",
-          "score": 1.0
-        },
-        {
-          "feature": "medical_specialty_Pediatrics",
+          "feature": "medical_specialty_Pediatrics-CriticalCare",
           "score": 1.0
         },
         {
           "feature": "medical_specialty_Pediatrics-Endocrinology",
+          "score": 1.0
+        },
+        {
+          "feature": "medical_specialty_Otolaryngology",
           "score": 1.0
         },
         {
@@ -381,15 +381,15 @@
           "score": 1.0
         },
         {
-          "feature": "medical_specialty_OutreachServices",
+          "feature": "medical_specialty_Pathology",
           "score": 1.0
         },
         {
-          "feature": "medical_specialty_Osteopath",
+          "feature": "medical_specialty_Hospitalist",
           "score": 1.0
         },
         {
-          "feature": "medical_specialty_Pediatrics-CriticalCare",
+          "feature": "medical_specialty_Hematology",
           "score": 1.0
         },
         {
@@ -397,31 +397,31 @@
           "score": 1.0
         },
         {
-          "feature": "glimepiride_Down",
-          "score": 1.0
-        },
-        {
-          "feature": "rosiglitazone_Down",
-          "score": 1.0
-        },
-        {
-          "feature": "pioglitazone_Down",
-          "score": 1.0
-        },
-        {
-          "feature": "medical_specialty_Surgery-Neuro",
-          "score": 1.0
-        },
-        {
-          "feature": "medical_specialty_Surgery-Cardiovascular/Thoracic",
-          "score": 1.0
-        },
-        {
           "feature": "medical_specialty_Gynecology",
           "score": 1.0
         },
         {
-          "feature": "medical_specialty_Hematology",
+          "feature": "medical_specialty_Endocrinology-Metabolism",
+          "score": 1.0
+        },
+        {
+          "feature": "medical_specialty_PhysicianNotFound",
+          "score": 1.0
+        },
+        {
+          "feature": "medical_specialty_Surgery-Pediatric",
+          "score": 1.0
+        },
+        {
+          "feature": "medical_specialty_Surgery-Maxillofacial",
+          "score": 1.0
+        },
+        {
+          "feature": "medical_specialty_Surgery-Colon&Rectal",
+          "score": 1.0
+        },
+        {
+          "feature": "medical_specialty_SurgicalSpecialty",
           "score": 1.0
         }
       ]
@@ -429,84 +429,84 @@
     "consensus_rank": {
       "top_features": [
         {
-          "feature": "medical_specialty_Surgery-Vascular",
-          "score": 0.039841
+          "feature": "discharge_disposition_id",
+          "score": 0.035211
         },
         {
           "feature": "number_inpatient",
-          "score": 0.034965
-        },
-        {
-          "feature": "medical_specialty_Oncology",
-          "score": 0.034602
-        },
-        {
-          "feature": "diag_1_Respiratory",
-          "score": 0.034014
-        },
-        {
-          "feature": "discharge_disposition_id",
-          "score": 0.031056
-        },
-        {
-          "feature": "medical_specialty_Surgery-Neuro",
-          "score": 0.030769
-        },
-        {
-          "feature": "medical_specialty_Surgery-Cardiovascular/Thoracic",
-          "score": 0.027855
+          "score": 0.034722
         },
         {
           "feature": "medical_specialty_Missing",
-          "score": 0.024876
+          "score": 0.02907
         },
         {
-          "feature": "max_glu_serum_>300",
-          "score": 0.02445
+          "feature": "medical_specialty_Oncology",
+          "score": 0.027701
         },
         {
-          "feature": "diag_2_Respiratory",
-          "score": 0.023697
+          "feature": "diabetesMed_No",
+          "score": 0.027473
         },
         {
-          "feature": "medical_specialty_OutreachServices",
-          "score": 0.023148
+          "feature": "diag_1_Circulatory",
+          "score": 0.027322
         },
         {
-          "feature": "glimepiride_Down",
-          "score": 0.023041
+          "feature": "medical_specialty_Pediatrics-Endocrinology",
+          "score": 0.026385
         },
         {
-          "feature": "race_Other",
-          "score": 0.022989
-        },
-        {
-          "feature": "max_glu_serum_>200",
-          "score": 0.021645
-        },
-        {
-          "feature": "glipizide_No",
-          "score": 0.021368
+          "feature": "medical_specialty_Hematology/Oncology",
+          "score": 0.024938
         },
         {
           "feature": "time_in_hospital",
-          "score": 0.020325
+          "score": 0.022523
         },
         {
-          "feature": "race_Caucasian",
-          "score": 0.019685
+          "feature": "medical_specialty_AllergyandImmunology",
+          "score": 0.021692
         },
         {
-          "feature": "diag_2_Neoplasms",
-          "score": 0.019608
+          "feature": "medical_specialty_Emergency/Trauma",
+          "score": 0.021459
         },
         {
-          "feature": "pioglitazone_Down",
-          "score": 0.019231
+          "feature": "insulin_No",
+          "score": 0.020661
         },
         {
-          "feature": "medical_specialty_Orthopedics",
-          "score": 0.018939
+          "feature": "medical_specialty_Cardiology",
+          "score": 0.020492
+        },
+        {
+          "feature": "age",
+          "score": 0.020161
+        },
+        {
+          "feature": "medical_specialty_Pediatrics-CriticalCare",
+          "score": 0.019646
+        },
+        {
+          "feature": "medical_specialty_InternalMedicine",
+          "score": 0.019305
+        },
+        {
+          "feature": "glipizide_Down",
+          "score": 0.018727
+        },
+        {
+          "feature": "glipizide_No",
+          "score": 0.018727
+        },
+        {
+          "feature": "diabetesMed_Yes",
+          "score": 0.018657
+        },
+        {
+          "feature": "medical_specialty_Surgery-Vascular",
+          "score": 0.01845
         }
       ]
     }
@@ -514,139 +514,139 @@
   "selected_feature_sets": {
     "mutual_information_top20": [
       "rosiglitazone_No",
-      "number_inpatient",
-      "discharge_disposition_id",
-      "medical_specialty_Rheumatology",
-      "change_Ch",
-      "glimepiride_Down",
-      "diabetesMed_Yes",
-      "medical_specialty_Pediatrics-Pulmonology",
       "glimepiride_No",
-      "medical_specialty_Surgery-Vascular",
-      "glyburide_Down",
+      "max_glu_serum_None",
+      "metformin_No",
       "glipizide_No",
-      "max_glu_serum_>300",
-      "medical_specialty_Surgery-Thoracic",
+      "glyburide_No",
+      "A1Cresult_None",
+      "diabetesMed_Yes",
+      "gender_Female",
+      "gender_Male",
       "race_Caucasian",
-      "medical_specialty_Surgery-Neuro",
-      "medical_specialty_Otolaryngology",
-      "diag_3_Injury",
-      "insulin_Down",
-      "medical_specialty_Podiatry"
+      "discharge_disposition_id",
+      "change_No",
+      "pioglitazone_No",
+      "change_Ch",
+      "medical_specialty_Missing",
+      "insulin_No",
+      "number_inpatient",
+      "diag_1_Circulatory",
+      "number_emergency"
     ],
     "chi_square_top20": [
-      "number_inpatient",
       "discharge_disposition_id",
-      "medical_specialty_Oncology",
-      "diag_2_Neoplasms",
-      "medical_specialty_OutreachServices",
-      "diag_3_Neoplasms",
+      "number_inpatient",
       "time_in_hospital",
-      "race_Other",
-      "glipizide_Steady",
-      "diag_1_Respiratory",
-      "medical_specialty_Surgery-Vascular",
-      "diag_3_Genitourinary",
       "diabetesMed_No",
-      "A1Cresult_>8",
-      "insulin_Down",
-      "metformin_Steady",
-      "diag_2_Respiratory",
-      "pioglitazone_Down",
+      "diag_2_Neoplasms",
+      "diag_1_Respiratory",
       "medical_specialty_Cardiology",
+      "medical_specialty_Hematology/Oncology",
+      "insulin_Down",
+      "insulin_No",
+      "medical_specialty_ObstetricsandGynecology",
+      "diag_3_Neoplasms",
+      "medical_specialty_Oncology",
+      "diag_1_Circulatory",
+      "medical_specialty_Pediatrics-Endocrinology",
+      "diag_1_Injury",
+      "diabetesMed_Yes",
+      "glipizide_Down",
+      "change_Ch",
       "medical_specialty_Orthopedics-Reconstructive"
     ],
     "random_forest_top20": [
       "discharge_disposition_id",
-      "num_lab_procedures",
-      "num_medications",
-      "time_in_hospital",
-      "number_diagnoses",
       "number_inpatient",
+      "num_lab_procedures",
+      "time_in_hospital",
+      "num_medications",
       "age",
+      "number_diagnoses",
       "num_procedures",
       "admission_type_id",
       "admission_source_id",
-      "medical_specialty_Missing",
-      "diag_3_Circulatory",
-      "gender_Female",
       "number_emergency",
-      "gender_Male",
+      "diag_1_Circulatory",
       "number_outpatient",
-      "diag_3_Other",
       "diag_1_Respiratory",
-      "insulin_No",
-      "diag_1_Circulatory"
+      "medical_specialty_Missing",
+      "gender_Female",
+      "diabetesMed_No",
+      "gender_Male",
+      "diabetesMed_Yes",
+      "insulin_No"
     ],
     "logistic_top20": [
-      "medical_specialty_OutreachServices",
-      "medical_specialty_Oncology",
-      "medical_specialty_Surgery-Plastic",
-      "rosiglitazone_Down",
       "medical_specialty_Pediatrics-Endocrinology",
-      "medical_specialty_Surgery-Vascular",
-      "medical_specialty_Psychology",
       "medical_specialty_Hematology",
-      "medical_specialty_Surgery-Cardiovascular",
-      "medical_specialty_Hematology/Oncology",
-      "medical_specialty_AllergyandImmunology",
-      "medical_specialty_Osteopath",
-      "medical_specialty_Gastroenterology",
-      "race_Other",
-      "medical_specialty_Pediatrics-CriticalCare",
-      "medical_specialty_Nephrology",
-      "medical_specialty_Surgery-Neuro",
-      "medical_specialty_Surgery-Cardiovascular/Thoracic",
       "medical_specialty_Gynecology",
-      "medical_specialty_Obsterics&Gynecology-GynecologicOnco"
+      "medical_specialty_AllergyandImmunology",
+      "medical_specialty_Hematology/Oncology",
+      "medical_specialty_SurgicalSpecialty",
+      "medical_specialty_Psychiatry-Child/Adolescent",
+      "medical_specialty_Oncology",
+      "medical_specialty_Anesthesiology",
+      "medical_specialty_Pathology",
+      "medical_specialty_Surgery-Maxillofacial",
+      "medical_specialty_PhysicianNotFound",
+      "medical_specialty_Surgery-Colon&Rectal",
+      "medical_specialty_Anesthesiology-Pediatric",
+      "medical_specialty_PhysicalMedicineandRehabilitation",
+      "medical_specialty_Endocrinology-Metabolism",
+      "medical_specialty_OutreachServices",
+      "medical_specialty_Surgeon",
+      "medical_specialty_Psychiatry",
+      "medical_specialty_Otolaryngology"
     ],
     "rfe_top20": [
-      "race_Other",
+      "medical_specialty_Cardiology-Pediatric",
+      "medical_specialty_Dentistry",
       "medical_specialty_AllergyandImmunology",
-      "medical_specialty_Surgery-Vascular",
-      "medical_specialty_Surgery-Cardiovascular",
-      "medical_specialty_Surgery-Plastic",
-      "medical_specialty_Pediatrics",
+      "medical_specialty_DCPTEAM",
+      "medical_specialty_Pediatrics-CriticalCare",
       "medical_specialty_Pediatrics-Endocrinology",
+      "medical_specialty_Otolaryngology",
       "medical_specialty_Oncology",
       "medical_specialty_Ophthalmology",
-      "medical_specialty_OutreachServices",
-      "medical_specialty_Osteopath",
-      "medical_specialty_Pediatrics-CriticalCare",
+      "medical_specialty_Pathology",
+      "medical_specialty_Hospitalist",
+      "medical_specialty_Hematology",
       "medical_specialty_Hematology/Oncology",
-      "glimepiride_Down",
-      "rosiglitazone_Down",
-      "pioglitazone_Down",
-      "medical_specialty_Surgery-Neuro",
-      "medical_specialty_Surgery-Cardiovascular/Thoracic",
       "medical_specialty_Gynecology",
-      "medical_specialty_Hematology"
+      "medical_specialty_Endocrinology-Metabolism",
+      "medical_specialty_PhysicianNotFound",
+      "medical_specialty_Surgery-Pediatric",
+      "medical_specialty_Surgery-Maxillofacial",
+      "medical_specialty_Surgery-Colon&Rectal",
+      "medical_specialty_SurgicalSpecialty"
     ],
     "consensus_top20": [
-      "medical_specialty_Surgery-Vascular",
-      "number_inpatient",
-      "medical_specialty_Oncology",
-      "diag_1_Respiratory",
       "discharge_disposition_id",
-      "medical_specialty_Surgery-Neuro",
-      "medical_specialty_Surgery-Cardiovascular/Thoracic",
+      "number_inpatient",
       "medical_specialty_Missing",
-      "max_glu_serum_>300",
-      "diag_2_Respiratory",
-      "medical_specialty_OutreachServices",
-      "glimepiride_Down",
-      "race_Other",
-      "max_glu_serum_>200",
-      "glipizide_No",
+      "medical_specialty_Oncology",
+      "diabetesMed_No",
+      "diag_1_Circulatory",
+      "medical_specialty_Pediatrics-Endocrinology",
+      "medical_specialty_Hematology/Oncology",
       "time_in_hospital",
-      "race_Caucasian",
-      "diag_2_Neoplasms",
-      "pioglitazone_Down",
-      "medical_specialty_Orthopedics"
+      "medical_specialty_AllergyandImmunology",
+      "medical_specialty_Emergency/Trauma",
+      "insulin_No",
+      "medical_specialty_Cardiology",
+      "age",
+      "medical_specialty_Pediatrics-CriticalCare",
+      "medical_specialty_InternalMedicine",
+      "glipizide_Down",
+      "glipizide_No",
+      "diabetesMed_Yes",
+      "medical_specialty_Surgery-Vascular"
     ]
   },
   "notes": [
-    "Feature rankings are estimated on a stratified training sample to reduce leakage.",
+    "Feature rankings are estimated on the full stratified training split to match the final dataset.",
     "RFE uses logistic regression as the recursive selector and consensus ranking aggregates all available methods."
   ]
 }

@@ -403,7 +403,7 @@
             <section class="full-width-section">
                 <div class="analytics-card">
                     <h3>Feature Selection &amp; Feature-Subset Benchmarks</h3>
-                    <p class="inline-note">Feature rankings are produced with mutual information, chi-square, random-forest importances, and absolute logistic coefficients. Subset benchmarks retrain Logistic Regression and Random Forest on the top-ranked feature sets.</p>
+                    <p class="inline-note" id="feature-selection-note">Feature rankings are produced with mutual information, chi-square, random-forest importances, and absolute logistic coefficients. Subset benchmarks retrain Logistic Regression and Random Forest on the top-ranked feature sets.</p>
                     <table class="academic-table">
                         <thead>
                             <tr>
@@ -586,6 +586,15 @@
                 <div class="analytics-card">
                     <h3>Manual Test Controls</h3>
                     <p class="inline-note" id="lab-sample-note"></p>
+                    <label class="control-field">
+                        <span>Data size</span>
+                        <select id="lab-dataset-mode">
+                            <option value="auto">Auto safe</option>
+                            <option value="fast">Fast sample</option>
+                            <option value="medium">Medium sample</option>
+                            <option value="full">Full split</option>
+                        </select>
+                    </label>
                     <div id="lab-controls" class="control-grid"></div>
                     <div style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
                         <button id="lab-run-btn" class="algorithm-btn" type="button">Run Experiment</button>
@@ -618,6 +627,7 @@
                         <thead>
                             <tr>
                                 <th>Settings</th>
+                                <th>Dataset</th>
                                 <th>Source</th>
                                 <th>ROC-AUC</th>
                                 <th>Accuracy</th>
