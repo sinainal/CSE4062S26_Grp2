@@ -2,23 +2,78 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PYTHON_BIN="${PYTHON_BIN:-}"
-
-if [[ -z "${PYTHON_BIN}" ]]; then
-  if [[ -x "${SCRIPT_DIR}/.venv/bin/python" ]]; then
-    PYTHON_BIN="${SCRIPT_DIR}/.venv/bin/python"
-  else
-    PYTHON_BIN="python3"
-  fi
-fi
+SYSTEM_PYTHON="${PYTHON_BIN:-python3}"
+VENV_DIR="${SCRIPT_DIR}/.venv"
+REQ_FILE="${SCRIPT_DIR}/requirements.txt"
+REQ_STAMP="${VENV_DIR}/.requirements.sha256"
+PYTHON_BIN=""
 
 DATA_SCRIPT="${SCRIPT_DIR}/data_harness.py"
 TOOL_DIR="${SCRIPT_DIR}/user_tools/visualisation_tool"
 PORT="${PORT:-8081}"
 REFRESH_DATA="${REFRESH_DATA:-0}"
 APP_URL="http://127.0.0.1:${PORT}"
+OPEN_BROWSER="${OPEN_BROWSER:-1}"
+
+ensure_system_python() {
+  if ! command -v "${SYSTEM_PYTHON}" >/dev/null 2>&1; then
+    echo "Python 3 is required but was not found on PATH."
+    exit 1
+  fi
+}
+
+bootstrap_venv() {
+  if [[ ! -x "${VENV_DIR}/bin/python" ]]; then
+    echo "Creating local virtual environment..."
+    "${SYSTEM_PYTHON}" -m venv "${VENV_DIR}"
+  fi
+
+  PYTHON_BIN="${VENV_DIR}/bin/python"
+  if ! "${PYTHON_BIN}" -m pip --version >/dev/null 2>&1; then
+    "${PYTHON_BIN}" -m ensurepip --upgrade >/dev/null 2>&1 || true
+  fi
+
+  local req_hash current_hash
+  req_hash="$(sha256sum "${REQ_FILE}" | awk '{print $1}')"
+  current_hash="$(cat "${REQ_STAMP}" 2>/dev/null || true)"
+
+  if [[ "${current_hash}" != "${req_hash}" ]]; then
+    echo "Installing Python dependencies into .venv..."
+    "${PYTHON_BIN}" -m pip install --upgrade pip setuptools wheel
+
+    mapfile -t requirements < <(grep -vE '^\s*#|^\s*$' "${REQ_FILE}")
+    local core_requirements=()
+    local optional_requirements=()
+    local requirement
+    for requirement in "${requirements[@]}"; do
+      if [[ "${requirement}" =~ ^xgboost([<>=!].*)?$ ]]; then
+        optional_requirements+=("${requirement}")
+      else
+        core_requirements+=("${requirement}")
+      fi
+    done
+
+    if [[ ${#core_requirements[@]} -gt 0 ]]; then
+      "${PYTHON_BIN}" -m pip install "${core_requirements[@]}"
+    fi
+
+    for requirement in "${optional_requirements[@]}"; do
+      if ! "${PYTHON_BIN}" -m pip install "${requirement}"; then
+        echo "Optional dependency ${requirement} could not be installed; continuing without it."
+      fi
+    done
+
+    printf '%s\n' "${req_hash}" > "${REQ_STAMP}"
+  else
+    echo "Python dependencies already installed in .venv."
+  fi
+}
 
 open_browser() {
+  if [[ "${OPEN_BROWSER}" == "0" ]]; then
+    echo "Open this URL in your browser: ${APP_URL}"
+    return 0
+  fi
   if command -v xdg-open >/dev/null 2>&1; then
     xdg-open "${APP_URL}" >/dev/null 2>&1 || true
   elif command -v open >/dev/null 2>&1; then
@@ -48,6 +103,9 @@ wait_for_server() {
 }
 
 trap cleanup EXIT
+
+ensure_system_python
+bootstrap_venv
 
 REPORTS=(
   "${SCRIPT_DIR}/data/cleaned_diabetic_data.csv"

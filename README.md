@@ -11,10 +11,12 @@ bash start.sh
 ```
 
 This will:
+- create a local `.venv` if needed and install the Python dependencies automatically,
 - open the dashboard on port `8081` by default,
 - reuse existing JSON reports unless `REFRESH_DATA=1` is set,
 - regenerate the outputs only when they are missing or explicitly requested.
 It also starts the local API used by the Live Model Lab, so the `Run Experiment` button actually trains the selected configuration on demand.
+If you want to suppress automatic browser opening in headless environments, run `OPEN_BROWSER=0 bash start.sh`.
 
 ## 🛠 Clinical Analysis Tool
 We have developed a custom **Clinical Visualization & Discovery Tool** located in `/user_tools/visualisation_tool/`. 
