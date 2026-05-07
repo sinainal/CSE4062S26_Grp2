@@ -2,6 +2,7 @@ let academicData = null;
 let cleaningData = null;
 let modelReadyData = null;
 let baselineModelData = null;
+let regressionData = null;
 let modelLabData = null;
 let clusteringData = null;
 let nzvData = null;
@@ -12,6 +13,8 @@ let currentChart = null;
 let cleanChart = null;
 let clusterChart = null;
 let mlRocChart = null;
+let regressionScatterChart = null;
+let regressionResidualChart = null;
 let labRocChart = null;
 let labSurfaceChart = null;
 let selectedLabAlgorithm = null;
@@ -30,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('cleaning_data.json').then(r => r.json()),
         fetch('model_ready_data.json').then(r => r.json()),
         fetch('baseline_model_report.json').then(r => r.json()),
+        fetch('regression_report.json').then(r => r.json()).catch(() => ({})),
         fetch('model_lab_report.json').then(r => r.json()),
         fetch('clustering_report.json').then(r => r.json()),
         fetch('feature_selection_report.json').then(r => r.json()),
@@ -37,11 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('association_rules_report.json').then(r => r.json()),
         fetch('icd9_mapping.json').then(r => r.json()).catch(() => ({})),
         fetch('nzv_report.json').then(r => r.json()).catch(() => ({}))
-    ]).then(([data, cleaning, modelReady, baselineModel, modelLab, clustering, featureSelection, featureSubset, associationRules, mapping, nzv]) => {
+    ]).then(([data, cleaning, modelReady, baselineModel, regression, modelLab, clustering, featureSelection, featureSubset, associationRules, mapping, nzv]) => {
         academicData = data;
         cleaningData = cleaning;
         modelReadyData = modelReady;
         baselineModelData = baselineModel;
+        regressionData = regression;
         modelLabData = modelLab;
         clusteringData = clustering;
         featureSelectionData = featureSelection;
@@ -53,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initCleanPage();
         initModelReadyPage();
         initBaselineMLPage();
+        initRegressionPage();
         initModelLabPage();
         initClusteringPage();
         initAprioriPage();
@@ -93,6 +99,7 @@ function switchPage(page) {
     document.getElementById('page-clean').style.display = page === 'clean' ? '' : 'none';
     document.getElementById('page-ready').style.display = page === 'ready' ? '' : 'none';
     document.getElementById('page-ml').style.display    = page === 'ml'    ? '' : 'none';
+    document.getElementById('page-regression').style.display = page === 'regression' ? '' : 'none';
     document.getElementById('page-lab').style.display   = page === 'lab'   ? '' : 'none';
     document.getElementById('page-cluster').style.display = page === 'cluster' ? '' : 'none';
     document.getElementById('page-apriori').style.display = page === 'apriori' ? '' : 'none';
@@ -100,14 +107,17 @@ function switchPage(page) {
     document.getElementById('tab-clean').classList.toggle('active', page === 'clean');
     document.getElementById('tab-ready').classList.toggle('active', page === 'ready');
     document.getElementById('tab-ml').classList.toggle('active',    page === 'ml');
+    document.getElementById('tab-regression').classList.toggle('active', page === 'regression');
     document.getElementById('tab-lab').classList.toggle('active',   page === 'lab');
     document.getElementById('tab-cluster').classList.toggle('active', page === 'cluster');
     document.getElementById('tab-apriori').classList.toggle('active', page === 'apriori');
     document.getElementById('tab-conclusion').classList.toggle('active', page === 'conclusion');
     document.getElementById('page-conclusion').style.display = page === 'conclusion' ? '' : 'none';
-    if (['ml', 'lab', 'cluster'].includes(page)) {
+    if (['ml', 'regression', 'lab', 'cluster'].includes(page)) {
         setTimeout(() => {
             if (mlRocChart) mlRocChart.resize();
+            if (regressionScatterChart) regressionScatterChart.resize();
+            if (regressionResidualChart) regressionResidualChart.resize();
             if (labRocChart) labRocChart.resize();
             if (labSurfaceChart) labSurfaceChart.resize();
             if (clusterChart) clusterChart.resize();
@@ -669,6 +679,181 @@ function renderMlRocChart() {
             },
         }
     });
+}
+
+function initRegressionPage() {
+    if (!regressionData?.best_model) return;
+    const best = regressionData.best_model;
+    const m = best.metrics || regressionData.metrics;
+    document.getElementById('reg-model-name').textContent = best.model_name || regressionData.target || 'Regression';
+    document.getElementById('reg-rmse').textContent = Number(m.rmse || 0).toFixed(3);
+    document.getElementById('reg-mae').textContent = Number(m.mae || 0).toFixed(3);
+    document.getElementById('reg-r2').textContent = Number(m.r2 || 0).toFixed(3);
+    document.getElementById('reg-purpose').textContent = regressionData.purpose || 'Regression benchmark for hospital stay length.';
+
+    document.getElementById('reg-metrics-tbody').innerHTML = [
+        ['Target', regressionData.target || 'time_in_hospital'],
+        ['Train rows', regressionData.split?.train_rows?.toLocaleString?.() || 'n/a'],
+        ['Test rows', regressionData.split?.test_rows?.toLocaleString?.() || 'n/a'],
+        ['MAE', Number(m.mae || 0).toFixed(4)],
+        ['RMSE', Number(m.rmse || 0).toFixed(4)],
+        ['R²', Number(m.r2 || 0).toFixed(4)],
+        ['Best model', best.model_name || 'n/a'],
+        ['Closest competitor', regressionData.closest_competitor?.model_name || 'n/a'],
+        ['Feature matrix', best.feature_mode || 'model-ready encoded features'],
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+
+    renderRegressionComparison();
+    renderRegressionScatterChart();
+    renderRegressionResidualChart();
+    renderRegressionFeatureSignal();
+
+    document.getElementById('reg-residual-summary').innerHTML = [
+        ['Mean residual', Number(m.mean_residual || 0).toFixed(4)],
+        ['Mean absolute error', Number(regressionData.residual_summary?.mean_absolute_error ?? 0).toFixed(4)],
+        ['Median absolute error', Number(regressionData.residual_summary?.median_absolute_error ?? 0).toFixed(4)],
+        ['90th pct absolute error', Number(regressionData.residual_summary?.p90_absolute_error ?? 0).toFixed(4)],
+        ['Max absolute error', Number(regressionData.residual_summary?.max_absolute_error ?? 0).toFixed(4)],
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+}
+
+function renderRegressionComparison() {
+    const tbody = document.getElementById('reg-comparison-tbody');
+    if (!tbody || !regressionData?.comparison_table?.length) return;
+    tbody.innerHTML = regressionData.comparison_table.map(row => `
+        <tr${row.model_name === regressionData.best_model?.model_name ? ' class="active-row"' : ''}>
+            <td><strong>${row.model_name}</strong></td>
+            <td>${Number(row.mae || 0).toFixed(4)}</td>
+            <td>${Number(row.rmse || 0).toFixed(4)}</td>
+            <td>${Number(row.r2 || 0).toFixed(4)}</td>
+        </tr>
+    `).join('');
+}
+
+function renderRegressionScatterChart() {
+    const canvas = document.getElementById('reg-scatter-chart');
+    const sample = regressionData?.prediction_sample || [];
+    if (!canvas || !sample.length) return;
+
+    const minVal = Math.min(...sample.map(p => Math.min(Number(p.actual), Number(p.predicted))));
+    const maxVal = Math.max(...sample.map(p => Math.max(Number(p.actual), Number(p.predicted))));
+    const scatterPoints = sample.map(point => ({ x: Number(point.actual), y: Number(point.predicted) }));
+    const linePoints = [
+        { x: minVal, y: minVal },
+        { x: maxVal, y: maxVal },
+    ];
+
+    if (regressionScatterChart) regressionScatterChart.destroy();
+    regressionScatterChart = new Chart(canvas.getContext('2d'), {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Predictions',
+                    data: scatterPoints,
+                    pointRadius: 2,
+                    pointHoverRadius: 4,
+                    backgroundColor: 'rgba(15,76,129,0.55)',
+                    borderColor: 'rgba(15,76,129,0.55)',
+                },
+                {
+                    label: 'Ideal line',
+                    data: linePoints,
+                    type: 'line',
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    borderColor: '#b91c1c',
+                    backgroundColor: 'transparent',
+                    tension: 0,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: { title: { display: true, text: 'Actual time_in_hospital' } },
+                y: { title: { display: true, text: 'Predicted time_in_hospital' } },
+            },
+        },
+    });
+}
+
+function renderRegressionResidualChart() {
+    const canvas = document.getElementById('reg-residual-chart');
+    const sample = regressionData?.prediction_sample || [];
+    if (!canvas || !sample.length) return;
+
+    const residuals = sample.map(point => Number(point.residual || 0));
+    const min = Math.min(...residuals);
+    const max = Math.max(...residuals);
+    const bins = 12;
+    const width = (max - min) || 1;
+    const counts = Array.from({ length: bins }, () => 0);
+    residuals.forEach(value => {
+        const raw = Math.floor(((value - min) / width) * bins);
+        const idx = Math.max(0, Math.min(bins - 1, raw));
+        counts[idx] += 1;
+    });
+    const labels = counts.map((_, idx) => {
+        const start = min + (width / bins) * idx;
+        const end = min + (width / bins) * (idx + 1);
+        return `${start.toFixed(1)} to ${end.toFixed(1)}`;
+    });
+
+    if (regressionResidualChart) regressionResidualChart.destroy();
+    regressionResidualChart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Residual count',
+                data: counts,
+                backgroundColor: 'rgba(21,128,61,0.7)',
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { maxRotation: 45 } },
+                y: { beginAtZero: true, title: { display: true, text: 'Count' } },
+            },
+        },
+    });
+}
+
+function renderRegressionFeatureSignal() {
+    const table = document.getElementById('reg-feature-table');
+    const note = document.getElementById('reg-feature-note');
+    if (!table || !regressionData?.feature_signal) return;
+
+    const signal = regressionData.feature_signal;
+    const rows = signal.importance?.length
+        ? signal.importance.map(item => ({
+            label: item.feature,
+            value: Number(item.importance || 0).toFixed(4),
+        }))
+        : [
+            ...(signal.positive || []).map(item => ({
+                label: `+ ${item.feature}`,
+                value: Number(item.coefficient || 0).toFixed(4),
+            })),
+            ...(signal.negative || []).map(item => ({
+                label: `- ${item.feature}`,
+                value: Number(item.coefficient || 0).toFixed(4),
+            })),
+        ];
+
+    note.textContent = signal.importance?.length
+        ? 'Tree-based regressors expose impurity-based feature importances for the current best run.'
+        : 'Linear regressors expose signed coefficients, so positive and negative effects are shown separately.';
+
+    table.innerHTML = (rows || []).slice(0, 15).map(row => (
+        `<tr><th>${row.label}</th><td>${row.value}</td></tr>`
+    )).join('') || '<tr><td>No feature signal data available.</td></tr>';
 }
 
 function renderLabRocChart(run) {
@@ -1254,9 +1439,11 @@ function initAprioriPage() {
 
 function initConclusionPage() {
     const bestModel = baselineModelData?.best_model || baselineModelData;
+    const bestRegression = regressionData?.best_model || regressionData;
     const bestCluster = getBestClusterSummary();
     const topRule = associationRulesData?.rules?.[0];
     const bestAuc = bestModel?.metrics?.roc_auc;
+    const bestRmse = bestRegression?.metrics?.rmse;
 
     document.getElementById('conclusion-best-model').textContent = bestModel?.model_name || 'n/a';
     document.getElementById('conclusion-best-auc').textContent = bestAuc !== undefined ? Number(bestAuc).toFixed(3) : 'n/a';
@@ -1267,8 +1454,8 @@ function initConclusionPage() {
 
     document.getElementById('conclusion-learning-tbody').innerHTML = [
         ['Descriptive analysis', 'K-Means, hierarchical clustering, and DBSCAN expose different patient groupings; Apriori surfaces interpretable co-occurrence patterns.'],
-        ['Predictive analysis', `The strongest current classifier is ${bestModel?.model_name || 'n/a'} with ROC-AUC ${bestAuc !== undefined ? Number(bestAuc).toFixed(3) : 'n/a'}.`],
-        ['Feature selection', 'Mutual information, chi-square, logistic coefficients, and random-forest importances agree on a compact set of informative clinical signals.'],
+        ['Predictive analysis', `The strongest current classifier is ${bestModel?.model_name || 'n/a'} with ROC-AUC ${bestAuc !== undefined ? Number(bestAuc).toFixed(3) : 'n/a'}. The strongest regression model is ${bestRegression?.model_name || 'n/a'} with RMSE ${bestRmse !== undefined ? Number(bestRmse).toFixed(3) : 'n/a'}.`],
+        ['Feature selection', 'Mutual information, chi-square, logistic coefficients, random-forest importances, RFE, and consensus ranking agree on a compact set of informative clinical signals.'],
         ['Interpretation', 'The pipeline now supports a complete story from raw data profiling to model comparison and rule mining.'],
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
@@ -1276,15 +1463,16 @@ function initConclusionPage() {
         ['Rows after cleaning', cleaningData?.stats?.kept_rows?.toLocaleString?.() || 'n/a'],
         ['Model-ready columns', modelReadyData?.model_ready_columns?.toLocaleString?.() || 'n/a'],
         ['Classification experiments', modelLabData?.algorithms?.length?.toLocaleString?.() || 'n/a'],
+        ['Regression experiments', regressionData?.models?.length?.toLocaleString?.() || 'n/a'],
         ['Association rules mined', associationRulesData?.rules?.length?.toLocaleString?.() || 'n/a'],
         ['Clustering methods', clusteringData?.methods ? Object.keys(clusteringData.methods).length.toLocaleString() : 'n/a'],
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
     document.getElementById('conclusion-next-steps').innerHTML = [
-        'Add a lightweight ROC comparison for each selected parameter setting directly in the live experiment surface.',
         'Export the conclusion panel as a PDF slide for the final presentation.',
-        'Optionally extend predictive experiments with regression or fairness-aware analysis.',
+        'Optionally extend the regression view with a residuals-by-feature drill-down.',
         'If you want one more iteration, add SHAP or permutation importance for the top model.',
+        'Consider a lightweight calibration view if the classification story needs extra polish.',
     ].map(item => `<li>${item}</li>`).join('');
 }
 

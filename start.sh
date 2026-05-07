@@ -55,6 +55,7 @@ REPORTS=(
   "${SCRIPT_DIR}/user_tools/visualisation_tool/model_ready_data.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/baseline_model_report.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/model_lab_report.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/regression_report.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/clustering_report.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/association_rules_report.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/feature_selection_report.json"
