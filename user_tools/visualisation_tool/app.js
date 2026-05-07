@@ -2,6 +2,7 @@ let academicData = null;
 let cleaningData = null;
 let modelReadyData = null;
 let baselineModelData = null;
+let regressionData = null;
 let modelLabData = null;
 let clusteringData = null;
 let nzvData = null;
@@ -12,9 +13,12 @@ let currentChart = null;
 let cleanChart = null;
 let clusterChart = null;
 let mlRocChart = null;
+let regressionScatterChart = null;
+let regressionResidualChart = null;
 let labRocChart = null;
 let labSurfaceChart = null;
 let selectedLabAlgorithm = null;
+let selectedLabDatasetMode = 'auto';
 let liveLabRuns = {};
 let labRunInFlight = false;
 let selectedClusterMethod = 'kmeans';
@@ -30,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('cleaning_data.json').then(r => r.json()),
         fetch('model_ready_data.json').then(r => r.json()),
         fetch('baseline_model_report.json').then(r => r.json()),
+        fetch('regression_report.json').then(r => r.json()).catch(() => ({})),
         fetch('model_lab_report.json').then(r => r.json()),
         fetch('clustering_report.json').then(r => r.json()),
         fetch('feature_selection_report.json').then(r => r.json()),
@@ -37,11 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('association_rules_report.json').then(r => r.json()),
         fetch('icd9_mapping.json').then(r => r.json()).catch(() => ({})),
         fetch('nzv_report.json').then(r => r.json()).catch(() => ({}))
-    ]).then(([data, cleaning, modelReady, baselineModel, modelLab, clustering, featureSelection, featureSubset, associationRules, mapping, nzv]) => {
+    ]).then(([data, cleaning, modelReady, baselineModel, regression, modelLab, clustering, featureSelection, featureSubset, associationRules, mapping, nzv]) => {
         academicData = data;
         cleaningData = cleaning;
         modelReadyData = modelReady;
         baselineModelData = baselineModel;
+        regressionData = regression;
         modelLabData = modelLab;
         clusteringData = clustering;
         featureSelectionData = featureSelection;
@@ -53,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initCleanPage();
         initModelReadyPage();
         initBaselineMLPage();
+        initRegressionPage();
         initModelLabPage();
         initClusteringPage();
         initAprioriPage();
@@ -84,6 +91,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cluster-k-select').addEventListener('change', () => renderClusteringPage());
     document.getElementById('cluster-color-mode').addEventListener('change', () => renderClusteringPage());
     document.getElementById('lab-surface-sort').addEventListener('change', () => renderSelectedLabRun());
+    document.getElementById('lab-dataset-mode').addEventListener('change', (event) => {
+        selectedLabDatasetMode = event.target.value || 'auto';
+        renderLabSampleNote();
+        setLabRunStatus(`Data size set to ${event.target.options[event.target.selectedIndex].text}. Press Run to execute this configuration.`);
+    });
     document.getElementById('lab-run-btn').addEventListener('click', () => runSelectedLabExperiment());
 });
 
@@ -93,6 +105,7 @@ function switchPage(page) {
     document.getElementById('page-clean').style.display = page === 'clean' ? '' : 'none';
     document.getElementById('page-ready').style.display = page === 'ready' ? '' : 'none';
     document.getElementById('page-ml').style.display    = page === 'ml'    ? '' : 'none';
+    document.getElementById('page-regression').style.display = page === 'regression' ? '' : 'none';
     document.getElementById('page-lab').style.display   = page === 'lab'   ? '' : 'none';
     document.getElementById('page-cluster').style.display = page === 'cluster' ? '' : 'none';
     document.getElementById('page-apriori').style.display = page === 'apriori' ? '' : 'none';
@@ -100,14 +113,17 @@ function switchPage(page) {
     document.getElementById('tab-clean').classList.toggle('active', page === 'clean');
     document.getElementById('tab-ready').classList.toggle('active', page === 'ready');
     document.getElementById('tab-ml').classList.toggle('active',    page === 'ml');
+    document.getElementById('tab-regression').classList.toggle('active', page === 'regression');
     document.getElementById('tab-lab').classList.toggle('active',   page === 'lab');
     document.getElementById('tab-cluster').classList.toggle('active', page === 'cluster');
     document.getElementById('tab-apriori').classList.toggle('active', page === 'apriori');
     document.getElementById('tab-conclusion').classList.toggle('active', page === 'conclusion');
     document.getElementById('page-conclusion').style.display = page === 'conclusion' ? '' : 'none';
-    if (['ml', 'lab', 'cluster'].includes(page)) {
+    if (['ml', 'regression', 'lab', 'cluster'].includes(page)) {
         setTimeout(() => {
             if (mlRocChart) mlRocChart.resize();
+            if (regressionScatterChart) regressionScatterChart.resize();
+            if (regressionResidualChart) regressionResidualChart.resize();
             if (labRocChart) labRocChart.resize();
             if (labSurfaceChart) labSurfaceChart.resize();
             if (clusterChart) clusterChart.resize();
@@ -517,6 +533,30 @@ function formatCell(value) {
     return value;
 }
 
+function formatDiagnostics(diagnostics) {
+    const items = (diagnostics || []).filter(Boolean);
+    return items.length ? items.join(' | ') : 'No automatic warning for this run.';
+}
+
+function renderConfusionTable(targetId, confusionMatrix) {
+    if (!confusionMatrix) return;
+    const labels = confusionMatrix.labels || ['Not <30', '<30'];
+    const matrix = confusionMatrix.matrix || [[0, 0], [0, 0]];
+    const counts = confusionMatrix.counts || {
+        TN: matrix[0]?.[0] || 0,
+        FP: matrix[0]?.[1] || 0,
+        FN: matrix[1]?.[0] || 0,
+        TP: matrix[1]?.[1] || 0,
+    };
+    document.getElementById(targetId).innerHTML = `
+        <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th><th>Meaning</th></tr></thead>
+        <tbody>
+            <tr><th>${labels[0]}</th><td>${Number(counts.TN || 0).toLocaleString()} <strong>TN</strong></td><td>${Number(counts.FP || 0).toLocaleString()} <strong>FP</strong></td><td>TN: correctly not readmitted; FP: false alarm</td></tr>
+            <tr><th>${labels[1]}</th><td>${Number(counts.FN || 0).toLocaleString()} <strong>FN</strong></td><td>${Number(counts.TP || 0).toLocaleString()} <strong>TP</strong></td><td>FN: missed readmission; TP: correctly detected readmission</td></tr>
+        </tbody>
+    `;
+}
+
 // ==================== PAGE 4: BASELINE ML TEST ====================
 function initBaselineMLPage() {
     if (!baselineModelData) return;
@@ -536,22 +576,15 @@ function initBaselineMLPage() {
         ['Recall', m.recall.toFixed(4)],
         ['F1', m.f1.toFixed(4)],
         ['ROC-AUC', m.roc_auc.toFixed(4)],
+        ['TN / FP / FN / TP', `${(best.confusion_matrix?.counts?.TN || 0).toLocaleString()} / ${(best.confusion_matrix?.counts?.FP || 0).toLocaleString()} / ${(best.confusion_matrix?.counts?.FN || 0).toLocaleString()} / ${(best.confusion_matrix?.counts?.TP || 0).toLocaleString()}`],
         ['Best model', best.model_name || baselineModelData.model_name],
         ['Feature matrix', best.feature_mode || 'model-ready encoded features'],
-        ['Test positive rate', `${(baselineModelData.class_balance.test_positive_rate * 100).toFixed(2)}%`]
+        ['Test positive rate', `${(baselineModelData.class_balance.test_positive_rate * 100).toFixed(2)}%`],
+        ['Result warnings', formatDiagnostics(best.diagnostics)]
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
     renderModelComparison();
-
-    const labels = best.confusion_matrix.labels;
-    const matrix = best.confusion_matrix.matrix;
-    document.getElementById('ml-confusion-table').innerHTML = `
-        <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th></tr></thead>
-        <tbody>
-            <tr><th>${labels[0]}</th><td>${matrix[0][0].toLocaleString()}</td><td>${matrix[0][1].toLocaleString()}</td></tr>
-            <tr><th>${labels[1]}</th><td>${matrix[1][0].toLocaleString()}</td><td>${matrix[1][1].toLocaleString()}</td></tr>
-        </tbody>
-    `;
+    renderConfusionTable('ml-confusion-table', best.confusion_matrix);
 
     renderCoefficientTable('ml-positive-features', baselineModelData.top_positive_features);
     renderCoefficientTable('ml-negative-features', baselineModelData.top_negative_features);
@@ -598,6 +631,11 @@ function renderImportanceTable(targetId, rows) {
 function renderFeatureSelectionSummary() {
     const tbody = document.getElementById('feature-selection-summary');
     if (!tbody || !featureSelectionData?.methods) return;
+    const split = featureSelectionData.split || {};
+    const note = document.getElementById('feature-selection-note');
+    if (note) {
+        note.textContent = `Feature rankings are produced on the full stratified training split: ${Number(split.analysis_rows || 0).toLocaleString()} analysis rows from ${Number(split.train_rows || 0).toLocaleString()} train rows; held-out test rows: ${Number(split.test_rows || 0).toLocaleString()}.`;
+    }
     const rows = Object.entries(featureSelectionData.methods).map(([method, payload]) => {
         const top = payload.top_features?.[0];
         const topFive = (payload.top_features || []).slice(0, 5).map(item => item.feature).join(', ');
@@ -671,6 +709,181 @@ function renderMlRocChart() {
     });
 }
 
+function initRegressionPage() {
+    if (!regressionData?.best_model) return;
+    const best = regressionData.best_model;
+    const m = best.metrics || regressionData.metrics;
+    document.getElementById('reg-model-name').textContent = best.model_name || regressionData.target || 'Regression';
+    document.getElementById('reg-rmse').textContent = Number(m.rmse || 0).toFixed(3);
+    document.getElementById('reg-mae').textContent = Number(m.mae || 0).toFixed(3);
+    document.getElementById('reg-r2').textContent = Number(m.r2 || 0).toFixed(3);
+    document.getElementById('reg-purpose').textContent = regressionData.purpose || 'Regression benchmark for hospital stay length.';
+
+    document.getElementById('reg-metrics-tbody').innerHTML = [
+        ['Target', regressionData.target || 'time_in_hospital'],
+        ['Train rows', regressionData.split?.train_rows?.toLocaleString?.() || 'n/a'],
+        ['Test rows', regressionData.split?.test_rows?.toLocaleString?.() || 'n/a'],
+        ['MAE', Number(m.mae || 0).toFixed(4)],
+        ['RMSE', Number(m.rmse || 0).toFixed(4)],
+        ['R²', Number(m.r2 || 0).toFixed(4)],
+        ['Best model', best.model_name || 'n/a'],
+        ['Closest competitor', regressionData.closest_competitor?.model_name || 'n/a'],
+        ['Feature matrix', best.feature_mode || 'model-ready encoded features'],
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+
+    renderRegressionComparison();
+    renderRegressionScatterChart();
+    renderRegressionResidualChart();
+    renderRegressionFeatureSignal();
+
+    document.getElementById('reg-residual-summary').innerHTML = [
+        ['Mean residual', Number(m.mean_residual || 0).toFixed(4)],
+        ['Mean absolute error', Number(regressionData.residual_summary?.mean_absolute_error ?? 0).toFixed(4)],
+        ['Median absolute error', Number(regressionData.residual_summary?.median_absolute_error ?? 0).toFixed(4)],
+        ['90th pct absolute error', Number(regressionData.residual_summary?.p90_absolute_error ?? 0).toFixed(4)],
+        ['Max absolute error', Number(regressionData.residual_summary?.max_absolute_error ?? 0).toFixed(4)],
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+}
+
+function renderRegressionComparison() {
+    const tbody = document.getElementById('reg-comparison-tbody');
+    if (!tbody || !regressionData?.comparison_table?.length) return;
+    tbody.innerHTML = regressionData.comparison_table.map(row => `
+        <tr${row.model_name === regressionData.best_model?.model_name ? ' class="active-row"' : ''}>
+            <td><strong>${row.model_name}</strong></td>
+            <td>${Number(row.mae || 0).toFixed(4)}</td>
+            <td>${Number(row.rmse || 0).toFixed(4)}</td>
+            <td>${Number(row.r2 || 0).toFixed(4)}</td>
+        </tr>
+    `).join('');
+}
+
+function renderRegressionScatterChart() {
+    const canvas = document.getElementById('reg-scatter-chart');
+    const sample = regressionData?.prediction_sample || [];
+    if (!canvas || !sample.length) return;
+
+    const minVal = Math.min(...sample.map(p => Math.min(Number(p.actual), Number(p.predicted))));
+    const maxVal = Math.max(...sample.map(p => Math.max(Number(p.actual), Number(p.predicted))));
+    const scatterPoints = sample.map(point => ({ x: Number(point.actual), y: Number(point.predicted) }));
+    const linePoints = [
+        { x: minVal, y: minVal },
+        { x: maxVal, y: maxVal },
+    ];
+
+    if (regressionScatterChart) regressionScatterChart.destroy();
+    regressionScatterChart = new Chart(canvas.getContext('2d'), {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Predictions',
+                    data: scatterPoints,
+                    pointRadius: 2,
+                    pointHoverRadius: 4,
+                    backgroundColor: 'rgba(15,76,129,0.55)',
+                    borderColor: 'rgba(15,76,129,0.55)',
+                },
+                {
+                    label: 'Ideal line',
+                    data: linePoints,
+                    type: 'line',
+                    pointRadius: 0,
+                    borderWidth: 2,
+                    borderColor: '#b91c1c',
+                    backgroundColor: 'transparent',
+                    tension: 0,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: { title: { display: true, text: 'Actual time_in_hospital' } },
+                y: { title: { display: true, text: 'Predicted time_in_hospital' } },
+            },
+        },
+    });
+}
+
+function renderRegressionResidualChart() {
+    const canvas = document.getElementById('reg-residual-chart');
+    const sample = regressionData?.prediction_sample || [];
+    if (!canvas || !sample.length) return;
+
+    const residuals = sample.map(point => Number(point.residual || 0));
+    const min = Math.min(...residuals);
+    const max = Math.max(...residuals);
+    const bins = 12;
+    const width = (max - min) || 1;
+    const counts = Array.from({ length: bins }, () => 0);
+    residuals.forEach(value => {
+        const raw = Math.floor(((value - min) / width) * bins);
+        const idx = Math.max(0, Math.min(bins - 1, raw));
+        counts[idx] += 1;
+    });
+    const labels = counts.map((_, idx) => {
+        const start = min + (width / bins) * idx;
+        const end = min + (width / bins) * (idx + 1);
+        return `${start.toFixed(1)} to ${end.toFixed(1)}`;
+    });
+
+    if (regressionResidualChart) regressionResidualChart.destroy();
+    regressionResidualChart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Residual count',
+                data: counts,
+                backgroundColor: 'rgba(21,128,61,0.7)',
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { maxRotation: 45 } },
+                y: { beginAtZero: true, title: { display: true, text: 'Count' } },
+            },
+        },
+    });
+}
+
+function renderRegressionFeatureSignal() {
+    const table = document.getElementById('reg-feature-table');
+    const note = document.getElementById('reg-feature-note');
+    if (!table || !regressionData?.feature_signal) return;
+
+    const signal = regressionData.feature_signal;
+    const rows = signal.importance?.length
+        ? signal.importance.map(item => ({
+            label: item.feature,
+            value: Number(item.importance || 0).toFixed(4),
+        }))
+        : [
+            ...(signal.positive || []).map(item => ({
+                label: `+ ${item.feature}`,
+                value: Number(item.coefficient || 0).toFixed(4),
+            })),
+            ...(signal.negative || []).map(item => ({
+                label: `- ${item.feature}`,
+                value: Number(item.coefficient || 0).toFixed(4),
+            })),
+        ];
+
+    note.textContent = signal.importance?.length
+        ? 'Tree-based regressors expose impurity-based feature importances for the current best run.'
+        : 'Linear regressors expose signed coefficients, so positive and negative effects are shown separately.';
+
+    table.innerHTML = (rows || []).slice(0, 15).map(row => (
+        `<tr><th>${row.label}</th><td>${row.value}</td></tr>`
+    )).join('') || '<tr><td>No feature signal data available.</td></tr>';
+}
+
 function renderLabRocChart(run) {
     const canvas = document.getElementById('lab-roc-chart');
     if (!canvas || !run?.roc_curve) return;
@@ -703,7 +916,8 @@ function renderLabRocChart(run) {
 function getLabRunSignature(run) {
     if (!run) return '';
     const entries = Object.entries(run.params || {}).sort(([a], [b]) => a.localeCompare(b));
-    return `${run.model_name || ''}::${entries.map(([key, value]) => `${key}=${String(value)}`).join('|')}`;
+    const mode = run.sample?.mode || run.source || 'reference';
+    return `${run.model_name || ''}::${mode}::${entries.map(([key, value]) => `${key}=${String(value)}`).join('|')}`;
 }
 
 function getLabRuns(algorithm) {
@@ -751,6 +965,36 @@ function collectSelectedLabParams(algorithm) {
     return params;
 }
 
+function getSelectedDatasetMode() {
+    return document.getElementById('lab-dataset-mode')?.value || selectedLabDatasetMode || 'auto';
+}
+
+function renderLabDatasetModeOptions() {
+    const select = document.getElementById('lab-dataset-mode');
+    if (!select || !modelLabData?.dataset_modes) return;
+    const preferredOrder = ['auto', 'fast', 'medium', 'full'];
+    select.innerHTML = preferredOrder
+        .filter(key => modelLabData.dataset_modes[key])
+        .map(key => {
+            const mode = modelLabData.dataset_modes[key];
+            return `<option value="${key}">${mode.label}</option>`;
+        })
+        .join('');
+    select.value = selectedLabDatasetMode;
+}
+
+function renderLabSampleNote(sampleOverride = null) {
+    const selectedMode = getSelectedDatasetMode();
+    const mode = modelLabData?.dataset_modes?.[selectedMode];
+    const sample = sampleOverride || modelLabData?.sample || {};
+    const base = sampleOverride
+        ? `Last live run: ${sample.label || mode?.label || selectedMode}`
+        : `${modelLabData?.sample_policy || 'Choose a data size and run an experiment.'}`;
+    const rows = `Train ${(sample.train_rows || 0).toLocaleString()} / Test ${(sample.test_rows || 0).toLocaleString()}; full split ${(sample.full_train_rows || 0).toLocaleString()} / ${(sample.full_test_rows || 0).toLocaleString()}.`;
+    const modeText = mode ? ` Selected mode: ${mode.label} - ${mode.description}` : '';
+    document.getElementById('lab-sample-note').textContent = `${base} ${rows}${modeText}`;
+}
+
 async function runSelectedLabExperiment() {
     if (labRunInFlight) return;
     const algorithm = getLabAlgorithm(selectedLabAlgorithm);
@@ -760,14 +1004,15 @@ async function runSelectedLabExperiment() {
     }
 
     const params = collectSelectedLabParams(algorithm);
+    const datasetMode = getSelectedDatasetMode();
     setLabRunLoading(true);
-    setLabRunStatus(`Running ${algorithm.name} with ${formatParams(params)}...`);
+    setLabRunStatus(`Running ${algorithm.name} with ${formatParams(params)} on ${datasetMode} data...`);
 
     try {
         const response = await fetch('/api/run_experiment', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ algorithm: algorithm.name, params }),
+            body: JSON.stringify({ algorithm: algorithm.name, params, dataset_mode: datasetMode }),
         });
         const payload = await response.json();
         if (!response.ok) {
@@ -780,11 +1025,8 @@ async function runSelectedLabExperiment() {
         } else {
             renderSelectedLabRun();
         }
-        if (payload.sample) {
-            document.getElementById('lab-sample-note').textContent =
-                `Live run sample: Train ${(payload.sample.train_rows || 0).toLocaleString()} / Test ${(payload.sample.test_rows || 0).toLocaleString()} from the sampled split.`;
-        }
-        setLabRunStatus(`Completed live run for ${algorithm.name}.`);
+        if (payload.sample) renderLabSampleNote(payload.sample);
+        setLabRunStatus(`Completed live run for ${algorithm.name}. ${formatDiagnostics(payload.run?.diagnostics)}`);
     } catch (error) {
         console.error(error);
         setLabRunStatus(`Run failed: ${error.message}`);
@@ -889,6 +1131,7 @@ function renderLabRunInventory(algorithm, selectedRun) {
         const metrics = run.metrics || {};
         return `<tr${isSelected ? ' class="active-row"' : ''} style="cursor:pointer">
             <td>${formatRunLabel(run)}</td>
+            <td>${run.sample?.label || 'Reference'}</td>
             <td>${run.source === 'live' ? 'Live' : 'Reference'}</td>
             <td>${Number(metrics.roc_auc || 0).toFixed(4)}</td>
             <td>${Number(metrics.accuracy || 0).toFixed(4)}</td>
@@ -907,9 +1150,8 @@ function initModelLabPage() {
     if (!modelLabData?.algorithms?.length) return;
     selectedLabAlgorithm = modelLabData.best_overall?.model_name || modelLabData.algorithms[0].name;
 
-    const sample = modelLabData.sample || {};
-    document.getElementById('lab-sample-note').textContent =
-        `${modelLabData.sample_policy} Train: ${(sample.train_rows || 0).toLocaleString()} / Test: ${(sample.test_rows || 0).toLocaleString()}; full split is ${(sample.full_train_rows || 0).toLocaleString()} / ${(sample.full_test_rows || 0).toLocaleString()}.`;
+    renderLabDatasetModeOptions();
+    renderLabSampleNote();
 
     renderLabAlgorithmButtons();
     renderLabComparison();
@@ -1009,24 +1251,19 @@ function renderSelectedLabRun() {
 
     document.getElementById('lab-metrics-tbody').innerHTML = [
         ['Settings', formatParams(run.params)],
+        ['Dataset', `${run.sample?.label || 'Reference'}: train ${(run.sample?.train_rows || modelLabData.sample?.train_rows || 0).toLocaleString()} / test ${(run.sample?.test_rows || modelLabData.sample?.test_rows || 0).toLocaleString()}`],
         ['Accuracy', metrics.accuracy.toFixed(4)],
         ['Precision', metrics.precision.toFixed(4)],
         ['Recall', metrics.recall.toFixed(4)],
         ['F1', metrics.f1.toFixed(4)],
         ['ROC-AUC', metrics.roc_auc.toFixed(4)],
+        ['TN / FP / FN / TP', `${(run.confusion_matrix?.counts?.TN || 0).toLocaleString()} / ${(run.confusion_matrix?.counts?.FP || 0).toLocaleString()} / ${(run.confusion_matrix?.counts?.FN || 0).toLocaleString()} / ${(run.confusion_matrix?.counts?.TP || 0).toLocaleString()}`],
         ['Execution', run.source === 'live' ? 'Live run' : 'Reference'],
-        ['Feature matrix', run.feature_mode || 'sampled model-ready encoded features']
+        ['Feature matrix', run.feature_mode || 'sampled model-ready encoded features'],
+        ['Result warnings', formatDiagnostics(run.diagnostics)]
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
-    const labels = run.confusion_matrix.labels;
-    const matrix = run.confusion_matrix.matrix;
-    document.getElementById('lab-confusion-table').innerHTML = `
-        <thead><tr><th>Actual \\ Predicted</th><th>${labels[0]}</th><th>${labels[1]}</th></tr></thead>
-        <tbody>
-            <tr><th>${labels[0]}</th><td>${matrix[0][0].toLocaleString()}</td><td>${matrix[0][1].toLocaleString()}</td></tr>
-            <tr><th>${labels[1]}</th><td>${matrix[1][0].toLocaleString()}</td><td>${matrix[1][1].toLocaleString()}</td></tr>
-        </tbody>
-    `;
+    renderConfusionTable('lab-confusion-table', run.confusion_matrix);
 
     const featureRows = run.top_features || [];
     document.getElementById('lab-feature-note').textContent =
@@ -1036,7 +1273,7 @@ function renderSelectedLabRun() {
     renderLabSurface(algorithm, run);
     renderLabRunInventory(algorithm, run);
     setLabRunStatus(run.source === 'live'
-        ? `Live run completed for ${run.model_name} with ${formatParams(run.params)}.`
+        ? `Live run completed for ${run.model_name} with ${formatParams(run.params)}. ${formatDiagnostics(run.diagnostics)}`
         : `Showing reference run for ${run.model_name}. Press Run to execute this configuration live.`);
 }
 
@@ -1126,7 +1363,7 @@ function renderClusteringPage() {
     if (!selection?.run) return;
     const clustering = selection.run;
 
-    document.getElementById('cluster-sample-rows').textContent = clusteringData.method.sample_rows.toLocaleString();
+    document.getElementById('cluster-sample-rows').textContent = `${clusteringData.method.sample_rows.toLocaleString()} / ${(clusteringData.method.full_rows || 0).toLocaleString()}`;
     document.getElementById('cluster-variance').textContent = `${(clusteringData.method.total_explained_variance * 100).toFixed(1)}%`;
     document.getElementById('cluster-k-value').textContent = selectedClusterMethod === 'dbscan' ? selection.param : selection.param;
     document.getElementById('cluster-silhouette').textContent = clustering.silhouette !== null && clustering.silhouette !== undefined ? clustering.silhouette.toFixed(3) : 'n/a';
@@ -1156,7 +1393,10 @@ function renderClusterMethodComparison() {
 }
 
 function renderClusterSummary(clustering) {
-    document.getElementById('cluster-summary-tbody').innerHTML = Object.keys(clustering.sizes).map(label => {
+    const warning = clusteringData.method?.warning
+        ? `<tr><th>Dataset warning</th><td>${clusteringData.method.warning}</td></tr>`
+        : '';
+    document.getElementById('cluster-summary-tbody').innerHTML = warning + Object.keys(clustering.sizes).map(label => {
         const size = clustering.sizes[label];
         const rate = (clustering.readmission_rates[label] * 100).toFixed(2);
         return `<tr><th>Cluster ${label}</th><td>${size.toLocaleString()} rows | ${rate}% &lt;30 readmission</td></tr>`;
@@ -1234,11 +1474,11 @@ function initAprioriPage() {
     document.getElementById('apriori-rules').textContent = (associationRulesData.rules || []).length.toLocaleString();
     document.getElementById('apriori-support').textContent = Number(associationRulesData.min_support).toFixed(2);
     document.getElementById('apriori-note').textContent =
-        `Transactions are built from ${associationRulesData.columns_used?.length || 0} interpretable clinical fields and mined with a compact Apriori-style search (support >= ${Number(associationRulesData.min_support).toFixed(2)}, confidence >= ${Number(associationRulesData.min_confidence).toFixed(2)}).`;
+        `Transactions are built from ${associationRulesData.columns_used?.length || 0} interpretable clinical fields and mined with a compact Apriori-style search (support >= ${Number(associationRulesData.min_support).toFixed(2)}, confidence >= ${Number(associationRulesData.min_confidence).toFixed(2)}). ${associationRulesData.warning || ''}`;
 
     document.getElementById('apriori-method-tbody').innerHTML = [
         ['Columns used', (associationRulesData.columns_used || []).join(', ')],
-        ['Sample rows', associationRulesData.sample_rows.toLocaleString()],
+        ['Sample rows', `${associationRulesData.sample_rows.toLocaleString()} / ${(associationRulesData.full_rows || 0).toLocaleString()} full cleaned rows`],
         ['Max itemset length', associationRulesData.max_length],
         ['Min confidence', Number(associationRulesData.min_confidence).toFixed(2)],
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
@@ -1254,9 +1494,11 @@ function initAprioriPage() {
 
 function initConclusionPage() {
     const bestModel = baselineModelData?.best_model || baselineModelData;
+    const bestRegression = regressionData?.best_model || regressionData;
     const bestCluster = getBestClusterSummary();
     const topRule = associationRulesData?.rules?.[0];
     const bestAuc = bestModel?.metrics?.roc_auc;
+    const bestRmse = bestRegression?.metrics?.rmse;
 
     document.getElementById('conclusion-best-model').textContent = bestModel?.model_name || 'n/a';
     document.getElementById('conclusion-best-auc').textContent = bestAuc !== undefined ? Number(bestAuc).toFixed(3) : 'n/a';
@@ -1267,8 +1509,8 @@ function initConclusionPage() {
 
     document.getElementById('conclusion-learning-tbody').innerHTML = [
         ['Descriptive analysis', 'K-Means, hierarchical clustering, and DBSCAN expose different patient groupings; Apriori surfaces interpretable co-occurrence patterns.'],
-        ['Predictive analysis', `The strongest current classifier is ${bestModel?.model_name || 'n/a'} with ROC-AUC ${bestAuc !== undefined ? Number(bestAuc).toFixed(3) : 'n/a'}.`],
-        ['Feature selection', 'Mutual information, chi-square, logistic coefficients, and random-forest importances agree on a compact set of informative clinical signals.'],
+        ['Predictive analysis', `The strongest current classifier is ${bestModel?.model_name || 'n/a'} with ROC-AUC ${bestAuc !== undefined ? Number(bestAuc).toFixed(3) : 'n/a'}. The strongest regression model is ${bestRegression?.model_name || 'n/a'} with RMSE ${bestRmse !== undefined ? Number(bestRmse).toFixed(3) : 'n/a'}.`],
+        ['Feature selection', 'Mutual information, chi-square, logistic coefficients, random-forest importances, RFE, and consensus ranking agree on a compact set of informative clinical signals.'],
         ['Interpretation', 'The pipeline now supports a complete story from raw data profiling to model comparison and rule mining.'],
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
@@ -1276,15 +1518,16 @@ function initConclusionPage() {
         ['Rows after cleaning', cleaningData?.stats?.kept_rows?.toLocaleString?.() || 'n/a'],
         ['Model-ready columns', modelReadyData?.model_ready_columns?.toLocaleString?.() || 'n/a'],
         ['Classification experiments', modelLabData?.algorithms?.length?.toLocaleString?.() || 'n/a'],
+        ['Regression experiments', regressionData?.models?.length?.toLocaleString?.() || 'n/a'],
         ['Association rules mined', associationRulesData?.rules?.length?.toLocaleString?.() || 'n/a'],
         ['Clustering methods', clusteringData?.methods ? Object.keys(clusteringData.methods).length.toLocaleString() : 'n/a'],
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
     document.getElementById('conclusion-next-steps').innerHTML = [
-        'Add a lightweight ROC comparison for each selected parameter setting directly in the live experiment surface.',
         'Export the conclusion panel as a PDF slide for the final presentation.',
-        'Optionally extend predictive experiments with regression or fairness-aware analysis.',
+        'Optionally extend the regression view with a residuals-by-feature drill-down.',
         'If you want one more iteration, add SHAP or permutation importance for the top model.',
+        'Consider a lightweight calibration view if the classification story needs extra polish.',
     ].map(item => `<li>${item}</li>`).join('');
 }
 

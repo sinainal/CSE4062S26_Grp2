@@ -11,10 +11,12 @@ bash start.sh
 ```
 
 This will:
+- create a local `.venv` if needed and install the Python dependencies automatically,
 - open the dashboard on port `8081` by default,
 - reuse existing JSON reports unless `REFRESH_DATA=1` is set,
 - regenerate the outputs only when they are missing or explicitly requested.
 It also starts the local API used by the Live Model Lab, so the `Run Experiment` button actually trains the selected configuration on demand.
+If you want to suppress automatic browser opening in headless environments, run `OPEN_BROWSER=0 bash start.sh`.
 
 ## 🛠 Clinical Analysis Tool
 We have developed a custom **Clinical Visualization & Discovery Tool** located in `/user_tools/visualisation_tool/`. 
@@ -22,7 +24,8 @@ We have developed a custom **Clinical Visualization & Discovery Tool** located i
 - **ICD-9 Integration:** The tool now features a live mapping of 14,000+ ICD-9 codes to their full clinical descriptions via interactive tooltips.
 - **Model-Ready Dataset View:** The dashboard includes a dedicated section that previews the actual one-hot encoded, standardized modeling table.
 - **Baseline ML Test:** A simple Logistic Regression baseline is trained directly on the model-ready dataset as a sanity check before adding stronger models.
-- **Model Comparison:** The dashboard now includes feature selection rankings, ROC curves, and significance comparison for the strongest predictive models.
+- **Model Comparison:** The dashboard now includes feature selection rankings, RFE + consensus ranking, ROC curves, and significance comparison for the strongest predictive models.
+- **Regression Lab:** A separate regression view benchmarks `time_in_hospital` prediction with multiple models, residual plots, and feature signal summaries.
 - **Descriptive Mining:** The clustering lab compares K-Means, hierarchical clustering, and DBSCAN, and the association-mining page summarizes Apriori-style rules.
 - **Live Model Lab:** Choose a classifier, tune the hyperparameters, then press `Run Experiment` to execute that configuration on the sampled split and update the plots immediately.
 - **Usage:** Run `bash start.sh` from the project root to open the app. Set `REFRESH_DATA=1` if you want to regenerate the reports first.
@@ -50,12 +53,14 @@ Our preprocessing strategy is strictly aligned with the original **Strack et al.
 - Numeric features are median-imputed and standardized.
 - Categorical features are mode-imputed and one-hot encoded.
 - The target column is `readmitted`, where `<30` is encoded as `1` and all other outcomes as `0`.
+- `time_in_hospital` is kept in the cleaned data and reused as a separate regression target in the dashboard.
 - `user_tools/visualisation_tool/model_ready_data.json` powers the dashboard preview and transformation report.
 
 ### 5. Baseline Modeling
 - `data_harness.py` trains a class-balanced Logistic Regression baseline after generating the model-ready table.
+- It also exports a regression benchmark for `time_in_hospital` to `user_tools/visualisation_tool/regression_report.json`.
 - Results are exported to `user_tools/visualisation_tool/baseline_model_report.json`.
-- This baseline is intentionally simple; future work can add XGBoost, LightGBM, CatBoost, and calibrated threshold tuning.
+- This baseline is intentionally simple; future work can still add calibrated threshold tuning or additional explainability views.
 
 ## 📂 Repository Structure
 - `/data/`: Raw and cleaned datasets.

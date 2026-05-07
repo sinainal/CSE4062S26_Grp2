@@ -39,7 +39,8 @@ LIVE_RUN_HISTORY: dict[str, list[dict]] = {}
 def run_signature(run: dict) -> str:
     params = run.get('params', {}) or {}
     parts = [f'{key}={params[key]}' for key in sorted(params)]
-    return f"{run.get('model_name', '')}::{'|'.join(parts)}"
+    sample = run.get('sample', {}) or {}
+    return f"{run.get('model_name', '')}::{sample.get('mode', 'reference')}::{'|'.join(parts)}"
 
 
 def store_live_run(algorithm_name: str, run: dict) -> list[dict]:
@@ -93,12 +94,19 @@ class AppHandler(SimpleHTTPRequestHandler):
 
         algorithm = payload.get('algorithm')
         params = payload.get('params') or {}
+        dataset_mode = payload.get('dataset_mode') or 'auto'
         if not algorithm:
             self.send_json({'error': 'Missing "algorithm" in request body.'}, status=400)
             return
 
         try:
-            run = run_single_model_lab_experiment(MODEL_READY_DF, algorithm, params, verbose=False)
+            run = run_single_model_lab_experiment(
+                MODEL_READY_DF,
+                algorithm,
+                params,
+                dataset_mode=dataset_mode,
+                verbose=False,
+            )
         except Exception as exc:
             self.send_json({'error': str(exc)}, status=400)
             return

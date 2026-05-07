@@ -3,6 +3,9 @@ import json
 import os
 import numpy as np
 
+RAW_SAMPLE_LIMIT = 2000
+DISTRIBUTION_LIMIT = 60
+
 # Comprehensive and Highly Detailed Academic Dictionary for Diabetes 130-US Hospitals Dataset
 FEATURE_DESCRIPTIONS = {
     "encounter_id": "Unique identifier for each admission/encounter. Useful for relational database mapping but should be removed during modeling to prevent data leakage, as it holds no clinical predictive value.",
@@ -165,15 +168,21 @@ def generate_cleaning_report(csv_path, mapping_path, output_path):
         elif col in ALL_MED_COLS:
             nzv = nzv_report_data.get(col, {})
             if nzv.get('drop', False):
-                fr_str = '∞' if nzv.get('fr', 0) > 999999 else f"{nzv.get('fr', 0):.1f}"
+                fr = nzv.get('fr')
+                variance = nzv.get('variance')
+                fr_value = float('inf') if fr is None else float(fr)
+                variance_value = 0.0 if variance is None else float(variance)
+                fr_str = '∞' if fr_value > 999999 else f"{fr_value:.1f}"
                 feature_status[col] = {
                     'action': 'DROP',
-                    'reason': f"NZV: FR={fr_str}, σ²={nzv.get('variance', 0):.5f} — below variance threshold 0.0475 (Kuhn & Johnson, 2013)"
+                    'reason': f"NZV: FR={fr_str}, σ²={variance_value:.5f} — below variance threshold 0.0475 (Kuhn & Johnson, 2013)"
                 }
             else:
+                variance = nzv.get('variance')
+                variance_value = 0.0 if variance is None else float(variance)
                 feature_status[col] = {
                     'action': 'KEEP',
-                    'reason': f"Sufficient variance (σ²={nzv.get('variance', 0):.4f}). Retained for modeling."
+                    'reason': f"Sufficient variance (σ²={variance_value:.4f}). Retained for modeling."
                 }
 
         elif col in ['diag_1', 'diag_2', 'diag_3']:
@@ -310,7 +319,7 @@ def generate_academic_report(csv_path, mapping_path, output_path):
     report["dataset_overview"]["total_missing_cells"] = int(df_typed.isna().sum().sum())
     report["dataset_overview"]["duplicate_rows"] = int(df_typed.duplicated().sum())
     
-    sample_df = df_typed.replace({np.nan: None})
+    sample_df = df_typed.head(RAW_SAMPLE_LIMIT).replace({np.nan: None})
     report["raw_sample"] = sample_df.to_dict(orient='records')
     
     for col in df_typed.columns:
@@ -389,7 +398,7 @@ def generate_academic_report(csv_path, mapping_path, output_path):
             feature_info["stats"]["max"] = float(clean_typed.max()) if not clean_typed.empty else None
             
         if not raw_col.empty:
-            val_counts = raw_col.value_counts()
+            val_counts = raw_col.value_counts().head(DISTRIBUTION_LIMIT)
             
             if is_numeric:
                 temp_numeric_index = pd.to_numeric(val_counts.index, errors='coerce')
@@ -414,7 +423,7 @@ def generate_academic_report(csv_path, mapping_path, output_path):
         json.dump(report, f)
 
 if __name__ == "__main__":
-    base_path = "/home/sina/Downloads/data/CSE4062S26_Grp2"
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     csv_file = os.path.join(base_path, "data/diabetes+130-us+hospitals+for+years+1999-2008/diabetic_data.csv")
     mapping_file = os.path.join(base_path, "data/diabetes+130-us+hospitals+for+years+1999-2008/IDS_mapping.csv")
     output_json = os.path.join(base_path, "user_tools/visualisation_tool/academic_data.json")

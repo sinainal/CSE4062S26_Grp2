@@ -1,3 +1,4 @@
+import os
 import sys
 try:
     from docx import Document
@@ -11,6 +12,7 @@ except ImportError:
     from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 def create_report():
+    base_dir = os.path.abspath(os.path.dirname(__file__))
     doc = Document()
     
     # Title
@@ -96,7 +98,7 @@ def create_report():
                       "(e.g., Word2Vec/TF-IDF) to categorize complex clinical free-text or uncategorized features automatically, "
                       "rather than relying strictly on hardcoded rules.")
                       
-    doc.save('/home/sina/Downloads/data/CSE4062S26_Grp2/Comprehensive_Data_Cleaning_Report.docx')
+    doc.save(os.path.join(base_dir, 'Comprehensive_Data_Cleaning_Report.docx'))
     print("Docx created successfully.")
 
 if __name__ == '__main__':

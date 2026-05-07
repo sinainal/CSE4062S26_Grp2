@@ -37,7 +37,19 @@
             568,
             687
           ]
-        ]
+        ],
+        "counts": {
+          "TN": 8028,
+          "FP": 4711,
+          "FN": 568,
+          "TP": 687
+        },
+        "legend": {
+          "TN": "Actual not readmitted <30 and predicted not readmitted <30",
+          "FP": "Actual not readmitted <30 but predicted readmitted <30",
+          "FN": "Actual readmitted <30 but predicted not readmitted <30",
+          "TP": "Actual readmitted <30 and predicted readmitted <30"
+        }
       },
       "predictions": [
         0,
@@ -20772,6 +20784,10 @@
           0.026429
         ]
       },
+      "diagnostics": [
+        "Low precision: many predicted readmissions are false positives.",
+        "Class imbalance is strong; accuracy can look high while minority recall remains weak."
+      ],
       "top_positive_features": [
         {
           "feature": "medical_specialty_AllergyandImmunology",
@@ -20897,7 +20913,19 @@
             635,
             620
           ]
-        ]
+        ],
+        "counts": {
+          "TN": 8887,
+          "FP": 3852,
+          "FN": 635,
+          "TP": 620
+        },
+        "legend": {
+          "TN": "Actual not readmitted <30 and predicted not readmitted <30",
+          "FP": "Actual not readmitted <30 but predicted readmitted <30",
+          "FN": "Actual readmitted <30 but predicted not readmitted <30",
+          "TP": "Actual readmitted <30 and predicted readmitted <30"
+        }
       },
       "predictions": [
         0,
@@ -41641,6 +41669,10 @@
           0.162553
         ]
       },
+      "diagnostics": [
+        "Low precision: many predicted readmissions are false positives.",
+        "Class imbalance is strong; accuracy can look high while minority recall remains weak."
+      ],
       "top_features": [
         {
           "feature": "discharge_disposition_id",
@@ -41728,7 +41760,19 @@
             1250,
             5
           ]
-        ]
+        ],
+        "counts": {
+          "TN": 12731,
+          "FP": 8,
+          "FN": 1250,
+          "TP": 5
+        },
+        "legend": {
+          "TN": "Actual not readmitted <30 and predicted not readmitted <30",
+          "FP": "Actual not readmitted <30 but predicted readmitted <30",
+          "FN": "Actual readmitted <30 but predicted not readmitted <30",
+          "TP": "Actual readmitted <30 and predicted readmitted <30"
+        }
       },
       "predictions": [
         0,
@@ -62694,6 +62738,10 @@
           0.025764
         ]
       },
+      "diagnostics": [
+        "Low recall: many readmitted patients are missed as false negatives.",
+        "Class imbalance is strong; accuracy can look high while minority recall remains weak."
+      ],
       "top_features": [
         {
           "feature": "discharge_disposition_id",
@@ -62781,7 +62829,19 @@
             578,
             677
           ]
-        ]
+        ],
+        "counts": {
+          "TN": 8495,
+          "FP": 4244,
+          "FN": 578,
+          "TP": 677
+        },
+        "legend": {
+          "TN": "Actual not readmitted <30 and predicted not readmitted <30",
+          "FP": "Actual not readmitted <30 but predicted readmitted <30",
+          "FN": "Actual readmitted <30 but predicted not readmitted <30",
+          "TP": "Actual readmitted <30 and predicted readmitted <30"
+        }
       },
       "predictions": [
         0,
@@ -83450,6 +83510,10 @@
           0.074838
         ]
       },
+      "diagnostics": [
+        "Low precision: many predicted readmissions are false positives.",
+        "Class imbalance is strong; accuracy can look high while minority recall remains weak."
+      ],
       "top_features": [
         {
           "feature": "discharge_disposition_id",
@@ -83538,7 +83602,19 @@
           1250,
           5
         ]
-      ]
+      ],
+      "counts": {
+        "TN": 12731,
+        "FP": 8,
+        "FN": 1250,
+        "TP": 5
+      },
+      "legend": {
+        "TN": "Actual not readmitted <30 and predicted not readmitted <30",
+        "FP": "Actual not readmitted <30 but predicted readmitted <30",
+        "FN": "Actual readmitted <30 but predicted not readmitted <30",
+        "TP": "Actual readmitted <30 and predicted readmitted <30"
+      }
     },
     "predictions": [
       0,
@@ -104504,6 +104580,10 @@
         0.025764
       ]
     },
+    "diagnostics": [
+      "Low recall: many readmitted patients are missed as false negatives.",
+      "Class imbalance is strong; accuracy can look high while minority recall remains weak."
+    ],
     "top_features": [
       {
         "feature": "discharge_disposition_id",
@@ -104591,7 +104671,19 @@
           578,
           677
         ]
-      ]
+      ],
+      "counts": {
+        "TN": 8495,
+        "FP": 4244,
+        "FN": 578,
+        "TP": 677
+      },
+      "legend": {
+        "TN": "Actual not readmitted <30 and predicted not readmitted <30",
+        "FP": "Actual not readmitted <30 but predicted readmitted <30",
+        "FN": "Actual readmitted <30 but predicted not readmitted <30",
+        "TP": "Actual readmitted <30 and predicted readmitted <30"
+      }
     },
     "predictions": [
       0,
@@ -125260,6 +125352,10 @@
         0.074838
       ]
     },
+    "diagnostics": [
+      "Low precision: many predicted readmissions are false positives.",
+      "Class imbalance is strong; accuracy can look high while minority recall remains weak."
+    ],
     "top_features": [
       {
         "feature": "discharge_disposition_id",
@@ -125351,7 +125447,19 @@
         1250,
         5
       ]
-    ]
+    ],
+    "counts": {
+      "TN": 12731,
+      "FP": 8,
+      "FN": 1250,
+      "TP": 5
+    },
+    "legend": {
+      "TN": "Actual not readmitted <30 and predicted not readmitted <30",
+      "FP": "Actual not readmitted <30 but predicted readmitted <30",
+      "FN": "Actual readmitted <30 but predicted not readmitted <30",
+      "TP": "Actual readmitted <30 and predicted readmitted <30"
+    }
   },
   "top_positive_features": [
     {

@@ -21,8 +21,9 @@
                 <button class="tab-btn" id="tab-cluster" onclick="switchPage('cluster')">IV. Clustering Lab</button>
                 <button class="tab-btn" id="tab-apriori" onclick="switchPage('apriori')">V. Association Mining</button>
                 <button class="tab-btn" id="tab-ml" onclick="switchPage('ml')">VI. Baseline ML Test</button>
-                <button class="tab-btn" id="tab-lab" onclick="switchPage('lab')">VII. Live Model Lab</button>
-                <button class="tab-btn" id="tab-conclusion" onclick="switchPage('conclusion')">VIII. Conclusions</button>
+                <button class="tab-btn" id="tab-regression" onclick="switchPage('regression')">VII. Regression Lab</button>
+                <button class="tab-btn" id="tab-lab" onclick="switchPage('lab')">VIII. Live Model Lab</button>
+                <button class="tab-btn" id="tab-conclusion" onclick="switchPage('conclusion')">IX. Conclusions</button>
             </nav>
         </header>
 
@@ -402,7 +403,7 @@
             <section class="full-width-section">
                 <div class="analytics-card">
                     <h3>Feature Selection &amp; Feature-Subset Benchmarks</h3>
-                    <p class="inline-note">Feature rankings are produced with mutual information, chi-square, random-forest importances, and absolute logistic coefficients. Subset benchmarks retrain Logistic Regression and Random Forest on the top-ranked feature sets.</p>
+                    <p class="inline-note" id="feature-selection-note">Feature rankings are produced with mutual information, chi-square, random-forest importances, and absolute logistic coefficients. Subset benchmarks retrain Logistic Regression and Random Forest on the top-ranked feature sets.</p>
                     <table class="academic-table">
                         <thead>
                             <tr>
@@ -477,7 +478,85 @@
             </section>
         </div>
 
-        <!-- ===================== PAGE 5: LIVE MODEL LAB ===================== -->
+        <!-- ===================== PAGE 5: REGRESSION LAB ===================== -->
+        <div id="page-regression" style="display:none;">
+            <section class="overview-panel">
+                <div class="stat-box">
+                    <h4>Model</h4>
+                    <p id="reg-model-name">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>RMSE</h4>
+                    <p id="reg-rmse">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>MAE</h4>
+                    <p id="reg-mae">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>R²</h4>
+                    <p id="reg-r2">...</p>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Regression Summary</h3>
+                    <p class="inline-note" id="reg-purpose"></p>
+                    <table class="academic-table stats-table">
+                        <tbody id="reg-metrics-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>Model Comparison</h3>
+                    <p class="inline-note">Best model is selected by lowest RMSE, with R² used as a tie-breaker.</p>
+                    <table class="academic-table">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>MAE</th>
+                                <th>RMSE</th>
+                                <th>R²</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reg-comparison-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card chart-card">
+                    <h3>Actual vs Predicted</h3>
+                    <div class="chart-container">
+                        <canvas id="reg-scatter-chart"></canvas>
+                    </div>
+                </div>
+                <div class="analytics-card chart-card">
+                    <h3>Residual Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="reg-residual-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>Residual Summary</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="reg-residual-summary"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>Feature Signal</h3>
+                    <p class="inline-note" id="reg-feature-note"></p>
+                    <table class="academic-table stats-table">
+                        <tbody id="reg-feature-table"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===================== PAGE 6: LIVE MODEL LAB ===================== -->
         <div id="page-lab" style="display:none;">
             <section class="overview-panel">
                 <div class="stat-box">
@@ -507,6 +586,15 @@
                 <div class="analytics-card">
                     <h3>Manual Test Controls</h3>
                     <p class="inline-note" id="lab-sample-note"></p>
+                    <label class="control-field">
+                        <span>Data size</span>
+                        <select id="lab-dataset-mode">
+                            <option value="auto">Auto safe</option>
+                            <option value="fast">Fast sample</option>
+                            <option value="medium">Medium sample</option>
+                            <option value="full">Full split</option>
+                        </select>
+                    </label>
                     <div id="lab-controls" class="control-grid"></div>
                     <div style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
                         <button id="lab-run-btn" class="algorithm-btn" type="button">Run Experiment</button>
@@ -539,6 +627,7 @@
                         <thead>
                             <tr>
                                 <th>Settings</th>
+                                <th>Dataset</th>
                                 <th>Source</th>
                                 <th>ROC-AUC</th>
                                 <th>Accuracy</th>
@@ -604,7 +693,7 @@
             </section>
         </div>
 
-        <!-- ===================== PAGE 6: CLUSTERING LAB ===================== -->
+        <!-- ===================== PAGE 7: CLUSTERING LAB ===================== -->
         <div id="page-cluster" style="display:none;">
             <section class="overview-panel">
                 <div class="stat-box">
@@ -688,7 +777,7 @@
             </section>
         </div>
 
-        <!-- ===================== PAGE 7: ASSOCIATION MINING ===================== -->
+        <!-- ===================== PAGE 8: ASSOCIATION MINING ===================== -->
         <div id="page-apriori" style="display:none;">
             <section class="overview-panel">
                 <div class="stat-box">
@@ -751,7 +840,7 @@
             </section>
         </div>
 
-        <!-- ===================== PAGE 8: CONCLUSIONS ===================== -->
+        <!-- ===================== PAGE 9: CONCLUSIONS ===================== -->
         <div id="page-conclusion" style="display:none;">
             <section class="overview-panel">
                 <div class="stat-box">
