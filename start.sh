@@ -12,7 +12,7 @@ PORT=""
 
 DATA_SCRIPT="${SCRIPT_DIR}/data_harness.py"
 TOOL_DIR="${SCRIPT_DIR}/user_tools/visualisation_tool"
-PORT="${PORT:-8081}"
+ANALYZER_SCRIPT="${TOOL_DIR}/analyzer.py"
 REFRESH_DATA="${REFRESH_DATA:-0}"
 APP_URL="http://127.0.0.1:${PORT}"
 OPEN_BROWSER="${OPEN_BROWSER:-1}"
@@ -136,6 +136,8 @@ APP_URL="http://127.0.0.1:${PORT}"
 REPORTS=(
   "${SCRIPT_DIR}/data/cleaned_diabetic_data.csv"
   "${SCRIPT_DIR}/data/model_ready_diabetic_data.csv"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/academic_data.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/cleaning_data.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/model_ready_data.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/baseline_model_report.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/model_lab_report.json"
@@ -162,6 +164,7 @@ fi
 if [[ "${needs_refresh}" == "1" ]]; then
   echo "Refreshing preprocessing outputs..."
   "${PYTHON_BIN}" "${DATA_SCRIPT}"
+  "${PYTHON_BIN}" "${ANALYZER_SCRIPT}"
 else
   echo "Using existing preprocessing outputs. Set REFRESH_DATA=1 to regenerate them."
 fi

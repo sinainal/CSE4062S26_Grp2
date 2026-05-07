@@ -1,5 +1,3 @@
-user_tools/visualisation_tool/academic_data.json
-
 .venv/
 __pycache__/
 *.pyc
