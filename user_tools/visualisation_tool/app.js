@@ -15,6 +15,8 @@ let mlRocChart = null;
 let labRocChart = null;
 let labSurfaceChart = null;
 let selectedLabAlgorithm = null;
+let liveLabRuns = {};
+let labRunInFlight = false;
 let selectedClusterMethod = 'kmeans';
 let currentFeatureData = null;
 let lastFilter = { name: null, label: null };
@@ -82,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cluster-k-select').addEventListener('change', () => renderClusteringPage());
     document.getElementById('cluster-color-mode').addEventListener('change', () => renderClusteringPage());
     document.getElementById('lab-surface-sort').addEventListener('change', () => renderSelectedLabRun());
+    document.getElementById('lab-run-btn').addEventListener('click', () => runSelectedLabExperiment());
 });
 
 // ==================== PAGE SWITCHING ====================
@@ -697,6 +700,99 @@ function renderLabRocChart(run) {
     });
 }
 
+function getLabRunSignature(run) {
+    if (!run) return '';
+    const entries = Object.entries(run.params || {}).sort(([a], [b]) => a.localeCompare(b));
+    return `${run.model_name || ''}::${entries.map(([key, value]) => `${key}=${String(value)}`).join('|')}`;
+}
+
+function getLabRuns(algorithm) {
+    if (!algorithm) return [];
+    const liveRuns = liveLabRuns[algorithm.name] || [];
+    const liveSignatures = new Set(liveRuns.map(getLabRunSignature));
+    const referenceRuns = (algorithm.runs || []).filter(run => !liveSignatures.has(getLabRunSignature(run)));
+    return [...liveRuns, ...referenceRuns];
+}
+
+function setLabRunStatus(message) {
+    const node = document.getElementById('lab-run-status');
+    if (node) node.textContent = message;
+}
+
+function setLabRunLoading(isLoading) {
+    labRunInFlight = isLoading;
+    const controls = document.querySelectorAll('#lab-controls select, #lab-algorithm-buttons button, #lab-surface-sort, #lab-run-btn');
+    controls.forEach(el => {
+        if (el.id === 'lab-run-btn') {
+            el.textContent = isLoading ? 'Running...' : 'Run Experiment';
+        }
+        if (isLoading) {
+            el.disabled = true;
+        } else if (el.matches('#lab-algorithm-buttons button')) {
+            const algorithm = getLabAlgorithm(el.dataset.algorithm);
+            el.disabled = !!algorithm?.unavailable_reason;
+        } else {
+            el.disabled = false;
+        }
+    });
+    const runBtn = document.getElementById('lab-run-btn');
+    const activeAlgorithm = getLabAlgorithm(selectedLabAlgorithm);
+    if (runBtn && !isLoading) {
+        runBtn.disabled = !activeAlgorithm?.controls?.length || !!activeAlgorithm?.unavailable_reason;
+    }
+}
+
+function collectSelectedLabParams(algorithm) {
+    const params = {};
+    (algorithm?.controls || []).forEach(control => {
+        const element = document.getElementById(`lab-control-${control.name}`);
+        if (element) params[control.name] = element.value;
+    });
+    return params;
+}
+
+async function runSelectedLabExperiment() {
+    if (labRunInFlight) return;
+    const algorithm = getLabAlgorithm(selectedLabAlgorithm);
+    if (!algorithm?.controls?.length || algorithm?.unavailable_reason) {
+        setLabRunStatus(algorithm?.unavailable_reason || 'This model cannot be run with the current configuration.');
+        return;
+    }
+
+    const params = collectSelectedLabParams(algorithm);
+    setLabRunLoading(true);
+    setLabRunStatus(`Running ${algorithm.name} with ${formatParams(params)}...`);
+
+    try {
+        const response = await fetch('/api/run_experiment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ algorithm: algorithm.name, params }),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+            throw new Error(payload.error || `Request failed with status ${response.status}`);
+        }
+
+        liveLabRuns[algorithm.name] = payload.recent_runs || (payload.run ? [payload.run] : []);
+        if (payload.run?.params) {
+            applyLabRunSelection(payload.run);
+        } else {
+            renderSelectedLabRun();
+        }
+        if (payload.sample) {
+            document.getElementById('lab-sample-note').textContent =
+                `Live run sample: Train ${(payload.sample.train_rows || 0).toLocaleString()} / Test ${(payload.sample.test_rows || 0).toLocaleString()} from the sampled split.`;
+        }
+        setLabRunStatus(`Completed live run for ${algorithm.name}.`);
+    } catch (error) {
+        console.error(error);
+        setLabRunStatus(`Run failed: ${error.message}`);
+    } finally {
+        setLabRunLoading(false);
+    }
+}
+
 function getLabSortMetric() {
     const select = document.getElementById('lab-surface-sort');
     return select?.value || 'roc_auc';
@@ -706,8 +802,9 @@ function formatRunLabel(run) {
     return formatParams(run.params || {});
 }
 
-function getSortedLabRuns(algorithm, sortKey = 'roc_auc') {
-    return [...(algorithm?.runs || [])].sort((a, b) => {
+function getSortedLabRuns(algorithmOrRuns, sortKey = 'roc_auc') {
+    const runs = Array.isArray(algorithmOrRuns) ? algorithmOrRuns : (algorithmOrRuns?.runs || []);
+    return [...runs].sort((a, b) => {
         const av = a.metrics?.[sortKey] ?? 0;
         const bv = b.metrics?.[sortKey] ?? 0;
         return bv - av;
@@ -716,12 +813,13 @@ function getSortedLabRuns(algorithm, sortKey = 'roc_auc') {
 
 function renderLabSurface(algorithm, selectedRun) {
     const canvas = document.getElementById('lab-surface-chart');
-    if (!canvas || !algorithm?.runs?.length) return;
+    const combinedRuns = getLabRuns(algorithm);
+    if (!canvas || !combinedRuns.length) return;
 
     const sortKey = getLabSortMetric();
-    const runs = getSortedLabRuns(algorithm, sortKey);
+    const runs = getSortedLabRuns(combinedRuns, sortKey);
     const labels = runs.map(run => formatRunLabel(run));
-    const selectedLabel = selectedRun ? formatRunLabel(selectedRun) : null;
+    const selectedSignature = selectedRun ? getLabRunSignature(selectedRun) : null;
 
     const rocData = runs.map(run => Number(run.metrics?.roc_auc || 0));
     const f1Data = runs.map(run => Number(run.metrics?.f1 || 0));
@@ -736,12 +834,12 @@ function renderLabSurface(algorithm, selectedRun) {
                 {
                     label: 'ROC-AUC',
                     data: rocData,
-                    backgroundColor: runs.map(run => formatRunLabel(run) === selectedLabel ? 'rgba(15,76,129,0.95)' : 'rgba(15,76,129,0.55)'),
+                    backgroundColor: runs.map(run => getLabRunSignature(run) === selectedSignature ? 'rgba(15,76,129,0.95)' : 'rgba(15,76,129,0.55)'),
                 },
                 {
                     label: 'F1',
                     data: f1Data,
-                    backgroundColor: runs.map(run => formatRunLabel(run) === selectedLabel ? 'rgba(185,28,28,0.85)' : 'rgba(185,28,28,0.45)'),
+                    backgroundColor: runs.map(run => getLabRunSignature(run) === selectedSignature ? 'rgba(185,28,28,0.85)' : 'rgba(185,28,28,0.45)'),
                 },
             ],
         },
@@ -782,14 +880,16 @@ function renderLabSurface(algorithm, selectedRun) {
 
 function renderLabRunInventory(algorithm, selectedRun) {
     const tbody = document.getElementById('lab-runs-tbody');
-    if (!tbody || !algorithm?.runs?.length) return;
-    const runs = getSortedLabRuns(algorithm, getLabSortMetric());
-    const selectedLabel = selectedRun ? formatRunLabel(selectedRun) : null;
+    const combinedRuns = getLabRuns(algorithm);
+    if (!tbody || !combinedRuns.length) return;
+    const runs = getSortedLabRuns(combinedRuns, getLabSortMetric());
+    const selectedSignature = selectedRun ? getLabRunSignature(selectedRun) : null;
     tbody.innerHTML = runs.map(run => {
-        const isSelected = selectedLabel && formatRunLabel(run) === selectedLabel;
+        const isSelected = selectedSignature && getLabRunSignature(run) === selectedSignature;
         const metrics = run.metrics || {};
         return `<tr${isSelected ? ' class="active-row"' : ''} style="cursor:pointer">
             <td>${formatRunLabel(run)}</td>
+            <td>${run.source === 'live' ? 'Live' : 'Reference'}</td>
             <td>${Number(metrics.roc_auc || 0).toFixed(4)}</td>
             <td>${Number(metrics.accuracy || 0).toFixed(4)}</td>
             <td>${Number(metrics.recall || 0).toFixed(4)}</td>
@@ -822,8 +922,9 @@ function renderLabAlgorithmButtons() {
     modelLabData.algorithms.forEach(algorithm => {
         const btn = document.createElement('button');
         btn.className = `algorithm-btn${algorithm.name === selectedLabAlgorithm ? ' active' : ''}`;
+        btn.dataset.algorithm = algorithm.name;
         btn.textContent = algorithm.name;
-        btn.disabled = !algorithm.runs?.length;
+        btn.disabled = !!algorithm.unavailable_reason;
         btn.addEventListener('click', () => selectLabAlgorithm(algorithm.name));
         wrap.appendChild(btn);
     });
@@ -844,8 +945,10 @@ function getLabAlgorithm(name) {
 function renderLabControls(algorithm) {
     const wrap = document.getElementById('lab-controls');
     wrap.innerHTML = '';
-    if (!algorithm?.runs?.length) {
+    if (!algorithm?.runs?.length && algorithm?.unavailable_reason) {
         wrap.innerHTML = `<p class="inline-note">${algorithm?.unavailable_reason || 'This algorithm did not produce runs.'}</p>`;
+        setLabRunStatus(algorithm?.unavailable_reason || 'This algorithm is not currently available.');
+        setLabRunLoading(false);
         return;
     }
 
@@ -869,6 +972,7 @@ function renderLabControls(algorithm) {
         label.appendChild(select);
         wrap.appendChild(label);
     });
+    setLabRunLoading(labRunInFlight);
 }
 
 function applyLabRunSelection(run) {
@@ -881,15 +985,16 @@ function applyLabRunSelection(run) {
 }
 
 function findSelectedLabRun(algorithm) {
-    if (!algorithm?.runs?.length) return null;
+    const runs = getLabRuns(algorithm);
+    if (!runs.length) return null;
     const selected = {};
     (algorithm.controls || []).forEach(control => {
         const element = document.getElementById(`lab-control-${control.name}`);
         if (element) selected[control.name] = element.value;
     });
-    return algorithm.runs.find(run => {
+    return runs.find(run => {
         return Object.entries(selected).every(([key, value]) => String(run.params?.[key]) === String(value));
-    }) || algorithm.best || algorithm.runs[0];
+    }) || algorithm.best || runs[0];
 }
 
 function renderSelectedLabRun() {
@@ -909,6 +1014,7 @@ function renderSelectedLabRun() {
         ['Recall', metrics.recall.toFixed(4)],
         ['F1', metrics.f1.toFixed(4)],
         ['ROC-AUC', metrics.roc_auc.toFixed(4)],
+        ['Execution', run.source === 'live' ? 'Live run' : 'Reference'],
         ['Feature matrix', run.feature_mode || 'sampled model-ready encoded features']
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 
@@ -929,6 +1035,9 @@ function renderSelectedLabRun() {
     renderLabRocChart(run);
     renderLabSurface(algorithm, run);
     renderLabRunInventory(algorithm, run);
+    setLabRunStatus(run.source === 'live'
+        ? `Live run completed for ${run.model_name} with ${formatParams(run.params)}.`
+        : `Showing reference run for ${run.model_name}. Press Run to execute this configuration live.`);
 }
 
 function renderLabComparison() {
@@ -953,9 +1062,9 @@ function renderLabComparison() {
 }
 
 function formatParams(params) {
-    const entries = Object.entries(params || {});
+    const entries = Object.entries(params || {}).sort(([a], [b]) => a.localeCompare(b));
     if (!entries.length) return 'default';
-    return entries.map(([key, value]) => `${key}=${value}`).join(', ');
+    return entries.map(([key, value]) => `${key}=${Array.isArray(value) ? value.join(',') : value}`).join(', ');
 }
 
 // ==================== PAGE 6: CLUSTERING LAB ====================

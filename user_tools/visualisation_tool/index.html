@@ -508,6 +508,10 @@
                     <h3>Manual Test Controls</h3>
                     <p class="inline-note" id="lab-sample-note"></p>
                     <div id="lab-controls" class="control-grid"></div>
+                    <div style="margin-top:14px; display:flex; flex-direction:column; gap:8px;">
+                        <button id="lab-run-btn" class="algorithm-btn" type="button">Run Experiment</button>
+                        <p class="inline-note" id="lab-run-status">Choose a configuration, then press Run to train it on the sampled split.</p>
+                    </div>
                 </div>
             </section>
 
@@ -535,6 +539,7 @@
                         <thead>
                             <tr>
                                 <th>Settings</th>
+                                <th>Source</th>
                                 <th>ROC-AUC</th>
                                 <th>Accuracy</th>
                                 <th>Recall</th>

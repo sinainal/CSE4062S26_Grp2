@@ -794,22 +794,9 @@ def stratified_sample(X, y, n_samples, random_state=42):
     return X_sample, y_sample
 
 
-def run_model_lab(model_ready_df, verbose=True):
-    """Generate precomputed hyperparameter runs for the interactive model lab."""
-    X = model_ready_df.drop(columns=['readmitted'])
-    y = model_ready_df['readmitted'].astype(int)
-
-    X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
-    X_train, y_train = stratified_sample(X_train_full, y_train_full, n_samples=6000, random_state=42)
-    X_test, y_test = stratified_sample(X_test_full, y_test_full, n_samples=2500, random_state=43)
-
-    pos_count = int(y_train.sum())
-    neg_count = int(len(y_train) - pos_count)
-    scale_pos_weight = neg_count / pos_count if pos_count else 1.0
-
-    algorithm_specs = {
+def build_model_lab_specs(scale_pos_weight):
+    """Return the interactive model-lab search space and control metadata."""
+    specs = {
         'k-NN': {
             'params': {'n_neighbors': [7, 21, 41], 'weights': ['uniform', 'distance']},
             'factory': lambda p: KNeighborsClassifier(**p),
@@ -862,7 +849,7 @@ def run_model_lab(model_ready_df, verbose=True):
     }
 
     if XGBClassifier is not None:
-        algorithm_specs['XGBoost'] = {
+        specs['XGBoost'] = {
             'params': {'n_estimators': [180, 280], 'max_depth': [3, 4], 'learning_rate': [0.05, 0.1]},
             'factory': lambda p: XGBClassifier(
                 **p,
@@ -882,12 +869,112 @@ def run_model_lab(model_ready_df, verbose=True):
             ],
         }
     else:
-        algorithm_specs['XGBoost'] = {
+        specs['XGBoost'] = {
             'params': {},
             'factory': None,
             'controls': [],
             'unavailable_reason': 'xgboost package is not installed. Install requirements.txt to enable it.',
         }
+
+    return specs
+
+
+def normalize_lab_param_value(name, value):
+    if isinstance(value, (np.integer, int)):
+        return int(value)
+    if isinstance(value, (np.floating, float)):
+        return float(value)
+    if isinstance(value, (np.bool_, bool)):
+        return bool(value)
+    if value is None:
+        return None
+
+    if name == 'hidden_layer_sizes':
+        if isinstance(value, (list, tuple)):
+            return tuple(int(v) for v in value)
+        parts = [part.strip() for part in str(value).split(',') if part.strip()]
+        return tuple(int(part) for part in parts)
+
+    if isinstance(value, str):
+        text = value.strip()
+        if text.lower() == 'true':
+            return True
+        if text.lower() == 'false':
+            return False
+        try:
+            if any(ch in text for ch in ['.', 'e', 'E']):
+                return float(text)
+            return int(text)
+        except ValueError:
+            return text
+
+    return value
+
+
+def normalize_lab_params(algorithm_name, raw_params):
+    parsed = {key: normalize_lab_param_value(key, value) for key, value in (raw_params or {}).items()}
+    if algorithm_name == 'MLP' and 'hidden_layer_sizes' in parsed and not isinstance(parsed['hidden_layer_sizes'], tuple):
+        parsed['hidden_layer_sizes'] = normalize_lab_param_value('hidden_layer_sizes', parsed['hidden_layer_sizes'])
+    return parsed
+
+
+def run_single_model_lab_experiment(model_ready_df, algorithm_name, raw_params, verbose=True):
+    """Train a single live experiment for the selected model-lab configuration."""
+    X = model_ready_df.drop(columns=['readmitted'])
+    y = model_ready_df['readmitted'].astype(int)
+
+    X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    X_train, y_train = stratified_sample(X_train_full, y_train_full, n_samples=6000, random_state=42)
+    X_test, y_test = stratified_sample(X_test_full, y_test_full, n_samples=2500, random_state=43)
+
+    pos_count = int(y_train.sum())
+    neg_count = int(len(y_train) - pos_count)
+    scale_pos_weight = neg_count / pos_count if pos_count else 1.0
+    specs = build_model_lab_specs(scale_pos_weight)
+
+    spec = specs.get(algorithm_name)
+    if not spec or spec.get('factory') is None:
+        raise ValueError(spec.get('unavailable_reason') if spec else f'Unknown algorithm: {algorithm_name}')
+
+    params = normalize_lab_params(algorithm_name, raw_params)
+    clf = spec['factory'](params)
+    result = _evaluate_classifier(
+        algorithm_name, clf, X_train, X_test, y_train, y_test, X.columns,
+        feature_mode='sampled model-ready encoded features',
+    )
+    result['params'] = spec.get('display_params', lambda p: p)(params)
+    result['source'] = 'live'
+    result['sample'] = {
+        'train_rows': int(len(X_train)),
+        'test_rows': int(len(X_test)),
+        'positive_rate_train': round(float(y_train.mean()), 6),
+        'positive_rate_test': round(float(y_test.mean()), 6),
+        'full_train_rows': int(len(X_train_full)),
+        'full_test_rows': int(len(X_test_full)),
+    }
+    if verbose:
+        metrics = result['metrics']
+        print(f"    Live {algorithm_name}: AUC={metrics['roc_auc']} F1={metrics['f1']} Recall={metrics['recall']}")
+    return result
+
+
+def run_model_lab(model_ready_df, verbose=True):
+    """Generate precomputed hyperparameter runs for the interactive model lab."""
+    X = model_ready_df.drop(columns=['readmitted'])
+    y = model_ready_df['readmitted'].astype(int)
+
+    X_train_full, X_test_full, y_train_full, y_test_full = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+    X_train, y_train = stratified_sample(X_train_full, y_train_full, n_samples=6000, random_state=42)
+    X_test, y_test = stratified_sample(X_test_full, y_test_full, n_samples=2500, random_state=43)
+
+    pos_count = int(y_train.sum())
+    neg_count = int(len(y_train) - pos_count)
+    scale_pos_weight = neg_count / pos_count if pos_count else 1.0
+    algorithm_specs = build_model_lab_specs(scale_pos_weight)
 
     algorithms = []
     for name in ['k-NN', 'Naive Bayes', 'Decision Tree', 'Random Forest', 'XGBoost', 'MLP', 'SVM (RBF)']:

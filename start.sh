@@ -16,7 +16,7 @@ DATA_SCRIPT="${SCRIPT_DIR}/data_harness.py"
 TOOL_DIR="${SCRIPT_DIR}/user_tools/visualisation_tool"
 PORT="${PORT:-8081}"
 REFRESH_DATA="${REFRESH_DATA:-0}"
-APP_URL="http://localhost:${PORT}"
+APP_URL="http://127.0.0.1:${PORT}"
 
 open_browser() {
   if command -v xdg-open >/dev/null 2>&1; then
@@ -38,7 +38,7 @@ cleanup() {
 
 wait_for_server() {
   for _ in {1..50}; do
-    if "${PYTHON_BIN}" -c "import sys, urllib.request; urllib.request.urlopen('http://localhost:' + sys.argv[1], timeout=1)" "${PORT}" >/dev/null 2>&1
+    if "${PYTHON_BIN}" -c "import sys, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + sys.argv[1], timeout=1)" "${PORT}" >/dev/null 2>&1
     then
       return 0
     fi
@@ -50,6 +50,8 @@ wait_for_server() {
 trap cleanup EXIT
 
 REPORTS=(
+  "${SCRIPT_DIR}/data/cleaned_diabetic_data.csv"
+  "${SCRIPT_DIR}/data/model_ready_diabetic_data.csv"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/model_ready_data.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/baseline_model_report.json"
   "${SCRIPT_DIR}/user_tools/visualisation_tool/model_lab_report.json"
@@ -80,7 +82,7 @@ else
 fi
 
 echo "Starting the visualization tool at ${APP_URL}"
-"${PYTHON_BIN}" -m http.server "${PORT}" --directory "${TOOL_DIR}" >/tmp/cse4062s26_webapp.log 2>&1 &
+"${PYTHON_BIN}" "${TOOL_DIR}/server.py" --port "${PORT}" --host "127.0.0.1" >/tmp/cse4062s26_webapp.log 2>&1 &
 SERVER_PID=$!
 
 if wait_for_server; then

@@ -14,12 +14,7 @@ This will:
 - open the dashboard on port `8081` by default,
 - reuse existing JSON reports unless `REFRESH_DATA=1` is set,
 - regenerate the outputs only when they are missing or explicitly requested.
-
-If you only want to serve the dashboard after preprocessing is already done:
-
-```bash
-python3 -m http.server 8081 --directory user_tools/visualisation_tool
-```
+It also starts the local API used by the Live Model Lab, so the `Run Experiment` button actually trains the selected configuration on demand.
 
 ## 🛠 Clinical Analysis Tool
 We have developed a custom **Clinical Visualization & Discovery Tool** located in `/user_tools/visualisation_tool/`. 
@@ -29,6 +24,7 @@ We have developed a custom **Clinical Visualization & Discovery Tool** located i
 - **Baseline ML Test:** A simple Logistic Regression baseline is trained directly on the model-ready dataset as a sanity check before adding stronger models.
 - **Model Comparison:** The dashboard now includes feature selection rankings, ROC curves, and significance comparison for the strongest predictive models.
 - **Descriptive Mining:** The clustering lab compares K-Means, hierarchical clustering, and DBSCAN, and the association-mining page summarizes Apriori-style rules.
+- **Live Model Lab:** Choose a classifier, tune the hyperparameters, then press `Run Experiment` to execute that configuration on the sampled split and update the plots immediately.
 - **Usage:** Run `bash start.sh` from the project root to open the app. Set `REFRESH_DATA=1` if you want to regenerate the reports first.
 
 ## 🧼 Data Preprocessing & Cleaning (Core Methodology)
