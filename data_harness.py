@@ -1469,7 +1469,7 @@ def run_regression_model(model_ready_df, cleaned_df, verbose=True):
 
 
 if __name__ == "__main__":
-    BASE = Path('/home/sina/Downloads/data/CSE4062S26_Grp2')
+    BASE = Path(__file__).resolve().parent
     INPUT  = BASE / 'data/diabetes+130-us+hospitals+for+years+1999-2008/diabetic_data.csv'
     OUTPUT = BASE / 'data/cleaned_diabetic_data.csv'
     MODEL_READY_OUTPUT = BASE / 'data/model_ready_diabetic_data.csv'

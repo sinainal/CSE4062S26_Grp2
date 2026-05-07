@@ -414,7 +414,7 @@ def generate_academic_report(csv_path, mapping_path, output_path):
         json.dump(report, f)
 
 if __name__ == "__main__":
-    base_path = "/home/sina/Downloads/data/CSE4062S26_Grp2"
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     csv_file = os.path.join(base_path, "data/diabetes+130-us+hospitals+for+years+1999-2008/diabetic_data.csv")
     mapping_file = os.path.join(base_path, "data/diabetes+130-us+hospitals+for+years+1999-2008/IDS_mapping.csv")
     output_json = os.path.join(base_path, "user_tools/visualisation_tool/academic_data.json")
