@@ -13,6 +13,7 @@ let cleanChart = null;
 let clusterChart = null;
 let mlRocChart = null;
 let labRocChart = null;
+let labSurfaceChart = null;
 let selectedLabAlgorithm = null;
 let selectedClusterMethod = 'kmeans';
 let currentFeatureData = null;
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initModelLabPage();
         initClusteringPage();
         initAprioriPage();
+        initConclusionPage();
         // NZV panel is rendered on demand when modal opens
     }).catch(err => {
         console.error(err);
@@ -79,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cluster-method-select').addEventListener('change', () => renderClusteringPage());
     document.getElementById('cluster-k-select').addEventListener('change', () => renderClusteringPage());
     document.getElementById('cluster-color-mode').addEventListener('change', () => renderClusteringPage());
+    document.getElementById('lab-surface-sort').addEventListener('change', () => renderSelectedLabRun());
 });
 
 // ==================== PAGE SWITCHING ====================
@@ -97,8 +100,15 @@ function switchPage(page) {
     document.getElementById('tab-lab').classList.toggle('active',   page === 'lab');
     document.getElementById('tab-cluster').classList.toggle('active', page === 'cluster');
     document.getElementById('tab-apriori').classList.toggle('active', page === 'apriori');
-    if (page === 'cluster' && clusterChart) {
-        setTimeout(() => clusterChart.resize(), 50);
+    document.getElementById('tab-conclusion').classList.toggle('active', page === 'conclusion');
+    document.getElementById('page-conclusion').style.display = page === 'conclusion' ? '' : 'none';
+    if (['ml', 'lab', 'cluster'].includes(page)) {
+        setTimeout(() => {
+            if (mlRocChart) mlRocChart.resize();
+            if (labRocChart) labRocChart.resize();
+            if (labSurfaceChart) labSurfaceChart.resize();
+            if (clusterChart) clusterChart.resize();
+        }, 50);
     }
 }
 
@@ -687,6 +697,111 @@ function renderLabRocChart(run) {
     });
 }
 
+function getLabSortMetric() {
+    const select = document.getElementById('lab-surface-sort');
+    return select?.value || 'roc_auc';
+}
+
+function formatRunLabel(run) {
+    return formatParams(run.params || {});
+}
+
+function getSortedLabRuns(algorithm, sortKey = 'roc_auc') {
+    return [...(algorithm?.runs || [])].sort((a, b) => {
+        const av = a.metrics?.[sortKey] ?? 0;
+        const bv = b.metrics?.[sortKey] ?? 0;
+        return bv - av;
+    });
+}
+
+function renderLabSurface(algorithm, selectedRun) {
+    const canvas = document.getElementById('lab-surface-chart');
+    if (!canvas || !algorithm?.runs?.length) return;
+
+    const sortKey = getLabSortMetric();
+    const runs = getSortedLabRuns(algorithm, sortKey);
+    const labels = runs.map(run => formatRunLabel(run));
+    const selectedLabel = selectedRun ? formatRunLabel(selectedRun) : null;
+
+    const rocData = runs.map(run => Number(run.metrics?.roc_auc || 0));
+    const f1Data = runs.map(run => Number(run.metrics?.f1 || 0));
+    const accuracyData = runs.map(run => Number(run.metrics?.accuracy || 0));
+
+    if (labSurfaceChart) labSurfaceChart.destroy();
+    labSurfaceChart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'ROC-AUC',
+                    data: rocData,
+                    backgroundColor: runs.map(run => formatRunLabel(run) === selectedLabel ? 'rgba(15,76,129,0.95)' : 'rgba(15,76,129,0.55)'),
+                },
+                {
+                    label: 'F1',
+                    data: f1Data,
+                    backgroundColor: runs.map(run => formatRunLabel(run) === selectedLabel ? 'rgba(185,28,28,0.85)' : 'rgba(185,28,28,0.45)'),
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            onClick: (event, elements) => {
+                if (!elements?.length) return;
+                const index = elements[0].index;
+                const run = runs[index];
+                if (run) applyLabRunSelection(run);
+            },
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: {
+                    callbacks: {
+                        afterTitle: items => {
+                            const idx = items[0]?.dataIndex ?? 0;
+                            const run = runs[idx];
+                            return run ? `Accuracy: ${Number(accuracyData[idx]).toFixed(4)}` : '';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { min: 0, max: 1, title: { display: true, text: sortKey === 'roc_auc' ? 'ROC-AUC' : sortKey.toUpperCase() } },
+                y: { ticks: { autoSkip: false } },
+            },
+        }
+    });
+
+    const best = runs[0];
+    const bestLabel = best ? formatRunLabel(best) : 'n/a';
+    document.getElementById('lab-surface-note').textContent =
+        `Sorting by ${sortKey.toUpperCase()}. The chart ranks all ${runs.length} experiments for ${algorithm.name}; the current best configuration is ${bestLabel}.`;
+}
+
+function renderLabRunInventory(algorithm, selectedRun) {
+    const tbody = document.getElementById('lab-runs-tbody');
+    if (!tbody || !algorithm?.runs?.length) return;
+    const runs = getSortedLabRuns(algorithm, getLabSortMetric());
+    const selectedLabel = selectedRun ? formatRunLabel(selectedRun) : null;
+    tbody.innerHTML = runs.map(run => {
+        const isSelected = selectedLabel && formatRunLabel(run) === selectedLabel;
+        const metrics = run.metrics || {};
+        return `<tr${isSelected ? ' class="active-row"' : ''} style="cursor:pointer">
+            <td>${formatRunLabel(run)}</td>
+            <td>${Number(metrics.roc_auc || 0).toFixed(4)}</td>
+            <td>${Number(metrics.accuracy || 0).toFixed(4)}</td>
+            <td>${Number(metrics.recall || 0).toFixed(4)}</td>
+            <td>${Number(metrics.f1 || 0).toFixed(4)}</td>
+        </tr>`;
+    }).join('');
+    Array.from(tbody.querySelectorAll('tr')).forEach((tr, idx) => {
+        tr.title = 'Click to load this experiment configuration';
+        tr.addEventListener('click', () => applyLabRunSelection(runs[idx]));
+    });
+}
+
 // ==================== PAGE 5: LIVE MODEL LAB ====================
 function initModelLabPage() {
     if (!modelLabData?.algorithms?.length) return;
@@ -756,6 +871,15 @@ function renderLabControls(algorithm) {
     });
 }
 
+function applyLabRunSelection(run) {
+    if (!run?.params) return;
+    Object.entries(run.params).forEach(([key, value]) => {
+        const element = document.getElementById(`lab-control-${key}`);
+        if (element) element.value = String(value);
+    });
+    renderSelectedLabRun();
+}
+
 function findSelectedLabRun(algorithm) {
     if (!algorithm?.runs?.length) return null;
     const selected = {};
@@ -803,6 +927,8 @@ function renderSelectedLabRun() {
         featureRows.length ? 'Tree-based models expose impurity feature importances for the current run.' : 'This model type does not expose a direct feature-importance table in the current lab configuration.';
     renderImportanceTable('lab-feature-table', featureRows);
     renderLabRocChart(run);
+    renderLabSurface(algorithm, run);
+    renderLabRunInventory(algorithm, run);
 }
 
 function renderLabComparison() {
@@ -1015,6 +1141,61 @@ function initAprioriPage() {
     document.getElementById('apriori-rules-tbody').innerHTML = (associationRulesData.rules || []).slice(0, 12).map(rule => (
         `<tr><td>${rule.antecedent.join(' + ')}</td><td>${rule.consequent.join(' + ')}</td><td>${Number(rule.support).toFixed(4)}</td><td>${Number(rule.confidence).toFixed(4)}</td><td>${rule.lift !== null ? Number(rule.lift).toFixed(4) : 'n/a'}</td></tr>`
     )).join('');
+}
+
+function initConclusionPage() {
+    const bestModel = baselineModelData?.best_model || baselineModelData;
+    const bestCluster = getBestClusterSummary();
+    const topRule = associationRulesData?.rules?.[0];
+    const bestAuc = bestModel?.metrics?.roc_auc;
+
+    document.getElementById('conclusion-best-model').textContent = bestModel?.model_name || 'n/a';
+    document.getElementById('conclusion-best-auc').textContent = bestAuc !== undefined ? Number(bestAuc).toFixed(3) : 'n/a';
+    document.getElementById('conclusion-best-cluster').textContent = bestCluster || 'n/a';
+    document.getElementById('conclusion-top-rule').textContent = topRule
+        ? `${topRule.antecedent.join(' + ')} -> ${topRule.consequent.join(' + ')}`
+        : 'n/a';
+
+    document.getElementById('conclusion-learning-tbody').innerHTML = [
+        ['Descriptive analysis', 'K-Means, hierarchical clustering, and DBSCAN expose different patient groupings; Apriori surfaces interpretable co-occurrence patterns.'],
+        ['Predictive analysis', `The strongest current classifier is ${bestModel?.model_name || 'n/a'} with ROC-AUC ${bestAuc !== undefined ? Number(bestAuc).toFixed(3) : 'n/a'}.`],
+        ['Feature selection', 'Mutual information, chi-square, logistic coefficients, and random-forest importances agree on a compact set of informative clinical signals.'],
+        ['Interpretation', 'The pipeline now supports a complete story from raw data profiling to model comparison and rule mining.'],
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+
+    document.getElementById('conclusion-snapshot-tbody').innerHTML = [
+        ['Rows after cleaning', cleaningData?.stats?.kept_rows?.toLocaleString?.() || 'n/a'],
+        ['Model-ready columns', modelReadyData?.model_ready_columns?.toLocaleString?.() || 'n/a'],
+        ['Classification experiments', modelLabData?.algorithms?.length?.toLocaleString?.() || 'n/a'],
+        ['Association rules mined', associationRulesData?.rules?.length?.toLocaleString?.() || 'n/a'],
+        ['Clustering methods', clusteringData?.methods ? Object.keys(clusteringData.methods).length.toLocaleString() : 'n/a'],
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+
+    document.getElementById('conclusion-next-steps').innerHTML = [
+        'Add a lightweight ROC comparison for each selected parameter setting directly in the live experiment surface.',
+        'Export the conclusion panel as a PDF slide for the final presentation.',
+        'Optionally extend predictive experiments with regression or fairness-aware analysis.',
+        'If you want one more iteration, add SHAP or permutation importance for the top model.',
+    ].map(item => `<li>${item}</li>`).join('');
+}
+
+function getBestClusterSummary() {
+    if (!clusteringData?.methods) return null;
+    let best = null;
+    let bestLabel = null;
+    Object.values(clusteringData.methods).forEach(method => {
+        const candidate = method.best;
+        if (!candidate) return;
+        if (!best || (candidate.silhouette ?? -1) > (best.silhouette ?? -1)) {
+            best = candidate;
+            bestLabel = method.label;
+        }
+    });
+    if (!best) return null;
+    if (best.eps !== undefined) {
+        return `${bestLabel}: eps=${best.eps}, min_samples=${best.min_samples}`;
+    }
+    return `${bestLabel}: k=${best.cluster_count}`;
 }
 
 // initNZVPanel removed — code generation moved into openNZVModal()

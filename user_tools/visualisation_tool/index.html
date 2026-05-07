@@ -18,10 +18,11 @@
                 <button class="tab-btn active" id="tab-raw" onclick="switchPage('raw')">I. Raw Data Analysis</button>
                 <button class="tab-btn" id="tab-clean" onclick="switchPage('clean')">II. Data Cleaning Audit</button>
                 <button class="tab-btn" id="tab-ready" onclick="switchPage('ready')">III. Model-Ready Data</button>
-                <button class="tab-btn" id="tab-ml" onclick="switchPage('ml')">IV. Baseline ML Test</button>
-                <button class="tab-btn" id="tab-lab" onclick="switchPage('lab')">V. Live Model Lab</button>
-                <button class="tab-btn" id="tab-cluster" onclick="switchPage('cluster')">VI. Clustering Lab</button>
-                <button class="tab-btn" id="tab-apriori" onclick="switchPage('apriori')">VII. Association Mining</button>
+                <button class="tab-btn" id="tab-cluster" onclick="switchPage('cluster')">IV. Clustering Lab</button>
+                <button class="tab-btn" id="tab-apriori" onclick="switchPage('apriori')">V. Association Mining</button>
+                <button class="tab-btn" id="tab-ml" onclick="switchPage('ml')">VI. Baseline ML Test</button>
+                <button class="tab-btn" id="tab-lab" onclick="switchPage('lab')">VII. Live Model Lab</button>
+                <button class="tab-btn" id="tab-conclusion" onclick="switchPage('conclusion')">VIII. Conclusions</button>
             </nav>
         </header>
 
@@ -500,13 +501,48 @@
             <section class="model-ready-grid lab-layout">
                 <div class="analytics-card">
                     <h3>Algorithm</h3>
-                    <p class="inline-note">Choose one of the requested classifiers, then tune the available hyperparameters. The dashboard updates instantly from precomputed validation runs.</p>
+                    <p class="inline-note">Choose one of the requested classifiers, then tune the available hyperparameters. Every control combination maps to a distinct precomputed experiment, so you can compare results immediately without rerunning the full pipeline.</p>
                     <div id="lab-algorithm-buttons" class="algorithm-grid"></div>
                 </div>
                 <div class="analytics-card">
                     <h3>Manual Test Controls</h3>
                     <p class="inline-note" id="lab-sample-note"></p>
                     <div id="lab-controls" class="control-grid"></div>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card chart-card">
+                    <h3>Experiment Surface</h3>
+                    <p class="inline-note" id="lab-surface-note"></p>
+                    <div class="control-grid" style="margin-bottom: 14px;">
+                        <label class="control-field">
+                            <span>Sort runs by</span>
+                            <select id="lab-surface-sort">
+                                <option value="roc_auc">ROC-AUC</option>
+                                <option value="f1">F1</option>
+                                <option value="accuracy">Accuracy</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="lab-surface-chart"></canvas>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Experiment Inventory</h3>
+                    <table class="academic-table">
+                        <thead>
+                            <tr>
+                                <th>Settings</th>
+                                <th>ROC-AUC</th>
+                                <th>Accuracy</th>
+                                <th>Recall</th>
+                                <th>F1</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lab-runs-tbody"></tbody>
+                    </table>
                 </div>
             </section>
 
@@ -706,6 +742,51 @@
                         </thead>
                         <tbody id="apriori-rules-tbody"></tbody>
                     </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- ===================== PAGE 8: CONCLUSIONS ===================== -->
+        <div id="page-conclusion" style="display:none;">
+            <section class="overview-panel">
+                <div class="stat-box">
+                    <h4>Best Model</h4>
+                    <p id="conclusion-best-model">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Best AUC</h4>
+                    <p id="conclusion-best-auc">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Best Clustering</h4>
+                    <p id="conclusion-best-cluster">...</p>
+                </div>
+                <div class="stat-box">
+                    <h4>Top Rule</h4>
+                    <p id="conclusion-top-rule">...</p>
+                </div>
+            </section>
+
+            <section class="model-ready-grid">
+                <div class="analytics-card">
+                    <h3>What We Learned</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="conclusion-learning-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="analytics-card">
+                    <h3>Project Snapshot</h3>
+                    <table class="academic-table stats-table">
+                        <tbody id="conclusion-snapshot-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="full-width-section">
+                <div class="analytics-card">
+                    <h3>Recommended Next Steps</h3>
+                    <p class="inline-note">This panel summarizes the strongest current evidence and highlights what would most improve the final presentation package.</p>
+                    <ul id="conclusion-next-steps" class="ref-list"></ul>
                 </div>
             </section>
         </div>
