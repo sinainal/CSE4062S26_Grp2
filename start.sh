@@ -14,7 +14,8 @@ fi
 
 DATA_SCRIPT="${SCRIPT_DIR}/data_harness.py"
 TOOL_DIR="${SCRIPT_DIR}/user_tools/visualisation_tool"
-PORT="${PORT:-8000}"
+PORT="${PORT:-8081}"
+REFRESH_DATA="${REFRESH_DATA:-0}"
 APP_URL="http://localhost:${PORT}"
 
 open_browser() {
@@ -48,8 +49,35 @@ wait_for_server() {
 
 trap cleanup EXIT
 
-echo "Running preprocessing and report generation..."
-"${PYTHON_BIN}" "${DATA_SCRIPT}"
+REPORTS=(
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/model_ready_data.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/baseline_model_report.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/model_lab_report.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/clustering_report.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/association_rules_report.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/feature_selection_report.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/feature_subset_report.json"
+  "${SCRIPT_DIR}/user_tools/visualisation_tool/nzv_report.json"
+)
+
+needs_refresh=0
+if [[ "${REFRESH_DATA}" == "1" ]]; then
+  needs_refresh=1
+else
+  for report in "${REPORTS[@]}"; do
+    if [[ ! -f "${report}" ]]; then
+      needs_refresh=1
+      break
+    fi
+  done
+fi
+
+if [[ "${needs_refresh}" == "1" ]]; then
+  echo "Refreshing preprocessing outputs..."
+  "${PYTHON_BIN}" "${DATA_SCRIPT}"
+else
+  echo "Using existing preprocessing outputs. Set REFRESH_DATA=1 to regenerate them."
+fi
 
 echo "Starting the visualization tool at ${APP_URL}"
 "${PYTHON_BIN}" -m http.server "${PORT}" --directory "${TOOL_DIR}" >/tmp/cse4062s26_webapp.log 2>&1 &

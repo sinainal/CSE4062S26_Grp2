@@ -11,14 +11,14 @@ bash start.sh
 ```
 
 This will:
-- generate the cleaned dataset and model-ready outputs,
-- refresh the JSON reports used by the dashboard,
-- start the local visualization server on port `8000`.
+- open the dashboard on port `8081` by default,
+- reuse existing JSON reports unless `REFRESH_DATA=1` is set,
+- regenerate the outputs only when they are missing or explicitly requested.
 
 If you only want to serve the dashboard after preprocessing is already done:
 
 ```bash
-python3 -m http.server 8000 --directory user_tools/visualisation_tool
+python3 -m http.server 8081 --directory user_tools/visualisation_tool
 ```
 
 ## 🛠 Clinical Analysis Tool
@@ -29,7 +29,7 @@ We have developed a custom **Clinical Visualization & Discovery Tool** located i
 - **Baseline ML Test:** A simple Logistic Regression baseline is trained directly on the model-ready dataset as a sanity check before adding stronger models.
 - **Model Comparison:** The dashboard now includes feature selection rankings, ROC curves, and significance comparison for the strongest predictive models.
 - **Descriptive Mining:** The clustering lab compares K-Means, hierarchical clustering, and DBSCAN, and the association-mining page summarizes Apriori-style rules.
-- **Usage:** Run `bash start.sh` from the project root, or `python3 -m http.server 8000 --directory user_tools/visualisation_tool` if the reports are already generated.
+- **Usage:** Run `bash start.sh` from the project root to open the app. Set `REFRESH_DATA=1` if you want to regenerate the reports first.
 
 ## 🧼 Data Preprocessing & Cleaning (Core Methodology)
 Our preprocessing strategy is strictly aligned with the original **Strack et al. (2014)** study and modern ML best practices (2024). The logic is implemented in `data_harness.py`.

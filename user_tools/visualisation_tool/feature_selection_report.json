@@ -3,84 +3,84 @@
     "mutual_information": {
       "top_features": [
         {
-          "feature": "rosiglitazone_No",
-          "score": 0.016603
+          "feature": "glimepiride_No",
+          "score": 0.016757
         },
         {
-          "feature": "glimepiride_No",
-          "score": 0.015495
+          "feature": "rosiglitazone_No",
+          "score": 0.015759
         },
         {
           "feature": "max_glu_serum_None",
-          "score": 0.015255
-        },
-        {
-          "feature": "metformin_No",
-          "score": 0.012922
-        },
-        {
-          "feature": "diabetesMed_Yes",
-          "score": 0.012853
-        },
-        {
-          "feature": "glyburide_No",
-          "score": 0.011604
+          "score": 0.014242
         },
         {
           "feature": "race_Caucasian",
-          "score": 0.011135
+          "score": 0.012674
+        },
+        {
+          "feature": "metformin_No",
+          "score": 0.012475
         },
         {
           "feature": "A1Cresult_None",
-          "score": 0.011123
+          "score": 0.012219
         },
         {
           "feature": "insulin_No",
-          "score": 0.010963
-        },
-        {
-          "feature": "gender_Female",
-          "score": 0.010466
-        },
-        {
-          "feature": "change_No",
-          "score": 0.010306
-        },
-        {
-          "feature": "discharge_disposition_id",
-          "score": 0.009162
-        },
-        {
-          "feature": "pioglitazone_No",
-          "score": 0.009041
+          "score": 0.01144
         },
         {
           "feature": "glipizide_No",
-          "score": 0.008742
+          "score": 0.011343
+        },
+        {
+          "feature": "diabetesMed_Yes",
+          "score": 0.011124
+        },
+        {
+          "feature": "glyburide_No",
+          "score": 0.010537
+        },
+        {
+          "feature": "pioglitazone_No",
+          "score": 0.010166
+        },
+        {
+          "feature": "change_No",
+          "score": 0.009958
+        },
+        {
+          "feature": "gender_Female",
+          "score": 0.008592
         },
         {
           "feature": "gender_Male",
-          "score": 0.008565
+          "score": 0.008213
+        },
+        {
+          "feature": "discharge_disposition_id",
+          "score": 0.008147
         },
         {
           "feature": "medical_specialty_Missing",
-          "score": 0.008364
-        },
-        {
-          "feature": "num_medications_changed",
-          "score": 0.007949
+          "score": 0.007618
         },
         {
           "feature": "change_Ch",
-          "score": 0.007875
+          "score": 0.007227
         },
         {
           "feature": "number_inpatient",
-          "score": 0.006378
+          "score": 0.007169
         },
         {
-          "feature": "diag_3_Other",
-          "score": 0.004877
+          "feature": "num_medications_changed",
+          "score": 0.006722
+        },
+        {
+          "feature": "diag_3_Circulatory",
+          "score": 0.004208
         }
       ]
     },
@@ -339,26 +339,26 @@
   },
   "selected_feature_sets": {
     "mutual_information_top20": [
-      "rosiglitazone_No",
       "glimepiride_No",
+      "rosiglitazone_No",
       "max_glu_serum_None",
-      "metformin_No",
-      "diabetesMed_Yes",
-      "glyburide_No",
       "race_Caucasian",
+      "metformin_No",
       "A1Cresult_None",
       "insulin_No",
-      "gender_Female",
-      "change_No",
-      "discharge_disposition_id",
-      "pioglitazone_No",
       "glipizide_No",
+      "diabetesMed_Yes",
+      "glyburide_No",
+      "pioglitazone_No",
+      "change_No",
+      "gender_Female",
       "gender_Male",
+      "discharge_disposition_id",
       "medical_specialty_Missing",
-      "num_medications_changed",
       "change_Ch",
       "number_inpatient",
-      "diag_3_Other"
+      "num_medications_changed",
+      "diag_3_Circulatory"
     ],
     "chi_square_top20": [
       "discharge_disposition_id",
